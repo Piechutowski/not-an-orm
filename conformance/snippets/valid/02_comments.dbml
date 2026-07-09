@@ -1,0 +1,6 @@
+// spec: §3.3 — both comment forms are trivia
+// line comment
+/* block
+   comment spanning
+   lines */
+Table t { id int } // trailing comment

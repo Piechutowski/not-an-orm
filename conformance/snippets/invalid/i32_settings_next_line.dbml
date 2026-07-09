@@ -1,0 +1,5 @@
+// spec: §4.2.5 — settings must be on the same line as the construct
+Table t {
+  id int
+  [pk]
+}

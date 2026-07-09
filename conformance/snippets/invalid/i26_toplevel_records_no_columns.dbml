@@ -1,0 +1,5 @@
+// spec: §6.10.1 — top-level records must list columns
+Table t { id int }
+records t {
+  1
+}

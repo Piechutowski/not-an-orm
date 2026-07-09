@@ -1,0 +1,16 @@
+// spec: §6.9 — partial with settings, indexes; injection into table
+TablePartial base_template [headercolor: #ff0000] {
+  id int [pk, not null]
+  created_at timestamp [default: `now()`]
+}
+TablePartial email_index {
+  email varchar [unique]
+  indexes {
+    email [unique]
+  }
+}
+Table users {
+  ~base_template
+  ~email_index
+  name varchar
+}

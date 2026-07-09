@@ -1,0 +1,19 @@
+// spec: §6.5 — all four index-key forms and every index setting
+Table bookings {
+  id integer
+  country varchar
+  booking_date date
+  created_at timestamp
+
+  indexes {
+    (id, country) [pk]
+    created_at [name: 'created_at_index', note: 'Date']
+    booking_date
+    (country, booking_date) [unique]
+    booking_date [type: hash]
+    booking_date [type: btree]
+    (`id*2`)
+    (`id*3`, `getdate()`)
+    (`id*3`, id)
+  }
+}

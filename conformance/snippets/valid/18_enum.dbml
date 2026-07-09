@@ -1,0 +1,16 @@
+// spec: §6.8 — enum with note, quoted values, schema qualification
+Enum job_status {
+  created [note: 'Waiting to be processed']
+  running
+  done
+  failure
+}
+Enum v2.grade {
+  "A+"
+  "A"
+  "Not Yet Set"
+}
+Table jobs {
+  status job_status
+  grade v2.grade
+}

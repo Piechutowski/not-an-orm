@@ -1,0 +1,10 @@
+// spec: §6.6 — checks block with named constraint
+Table users {
+  wealth integer
+  debt integer
+
+  checks {
+    `debt + wealth >= 0` [name: 'chk_positive_money']
+    `debt >= 0`
+  }
+}

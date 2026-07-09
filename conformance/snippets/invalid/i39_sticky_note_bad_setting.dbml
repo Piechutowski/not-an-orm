@@ -1,0 +1,2 @@
+// spec: §6.11.4 — only color is a sticky note setting
+Note n [headercolor: #fff] { 'text' }

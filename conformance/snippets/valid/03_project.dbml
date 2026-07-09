@@ -1,0 +1,6 @@
+// spec: §6.1 — project with well-known and custom properties plus note
+Project ecommerce {
+  database_type: 'PostgreSQL'
+  custom_key: 'implementations must accept arbitrary keys'
+  Note: 'project documentation'
+}

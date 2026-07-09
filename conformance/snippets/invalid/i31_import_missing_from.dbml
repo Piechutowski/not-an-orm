@@ -1,0 +1,2 @@
+// spec: §7 — import requires 'from' and a string path
+use * './x.dbml'

@@ -1,0 +1,6 @@
+// spec: §3.4.3 — quoted identifiers with spaces and escapes
+Table "user accounts" {
+  "full name" varchar
+  "weird\"name" int
+  id "double precision"
+}

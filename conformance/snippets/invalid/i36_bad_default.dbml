@@ -1,0 +1,4 @@
+// spec: §6.4 — default must be number, string, boolean, null or expression
+Table t {
+  id int [default: #abc]
+}

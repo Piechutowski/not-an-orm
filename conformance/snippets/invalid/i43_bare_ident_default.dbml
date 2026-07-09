@@ -1,0 +1,4 @@
+// spec: §6.4 — a bare identifier is not a default value (use Enum.value)
+Table t {
+  x int [default: something]
+}

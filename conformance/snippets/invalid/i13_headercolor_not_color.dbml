@@ -1,0 +1,2 @@
+// spec: §6.2.3 — headercolor must be a color literal
+Table t [headercolor: 'red'] { id int }

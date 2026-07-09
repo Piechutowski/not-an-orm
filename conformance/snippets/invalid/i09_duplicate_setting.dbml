@@ -1,0 +1,4 @@
+// spec: §4.2.4 — a setting may appear at most once
+Table t {
+  id int [unique, unique]
+}

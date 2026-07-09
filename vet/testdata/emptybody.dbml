@@ -1,0 +1,17 @@
+// analyzers: emptybody
+Project p { //WANT emptybody
+}
+Table t {
+  id int
+  indexes { //WANT emptybody
+  }
+  checks { //WANT emptybody
+  }
+}
+TableGroup g { //WANT emptybody
+}
+DiagramView v {
+  Tables { //WANT emptybody
+  }
+  Notes { * }
+}

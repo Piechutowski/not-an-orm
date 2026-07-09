@@ -1,0 +1,19 @@
+// spec: §6.13 — wildcard, lists, empty view
+Table users { id int }
+Table orders { id int }
+Table core.settings { id int }
+DiagramView full_view {
+  Tables { * }
+  Notes { * }
+  TableGroups { * }
+  Schemas { * }
+}
+DiagramView empty_view {
+}
+DiagramView sales_view {
+  Tables {
+    users
+    orders
+  }
+  Schemas { core }
+}

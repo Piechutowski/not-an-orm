@@ -1,0 +1,5 @@
+// spec: §8.2.4 — enum values must be unique within the enum
+Enum status {
+  active
+  active
+}

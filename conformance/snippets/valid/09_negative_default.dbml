@@ -1,0 +1,4 @@
+// spec: §6.4 — negative numeric default
+Table t {
+  balance int [default: -100]
+}

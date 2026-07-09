@@ -1,0 +1,29 @@
+// the unpleasant cases: quoted names, spaces, unsigned and spaced types,
+// initialisms, digit-leading names, non-public schemas, keyword-ish names
+Enum core.audit_kind {
+  "read write" [note: 'Value with a space']
+  admin
+}
+Table users {
+  id bigint [pk]
+}
+Table core.users [note: 'Same base name as public users; schema prefix disambiguates'] {
+  id "bigint unsigned" [pk]
+  api_key uuid [not null]
+  homepage_url varchar
+  http_status int
+  "full name" varchar [not null, note: 'Quoted name with a space']
+  precision_value "double precision"
+  balance money
+  kind core.audit_kind [not null]
+  type varchar [note: 'Column named like a Go keyword']
+  func int
+}
+Table "2fa_codes" {
+  code char(6) [not null]
+  user_id bigint [not null, ref: > users.id]
+  expires_at timestamp [not null]
+  indexes {
+    (user_id, code) [pk]
+  }
+}

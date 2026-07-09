@@ -1,0 +1,10 @@
+// spec: §6.12 — group with settings, note def inside, qualified member
+Table merchants { id int }
+Table countries { id int }
+Table core.users { id int }
+TableGroup e_commerce [color: #3498DB, note: 'group note'] {
+  merchants
+  countries
+  core.users
+  Note: 'Contains e-commerce tables'
+}

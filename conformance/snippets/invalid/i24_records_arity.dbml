@@ -1,0 +1,8 @@
+// spec: §6.10.3 — row must supply exactly as many values as columns
+Table t {
+  id int
+  name varchar
+  records (id, name) {
+    1, 'a', 'extra'
+  }
+}

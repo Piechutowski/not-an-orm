@@ -1,0 +1,12 @@
+// spec: §6.3, §6.4 — every column setting; repeatable check
+Table t {
+  id integer [pk, increment]
+  id2 integer [primary key]
+  a varchar [not null, unique, default: 'direct', note: 'source']
+  b int [null, default: 123]
+  c float [default: 123.456]
+  d boolean [default: false]
+  e text [default: null]
+  f timestamp [default: `now() - interval '5 days'`]
+  g int [check: `g > 0`, check: `g < 100`]
+}

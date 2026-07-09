@@ -1,0 +1,6 @@
+// self-referencing hierarchy with a nullable FK to the same table
+Table employees {
+  id bigint [pk, increment]
+  full_name varchar [not null]
+  manager_id bigint [ref: > employees.id, note: 'NULL for the CEO']
+}

@@ -1,0 +1,10 @@
+// spec: §6.11 — sticky notes with color and none
+Note single_line_note {
+  'This is a single line note'
+}
+Note reminder [color: #F4D03F] {
+  'This is a reminder'
+}
+Note no_color [color: none] {
+  'This note has no background color'
+}

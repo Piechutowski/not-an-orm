@@ -1,0 +1,7 @@
+// spec: §3.4 — Unicode identifiers and digit-leading identifiers
+Table zażółć {
+  gęślą int
+  jaźń varchar
+  2fa_codes int
+  état varchar
+}

@@ -1,0 +1,5 @@
+// spec: §8.2.4 — column names must be unique within a table
+Table t {
+  id int
+  id varchar
+}

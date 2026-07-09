@@ -1,0 +1,5 @@
+// spec: §6.7.2 — composite endpoints must have equal column counts
+Table a { x int
+  y int }
+Table b { x int }
+Ref: a.(x, y) > b.(x)

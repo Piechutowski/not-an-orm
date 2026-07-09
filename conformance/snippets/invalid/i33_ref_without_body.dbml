@@ -1,0 +1,3 @@
+// spec: §6.7 — Ref requires ':' body or '{' body
+Table a { x int }
+Ref orphan

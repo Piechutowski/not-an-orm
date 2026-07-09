@@ -1,0 +1,11 @@
+// one-to-one: profile row per user, FK is also the unique key
+Table users {
+  id bigint [pk]
+  email varchar [not null, unique]
+}
+Table user_profiles {
+  user_id bigint [pk, note: 'Also the FK: one profile per user']
+  bio text
+  avatar_url varchar
+}
+Ref: users.id - user_profiles.user_id

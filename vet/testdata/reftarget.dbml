@@ -1,0 +1,26 @@
+// analyzers: reftarget
+Table users {
+  id int [pk]
+  email varchar
+}
+Table a { x int }
+Table b { y varchar }
+Ref: a.x > users.id
+Ref: b.y > users.email //WANT reftarget
+
+// composite endpoints: unique is judged against composite indexes
+Table merchants {
+  mid int
+  country varchar
+  region varchar
+  indexes {
+    (mid, country) [unique]
+  }
+}
+Table offices {
+  mid int
+  country varchar
+  region varchar
+}
+Ref: offices.(mid, country) > merchants.(mid, country)
+Ref: offices.(mid, region) > merchants.(mid, region) //WANT reftarget

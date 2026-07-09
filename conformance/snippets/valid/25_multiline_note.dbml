@@ -1,0 +1,9 @@
+// spec: §3.7 — multi-line string with escapes and continuation
+Project p {
+  Note: '''
+    # Heading
+    Escaped quote: \' and backslash: \\
+    continued \
+    line
+  '''
+}

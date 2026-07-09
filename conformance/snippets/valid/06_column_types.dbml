@@ -1,0 +1,10 @@
+// spec: §6.3 — type arguments, quoted types, schema-qualified enum types
+Enum v2.job_status { created }
+Table t {
+  a varchar(255)
+  b decimal(10,2)
+  c "double precision"
+  d "bigint unsigned"
+  e v2.job_status
+  f job_status
+}

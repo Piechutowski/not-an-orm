@@ -1,0 +1,11 @@
+// spec: §6.7.1 — all four cardinality operators
+Table users { id int }
+Table posts { user_id int }
+Table likes { user_id int }
+Table infos { user_id int }
+Table authors { id int }
+Table books { id int }
+Ref: users.id < posts.user_id
+Ref: likes.user_id > users.id
+Ref: users.id - infos.user_id
+Ref: authors.id <> books.id

@@ -1,0 +1,7 @@
+// spec: §6.6.2 — only 'name' is a valid check setting
+Table t {
+  id int
+  checks {
+    `id > 0` [label: 'x']
+  }
+}

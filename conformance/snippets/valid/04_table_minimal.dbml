@@ -1,0 +1,4 @@
+// spec: §6.2 — minimal table
+Table users {
+  id int
+}

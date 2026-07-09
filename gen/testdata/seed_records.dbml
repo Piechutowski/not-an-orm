@@ -1,0 +1,22 @@
+// records at both positions; SQL backends turn them into INSERTs
+Table currencies {
+  code char(3) [pk]
+  name varchar [not null]
+
+  records (code, name) {
+    'EUR', 'Euro'
+    'PLN', 'Polish złoty'
+  }
+}
+Table rates [note: 'Seeded exchange rates'] {
+  id integer [pk, increment]
+  currency_code char(3) [not null, ref: > currencies.code]
+  rate decimal(12,6) [not null]
+  fetched_at timestamp [not null]
+  active boolean [not null]
+  comment varchar
+}
+records rates(id, currency_code, rate, fetched_at, active, comment) {
+  1, 'EUR', '4.32', '2024-01-15 10:30:00', true, null
+  2, 'PLN', '1.0', `datetime('now')`, false,
+}

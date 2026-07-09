@@ -1,0 +1,12 @@
+// analyzers: reftype
+Table users {
+  id integer [pk]
+}
+Table posts {
+  user_id bigint
+  ok_id integer
+}
+Ref: posts.user_id > users.id //WANT reftype
+Ref good {
+  posts.ok_id > users.id
+}

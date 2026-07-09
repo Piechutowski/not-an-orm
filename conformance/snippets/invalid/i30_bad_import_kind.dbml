@@ -1,0 +1,2 @@
+// spec: §7.3 — import kind must be one of the six element kinds
+use { view v } from './x'

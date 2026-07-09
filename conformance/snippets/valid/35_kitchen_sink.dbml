@@ -1,0 +1,52 @@
+// spec: §5 — representative complete schema
+Project blog {
+  database_type: 'PostgreSQL'
+  Note: 'Blogging platform'
+}
+
+Enum post_status {
+  draft
+  published [note: 'visible to readers']
+}
+
+TablePartial timestamps {
+  created_at timestamp [default: `now()`, not null]
+  updated_at timestamp
+}
+
+Table users as U [headercolor: #175EE8] {
+  id integer [pk, increment]
+  username varchar(80) [not null, unique]
+  ~timestamps
+  Note: 'Registered users'
+
+  indexes {
+    username [unique, name: 'idx_username']
+  }
+}
+
+Table posts {
+  id integer [pk]
+  title varchar [not null]
+  status post_status [default: 'draft']
+  author_id integer [not null, ref: > U.id]
+  ~timestamps
+
+  checks {
+    `length(title) > 0` [name: 'chk_title']
+  }
+
+  records (id, title, status, author_id) {
+    1, 'Hello', post_status.published, 1
+  }
+}
+
+TableGroup content [color: #cccccc] {
+  posts
+}
+
+Note todo [color: #F4D03F] { 'add comments table' }
+
+DiagramView main {
+  Tables { * }
+}

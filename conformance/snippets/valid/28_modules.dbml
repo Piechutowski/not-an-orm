@@ -1,0 +1,12 @@
+// spec: §7 — import-all, selective with aliases, every kind, reuse
+use * from './base'
+use {
+  table auth.users as u
+  table auth.roles as r
+  enum job_status
+  tablepartial base_template
+  note reminder
+  schema auth
+  tablegroup auth_core
+} from './auth.dbml'
+reuse * from './common/index'

@@ -1,0 +1,9 @@
+// spec: §6.7.4 — inline form; repeatable ref setting
+Table users {
+  id int [ref: < posts.user_id, ref: < reviews.user_id]
+}
+Table posts { user_id int }
+Table reviews { user_id int }
+Table infos {
+  user_id int [ref: - users.id]
+}

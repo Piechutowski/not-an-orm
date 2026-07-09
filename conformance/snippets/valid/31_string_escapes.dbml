@@ -1,0 +1,7 @@
+// spec: §3.8 — escape sequences including \uHHHH and unknown escapes
+Table t {
+  a varchar [note: 'tab\there']
+  b varchar [note: 'unicode A char']
+  c varchar [note: 'unknown \q escape yields q']
+  d varchar [default: 'it\'s escaped']
+}

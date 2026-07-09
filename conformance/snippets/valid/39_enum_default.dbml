@@ -1,0 +1,6 @@
+// spec: §6.4 — an enum constant is a valid default value
+Enum status { active
+  inactive }
+Table t {
+  s status [default: status.active]
+}

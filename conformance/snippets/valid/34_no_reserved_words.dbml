@@ -1,0 +1,11 @@
+// spec: §3.5 — keywords are contextual, usable as ordinary names
+Table table {
+  note varchar
+  indexes int
+  checks int
+  records int
+  ref varchar
+  enum int
+  from int
+  as int
+}

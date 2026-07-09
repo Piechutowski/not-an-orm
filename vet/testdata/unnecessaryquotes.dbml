@@ -1,0 +1,6 @@
+// analyzers: unnecessaryquotes
+Table "users" { //WANT unnecessaryquotes
+  "id" int //WANT unnecessaryquotes
+  "full name" varchar
+  x "double precision"
+}

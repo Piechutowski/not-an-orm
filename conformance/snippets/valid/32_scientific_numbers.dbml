@@ -1,0 +1,7 @@
+// spec: §3.9 — scientific notation
+Table t {
+  a float [default: 1e2]
+  b float [default: 1.5e10]
+  c float [default: 3.14e-5]
+  d float [default: 2E+3]
+}

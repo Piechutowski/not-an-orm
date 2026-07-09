@@ -1,0 +1,6 @@
+// spec: §6.10.2 — at most one records block per table
+Table t {
+  id int
+  records (id) { 1 }
+  records (id) { 2 }
+}

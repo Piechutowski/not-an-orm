@@ -1,0 +1,11 @@
+// spec: §6.11 — colon form and block form of note def
+Table users {
+  id int
+  Note: 'Stores user data'
+}
+Table posts {
+  id int
+  Note {
+    'block form'
+  }
+}

@@ -1,0 +1,23 @@
+// analyzers: shadowedcolumn
+TablePartial base {
+  id int
+  created_at timestamp
+}
+Table t {
+  ~base
+  id varchar //WANT shadowedcolumn
+  name varchar
+}
+
+// between two partials, the later injection silently wins (§6.9.4)
+TablePartial audit_a {
+  updated_at timestamp
+}
+TablePartial audit_b {
+  updated_at "timestamp with time zone" //WANT shadowedcolumn
+}
+Table u {
+  ~audit_a
+  ~audit_b
+  x int
+}

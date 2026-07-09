@@ -1,0 +1,2 @@
+// spec: §3.12 — unterminated expression literal
+Table t { id int [default: `now() ] }

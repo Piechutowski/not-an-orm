@@ -1,0 +1,10 @@
+import path from 'node:path';
+const norm = (p) => p.replace(/\\/g, '/');
+export const basename = (...a) => path.posix.basename(...a.map(norm));
+export const dirname = (p) => path.posix.dirname(norm(p));
+export const extname = (p) => path.posix.extname(norm(p));
+export const isAbsolute = (p) => path.posix.isAbsolute(norm(p)) || /^[a-zA-Z]:\//.test(norm(p));
+export const join = (...a) => path.posix.join(...a.map(norm));
+export const normalize = (p) => path.posix.normalize(norm(p));
+export const relative = (a, b) => path.posix.relative(norm(a), norm(b));
+export const resolve = (...a) => norm(path.posix.resolve(...a.map(norm)));

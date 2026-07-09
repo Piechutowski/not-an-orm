@@ -1,0 +1,20 @@
+// analyzers: unusedenum,unusedpartial,unusedalias
+Enum used_status { a }
+Enum orphan_status { a } //WANT unusedenum
+Enum core.kind { widget }
+
+TablePartial used_partial { created_at timestamp }
+TablePartial orphan_partial { x int } //WANT unusedpartial
+
+Table users as U {
+  id int
+  s used_status
+  ~used_partial
+}
+Table posts as P { //WANT unusedalias
+  id int
+}
+Table core.things {
+  k core.kind
+}
+Ref: U.id < posts.id

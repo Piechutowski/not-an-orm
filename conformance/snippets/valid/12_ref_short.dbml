@@ -1,0 +1,12 @@
+// spec: §6.7 — short form, name, every setting and action
+Table users { id int }
+Table posts { user_id int }
+Table a { x int }
+Table b { x int }
+Table c { x int }
+Table d { x int }
+Ref fk1: posts.user_id > users.id [delete: cascade, update: no action]
+Ref: a.x > users.id [delete: restrict]
+Ref: b.x > users.id [update: set null]
+Ref: c.x > users.id [delete: set default, inactive]
+Ref: d.x > users.id [color: #79AD51]
