@@ -83,6 +83,29 @@ Everything the CLI does is importable as a library
 ([D04](docs/decisions.md)): `parser`, `check`, `vet`, `gen/golang`,
 `gen/sqlite`.
 
+### Install
+
+```sh
+go install github.com/Piechutowski/not-an-orm/cmd/dbml@latest
+```
+
+This builds the `dbml` binary into your Go bin directory (`$GOBIN`, else
+`$GOPATH/bin`); put that directory on your `PATH`. From a clone,
+`go install ./cmd/dbml` does the same.
+
+### Shell completion
+
+The CLI ships completion for bash, zsh, fish and PowerShell. Source the
+script for your shell (add the line to your shell rc file to make it
+permanent):
+
+```sh
+source <(dbml completion bash)   # ~/.bashrc
+source <(dbml completion zsh)    # ~/.zshrc
+dbml completion fish | source    # fish
+dbml completion pwsh             # PowerShell: pipe into your $PROFILE
+```
+
 ## The DBML spec lives here too
 
 This repository also contains the **normative DBML language

@@ -35,8 +35,9 @@ func main() {
 	jsonFlag := &cli.BoolFlag{Name: "json", Usage: "emit diagnostics as JSON"}
 
 	app := &cli.Command{
-		Name:  "dbml",
-		Usage: "parse, check and lint DBML schema files",
+		Name:                  "dbml",
+		Usage:                 "parse, check and lint DBML schema files",
+		EnableShellCompletion: true,
 		Commands: []*cli.Command{
 			{
 				Name:      "parse",
