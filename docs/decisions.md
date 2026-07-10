@@ -22,6 +22,19 @@ decision is changed by editing this file, not by drifting away from it.
 - **D04 — Library-first, CLI-thin.** Everything the CLI does is importable;
   user binaries embed subcommands (`app migrate up`) and migrations
   (`embed.FS`). One self-contained deployable binary.
+- **D39 — `gen` defaults to the working directory.** The common case is
+  authoring `schema.dbml` in a package directory and generating alongside
+  it, so `dbml gen go` / `dbml gen sqlite` need no arguments: input
+  defaults to `./schema.dbml`, output to `.`, Go package to `main`. Short
+  flags `-i/--input`, `-o/--out`, `-p/--package` override. Consistent with
+  D16's "never guess": the input default is the fixed `schema.dbml`
+  convention, not a scan-and-pick among the directory's `.dbml` files, and
+  supplying both `-i` and a positional path is an error, not a silent
+  choice. Shell completion is enabled on the CLI (`dbml completion <shell>`).
+  `gen go -m/--models-only` emits only `dbml_models.go` (the struct/enum
+  row types), so those types can be shared across processes — e.g. gob
+  between a server and a GUI client — without dragging in the CRUD layer;
+  the models file only ever depends on the stdlib and `rt`.
 
 ## Language and front end
 

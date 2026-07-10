@@ -75,13 +75,46 @@ organized by problem solved, with per-feature status. The short version:
 ```sh
 dbml check  schema.dbml                 # syntax + semantics (spec §4–§8)
 dbml vet    schema.dbml                 # legal-but-suspicious DBML (vet/RULES.md)
-dbml gen go     --out ./models schema.dbml   # dbml_models.go + dbml_queries.go
-dbml gen sqlite --out ./db     schema.dbml   # dbml_schema.sql
+
+# From the directory that holds schema.dbml, gen needs no arguments:
+dbml gen go                             # ./schema.dbml -> ./dbml_{models,queries}.go
+dbml gen sqlite                         # ./schema.dbml -> ./dbml_schema.sql
+
+# Defaults: input ./schema.dbml, output '.', Go package 'main'. Override with
+# -i/--input, -o/--out, -p/--package:
+dbml gen go -i db/schema.dbml -o ./models -p models
+
+# -m/--models-only emits just dbml_models.go (structs/enums, no CRUD) — for
+# sharing the row types across processes (e.g. gob between a server and a GUI):
+dbml gen go --models-only -o ./shared -p shared
 ```
 
 Everything the CLI does is importable as a library
 ([D04](docs/decisions.md)): `parser`, `check`, `vet`, `gen/golang`,
 `gen/sqlite`.
+
+### Install
+
+```sh
+go install github.com/Piechutowski/not-an-orm/cmd/dbml@latest
+```
+
+This builds the `dbml` binary into your Go bin directory (`$GOBIN`, else
+`$GOPATH/bin`); put that directory on your `PATH`. From a clone,
+`go install ./cmd/dbml` does the same.
+
+### Shell completion
+
+The CLI ships completion for bash, zsh, fish and PowerShell. Source the
+script for your shell (add the line to your shell rc file to make it
+permanent):
+
+```sh
+source <(dbml completion bash)   # ~/.bashrc
+source <(dbml completion zsh)    # ~/.zshrc
+dbml completion fish | source    # fish
+dbml completion pwsh             # PowerShell: pipe into your $PROFILE
+```
 
 ## The DBML spec lives here too
 
