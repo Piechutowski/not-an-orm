@@ -6,8 +6,11 @@
 //	dbml vet [--json] [--enable a,b] [--werror] file.dbml...
 //	                                    syntax + semantics + warnings
 //	dbml analyzers                      list vet analyzers
-//	dbml gen go     [-i in.dbml] [-o dir] [-p pkg]   Go models + CRUD
-//	dbml gen sqlite [-i in.dbml] [-o dir]            SQLite DDL + seeds
+//	dbml gen go     [-i in.dbml] [-o dir] [-p pkg] [-m]   Go models (+CRUD)
+//	dbml gen sqlite [-i in.dbml] [-o dir]                 SQLite DDL + seeds
+//
+// gen go -m/--models-only emits just dbml_models.go (structs/enums), for
+// sharing the row types across processes without the CRUD layer.
 //
 // gen defaults: input ./schema.dbml, output the current directory, Go
 // package "main".
@@ -86,6 +89,7 @@ func main() {
 							&cli.StringFlag{Name: "input", Aliases: []string{"i"}, Usage: "input `file.dbml` (default: ./schema.dbml)"},
 							&cli.StringFlag{Name: "out", Aliases: []string{"o"}, Value: ".", Usage: "output `directory` for the generated .go files"},
 							&cli.StringFlag{Name: "package", Aliases: []string{"p"}, Value: "main", Usage: "package `name`"},
+							&cli.BoolFlag{Name: "models-only", Aliases: []string{"m"}, Usage: "emit only dbml_models.go (structs/enums); skip the CRUD queries"},
 						},
 						Action: func(_ context.Context, c *cli.Command) error {
 							return runGen(c, "go")
@@ -245,13 +249,13 @@ func runGen(c *cli.Command, lang string) error {
 		if err != nil {
 			return cli.Exit("gen: "+err.Error(), 1)
 		}
-		queries, err := golanggen.GenerateQueries(f, info, opts)
-		if err != nil {
-			return cli.Exit("gen: "+err.Error(), 1)
-		}
-		outputs = []output{
-			{"dbml_models.go", models, "// Code generated "},
-			{"dbml_queries.go", queries, "// Code generated "},
+		outputs = []output{{"dbml_models.go", models, "// Code generated "}}
+		if !c.Bool("models-only") {
+			queries, err := golanggen.GenerateQueries(f, info, opts)
+			if err != nil {
+				return cli.Exit("gen: "+err.Error(), 1)
+			}
+			outputs = append(outputs, output{"dbml_queries.go", queries, "// Code generated "})
 		}
 	case "sqlite":
 		code, err := sqlitegen.Generate(f, info, sqlitegen.Options{Source: filepath.Base(file)})

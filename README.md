@@ -83,6 +83,10 @@ dbml gen sqlite                         # ./schema.dbml -> ./dbml_schema.sql
 # Defaults: input ./schema.dbml, output '.', Go package 'main'. Override with
 # -i/--input, -o/--out, -p/--package:
 dbml gen go -i db/schema.dbml -o ./models -p models
+
+# -m/--models-only emits just dbml_models.go (structs/enums, no CRUD) — for
+# sharing the row types across processes (e.g. gob between a server and a GUI):
+dbml gen go --models-only -o ./shared -p shared
 ```
 
 Everything the CLI does is importable as a library

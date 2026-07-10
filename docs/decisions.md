@@ -31,6 +31,10 @@ decision is changed by editing this file, not by drifting away from it.
   convention, not a scan-and-pick among the directory's `.dbml` files, and
   supplying both `-i` and a positional path is an error, not a silent
   choice. Shell completion is enabled on the CLI (`dbml completion <shell>`).
+  `gen go -m/--models-only` emits only `dbml_models.go` (the struct/enum
+  row types), so those types can be shared across processes — e.g. gob
+  between a server and a GUI client — without dragging in the CRUD layer;
+  the models file only ever depends on the stdlib and `rt`.
 
 ## Language and front end
 
