@@ -75,8 +75,14 @@ organized by problem solved, with per-feature status. The short version:
 ```sh
 dbml check  schema.dbml                 # syntax + semantics (spec §4–§8)
 dbml vet    schema.dbml                 # legal-but-suspicious DBML (vet/RULES.md)
-dbml gen go     --out ./models schema.dbml   # dbml_models.go + dbml_queries.go
-dbml gen sqlite --out ./db     schema.dbml   # dbml_schema.sql
+
+# From the directory that holds schema.dbml, gen needs no arguments:
+dbml gen go                             # ./schema.dbml -> ./dbml_{models,queries}.go
+dbml gen sqlite                         # ./schema.dbml -> ./dbml_schema.sql
+
+# Defaults: input ./schema.dbml, output '.', Go package 'main'. Override with
+# -i/--input, -o/--out, -p/--package:
+dbml gen go -i db/schema.dbml -o ./models -p models
 ```
 
 Everything the CLI does is importable as a library

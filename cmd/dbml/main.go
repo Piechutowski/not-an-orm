@@ -6,6 +6,11 @@
 //	dbml vet [--json] [--enable a,b] [--werror] file.dbml...
 //	                                    syntax + semantics + warnings
 //	dbml analyzers                      list vet analyzers
+//	dbml gen go     [-i in.dbml] [-o dir] [-p pkg]   Go models + CRUD
+//	dbml gen sqlite [-i in.dbml] [-o dir]            SQLite DDL + seeds
+//
+// gen defaults: input ./schema.dbml, output the current directory, Go
+// package "main".
 //
 // Exit status: 0 clean (warnings do not fail), 1 errors found (or any
 // finding under --werror), 2 usage or I/O problems.
@@ -19,7 +24,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"unicode"
 
 	"github.com/urfave/cli/v3"
 
@@ -77,10 +81,11 @@ func main() {
 					{
 						Name:      "go",
 						Usage:     "generate Go model structs and CRUD (dbml_models.go, dbml_queries.go)",
-						ArgsUsage: "file.dbml",
+						ArgsUsage: "[file.dbml]",
 						Flags: []cli.Flag{
-							&cli.StringFlag{Name: "out", Required: true, Usage: "output `directory` for the generated .go files"},
-							&cli.StringFlag{Name: "package", Usage: "package `name` (default: sanitized output directory name)"},
+							&cli.StringFlag{Name: "input", Aliases: []string{"i"}, Usage: "input `file.dbml` (default: ./schema.dbml)"},
+							&cli.StringFlag{Name: "out", Aliases: []string{"o"}, Value: ".", Usage: "output `directory` for the generated .go files"},
+							&cli.StringFlag{Name: "package", Aliases: []string{"p"}, Value: "main", Usage: "package `name`"},
 						},
 						Action: func(_ context.Context, c *cli.Command) error {
 							return runGen(c, "go")
@@ -89,9 +94,10 @@ func main() {
 					{
 						Name:      "sqlite",
 						Usage:     "generate SQLite DDL and seed inserts (dbml_schema.sql)",
-						ArgsUsage: "file.dbml",
+						ArgsUsage: "[file.dbml]",
 						Flags: []cli.Flag{
-							&cli.StringFlag{Name: "out", Required: true, Usage: "output `directory` for dbml_schema.sql"},
+							&cli.StringFlag{Name: "input", Aliases: []string{"i"}, Usage: "input `file.dbml` (default: ./schema.dbml)"},
+							&cli.StringFlag{Name: "out", Aliases: []string{"o"}, Value: ".", Usage: "output `directory` for dbml_schema.sql"},
 						},
 						Action: func(_ context.Context, c *cli.Command) error {
 							return runGen(c, "sqlite")
@@ -206,10 +212,10 @@ func printJSON(all []diag.Diagnostic) error {
 // runGen implements 'dbml gen <lang>': parse + check one DBML file,
 // generate into --out, refusing to clobber non-generated files.
 func runGen(c *cli.Command, lang string) error {
-	if c.Args().Len() != 1 {
-		return cli.Exit("gen takes exactly one DBML file", 2)
+	file, err := genInput(c)
+	if err != nil {
+		return err
 	}
-	file := c.Args().First()
 	src, err := os.ReadFile(file)
 	if err != nil {
 		return cli.Exit(err.Error(), 2)
@@ -234,15 +240,7 @@ func runGen(c *cli.Command, lang string) error {
 	var outputs []output
 	switch lang {
 	case "go":
-		pkg := c.String("package")
-		if pkg == "" {
-			abs, err := filepath.Abs(outDir)
-			if err != nil {
-				return cli.Exit(err.Error(), 2)
-			}
-			pkg = packageName(filepath.Base(abs))
-		}
-		opts := golanggen.Options{Package: pkg, Source: filepath.Base(file)}
+		opts := golanggen.Options{Package: c.String("package"), Source: filepath.Base(file)}
 		models, err := golanggen.Generate(f, info, opts)
 		if err != nil {
 			return cli.Exit("gen: "+err.Error(), 1)
@@ -285,16 +283,21 @@ func runGen(c *cli.Command, lang string) error {
 	return nil
 }
 
-// packageName sanitizes a directory name into a Go package name.
-func packageName(dir string) string {
-	var b strings.Builder
-	for _, r := range strings.ToLower(dir) {
-		if unicode.IsLetter(r) || (b.Len() > 0 && unicode.IsDigit(r)) {
-			b.WriteRune(r)
-		}
+// genInput resolves the DBML input for 'dbml gen': the --input/-i flag if
+// set, else a single positional arg, else the ./schema.dbml convention.
+// Passing both the flag and a positional arg is an error, not a silent pick.
+func genInput(c *cli.Command) (string, error) {
+	flagFile := c.String("input")
+	switch {
+	case flagFile != "" && c.Args().Len() > 0:
+		return "", cli.Exit("gen: pass the input via -i/--input or positionally, not both", 2)
+	case flagFile != "":
+		return flagFile, nil
+	case c.Args().Len() == 1:
+		return c.Args().First(), nil
+	case c.Args().Len() > 1:
+		return "", cli.Exit("gen takes exactly one DBML file", 2)
+	default:
+		return "schema.dbml", nil
 	}
-	if b.Len() == 0 {
-		return "models"
-	}
-	return b.String()
 }
