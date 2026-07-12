@@ -116,6 +116,25 @@ dbml completion fish | source    # fish
 dbml completion pwsh             # PowerShell: pipe into your $PROFILE
 ```
 
+## Editor support
+
+The schema deserves the same editor experience as the code generated from
+it, so the repository also ships the editor tooling (D40):
+
+- [`tree-sitter-edbml/`](tree-sitter-edbml/) — a tree-sitter grammar
+  covering the full spec, for syntax highlighting;
+- [`zed-extension/`](zed-extension/) — a [Zed](https://zed.dev) extension:
+  highlighting, outline, auto-indent, Markdown rendered inside notes;
+- [`lsp/`](lsp/) + `cmd/edbml-ls` — a language server wrapping the same
+  front end as the CLI, so squiggles, `dbml check` and codegen can never
+  disagree: live diagnostics (check errors + vet lints), completion,
+  hover, go-to-definition, find references, rename. Editor-agnostic LSP
+  over stdio — works in Zed, Neovim, Helix, VS Code.
+
+Install locally: `./scripts/install-ls.sh`, then `./scripts/sync-grammar.sh`,
+then Zed's `Install Dev Extension` pointed at `zed-extension/`. The design
+and every pattern used: [`docs/editor-architecture.md`](docs/editor-architecture.md).
+
 ## The DBML spec lives here too
 
 This repository also contains the **normative DBML language
@@ -137,6 +156,7 @@ come) are a strict superset: core schemas stay valid for
 | [`docs/the-model-layer.md`](docs/the-model-layer.md) | why M is the hard layer |
 | [`SPEC.md`](SPEC.md) | the DBML language specification |
 | [`vet/RULES.md`](vet/RULES.md) | every lint rule, with executable examples |
+| [`docs/editor-architecture.md`](docs/editor-architecture.md) | the editor tooling: grammar, Zed extension, language server |
 
 ## Development
 

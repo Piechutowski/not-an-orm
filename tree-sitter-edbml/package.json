@@ -1,0 +1,18 @@
+{
+  "name": "tree-sitter-edbml",
+  "version": "0.1.0",
+  "description": "EDBML (Extended Database Markup Language) grammar for tree-sitter",
+  "repository": "github:Piechutowski/not-an-orm",
+  "license": "Apache-2.0",
+  "keywords": ["parser", "tree-sitter", "dbml", "edbml"],
+  "devDependencies": {
+    "tree-sitter-cli": "^0.25.0"
+  },
+  "tree-sitter": [
+    {
+      "scope": "source.edbml",
+      "file-types": ["edbml", "dbml"],
+      "injection-regex": "^e?dbml$"
+    }
+  ]
+}

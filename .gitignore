@@ -1,0 +1,8 @@
+# Editor-tooling build artifacts
+zed-extension/target/
+zed-extension/grammars/
+zed-extension/*.wasm
+
+# locally built binaries at the repo root
+/dbml
+/edbml-ls

@@ -1,0 +1,167 @@
+==================
+short ref, two-part endpoints
+==================
+
+Ref: users.id < orders.user_id
+
+---
+
+(source_file
+  (ref_definition
+    (ref_relation
+      (ref_endpoint
+        (ref_target
+          (identifier))
+        (column_name
+          (identifier)))
+      (cardinality)
+      (ref_endpoint
+        (ref_target
+          (identifier))
+        (column_name
+          (identifier))))))
+
+==================
+short ref, three-part endpoint and settings
+==================
+
+Ref: U.id < core.orders.user_id [delete: cascade, update: no action]
+
+---
+
+(source_file
+  (ref_definition
+    (ref_relation
+      (ref_endpoint
+        (ref_target
+          (identifier))
+        (column_name
+          (identifier)))
+      (cardinality)
+      (ref_endpoint
+        (ref_target
+          (identifier)
+          (identifier))
+        (column_name
+          (identifier))))
+    (settings_list
+      (setting
+        (setting_name
+          (identifier))
+        (setting_value_words
+          (identifier)))
+      (setting
+        (setting_name
+          (identifier))
+        (setting_value_words
+          (identifier)
+          (identifier))))))
+
+==================
+named short ref
+==================
+
+Ref fk_user: orders.user_id > users.id
+
+---
+
+(source_file
+  (ref_definition
+    (ref_name
+      (identifier))
+    (ref_relation
+      (ref_endpoint
+        (ref_target
+          (identifier))
+        (column_name
+          (identifier)))
+      (cardinality)
+      (ref_endpoint
+        (ref_target
+          (identifier))
+        (column_name
+          (identifier))))))
+
+==================
+long form ref
+==================
+
+Ref fk_name {
+  users.id - profiles.user_id [color: #00ff00]
+}
+
+---
+
+(source_file
+  (ref_definition
+    (ref_name
+      (identifier))
+    (ref_relation
+      (ref_endpoint
+        (ref_target
+          (identifier))
+        (column_name
+          (identifier)))
+      (cardinality)
+      (ref_endpoint
+        (ref_target
+          (identifier))
+        (column_name
+          (identifier))))
+    (settings_list
+      (setting
+        (setting_name
+          (identifier))
+        (color)))))
+
+==================
+composite ref
+==================
+
+Ref: a.(x, y) > b.(x, y)
+
+---
+
+(source_file
+  (ref_definition
+    (ref_relation
+      (ref_endpoint
+        (ref_target
+          (identifier))
+        (column_group
+          (column_name
+            (identifier))
+          (column_name
+            (identifier))))
+      (cardinality)
+      (ref_endpoint
+        (ref_target
+          (identifier))
+        (column_group
+          (column_name
+            (identifier))
+          (column_name
+            (identifier)))))))
+
+==================
+many-to-many
+==================
+
+Ref: authors.id <> books.id
+
+---
+
+(source_file
+  (ref_definition
+    (ref_relation
+      (ref_endpoint
+        (ref_target
+          (identifier))
+        (column_name
+          (identifier)))
+      (cardinality)
+      (ref_endpoint
+        (ref_target
+          (identifier))
+        (column_name
+          (identifier))))))

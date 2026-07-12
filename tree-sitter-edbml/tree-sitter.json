@@ -1,0 +1,35 @@
+{
+  "$schema": "https://tree-sitter.github.io/tree-sitter/assets/schemas/config.schema.json",
+  "grammars": [
+    {
+      "name": "edbml",
+      "camelcase": "Edbml",
+      "title": "EDBML",
+      "scope": "source.edbml",
+      "path": ".",
+      "file-types": ["edbml", "dbml"],
+      "injection-regex": "^e?dbml$"
+    }
+  ],
+  "metadata": {
+    "version": "0.1.0",
+    "license": "Apache-2.0",
+    "description": "EDBML (Extended Database Markup Language) grammar for tree-sitter",
+    "authors": [
+      {
+        "name": "Szymon Piechutowski"
+      }
+    ],
+    "links": {
+      "repository": "https://github.com/Piechutowski/not-an-orm"
+    }
+  },
+  "bindings": {
+    "c": false,
+    "go": false,
+    "node": false,
+    "python": false,
+    "rust": false,
+    "swift": false
+  }
+}

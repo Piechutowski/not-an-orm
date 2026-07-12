@@ -35,6 +35,17 @@ decision is changed by editing this file, not by drifting away from it.
   row types), so those types can be shared across processes — e.g. gob
   between a server and a GUI client — without dragging in the CRUD layer;
   the models file only ever depends on the stdlib and `rt`.
+- **D40 — Editor tooling lives in this repository** (2026-07-12, extends
+  D01): the tree-sitter grammar (`tree-sitter-edbml/`), the Zed extension
+  (`zed-extension/`) and the language server (`lsp/`, `cmd/edbml-ls`) are
+  part of the project, not a sibling repo. Rationale: the LSP is a second
+  consumer of the same front end the CLI wraps (D04 in action), and every
+  language extension (Select, View, `[was:]`, `[repr:]`) must move the
+  parser, checker, vet, conformance corpus, grammar and editor features in
+  lockstep — one repository makes that a single commit. The interim
+  `edbml` repo (formerly `edbml-zed`), which vendored a copy of the front
+  end, is superseded and archived; its development history remains there.
+  Editor architecture and patterns: `docs/editor-architecture.md`.
 
 ## Language and front end
 

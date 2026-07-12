@@ -1,0 +1,406 @@
+==================
+minimal table
+==================
+
+Table users {
+  id int
+}
+
+---
+
+(source_file
+  (table_definition
+    (table_name
+      (identifier))
+    (column_definition
+      (column_name
+        (identifier))
+      (column_type
+        (type_name
+          (identifier))))))
+
+==================
+schema-qualified table with alias and settings
+==================
+
+Table core.users as U [headercolor: #3498DB, note: 'main'] {
+  id int
+}
+
+---
+
+(source_file
+  (table_definition
+    (table_name
+      (schema_name
+        (identifier))
+      (identifier))
+    (table_alias
+      (identifier))
+    (settings_list
+      (setting
+        (setting_name
+          (identifier))
+        (color))
+      (setting
+        (setting_name
+          (identifier))
+        (string
+          (string_content))))
+    (column_definition
+      (column_name
+        (identifier))
+      (column_type
+        (type_name
+          (identifier))))))
+
+==================
+column types: arguments, schema-qualified enum type, quoted multi-word
+==================
+
+Table t {
+  name varchar(255)
+  total decimal(10, 2)
+  status v2.job_status
+  size "double precision"
+}
+
+---
+
+(source_file
+  (table_definition
+    (table_name
+      (identifier))
+    (column_definition
+      (column_name
+        (identifier))
+      (column_type
+        (type_name
+          (identifier))
+        (type_arguments
+          (number))))
+    (column_definition
+      (column_name
+        (identifier))
+      (column_type
+        (type_name
+          (identifier))
+        (type_arguments
+          (number)
+          (number))))
+    (column_definition
+      (column_name
+        (identifier))
+      (column_type
+        (schema_name
+          (identifier))
+        (type_name
+          (identifier))))
+    (column_definition
+      (column_name
+        (identifier))
+      (column_type
+        (type_name
+          (quoted_identifier))))))
+
+==================
+column settings and legacy flags
+==================
+
+Table t {
+  id int pk
+  code int unique
+  a int [pk, not null, unique, increment]
+  b int [primary key]
+  c text [default: 'x', note: 'col']
+  d timestamp [default: `now()`]
+  e decimal [default: -1.5]
+  f bool [default: false]
+  g int [default: null]
+  h status [default: status.active]
+}
+
+---
+
+(source_file
+  (table_definition
+    (table_name
+      (identifier))
+    (column_definition
+      (column_name
+        (identifier))
+      (column_type
+        (type_name
+          (identifier)))
+      (legacy_flag))
+    (column_definition
+      (column_name
+        (identifier))
+      (column_type
+        (type_name
+          (identifier)))
+      (legacy_flag))
+    (column_definition
+      (column_name
+        (identifier))
+      (column_type
+        (type_name
+          (identifier)))
+      (settings_list
+        (setting
+          (setting_name
+            (identifier)))
+        (setting
+          (setting_name
+            (identifier)
+            (identifier)))
+        (setting
+          (setting_name
+            (identifier)))
+        (setting
+          (setting_name
+            (identifier)))))
+    (column_definition
+      (column_name
+        (identifier))
+      (column_type
+        (type_name
+          (identifier)))
+      (settings_list
+        (setting
+          (setting_name
+            (identifier)
+            (identifier)))))
+    (column_definition
+      (column_name
+        (identifier))
+      (column_type
+        (type_name
+          (identifier)))
+      (settings_list
+        (setting
+          (setting_name
+            (identifier))
+          (string
+            (string_content)))
+        (setting
+          (setting_name
+            (identifier))
+          (string
+            (string_content)))))
+    (column_definition
+      (column_name
+        (identifier))
+      (column_type
+        (type_name
+          (identifier)))
+      (settings_list
+        (setting
+          (setting_name
+            (identifier))
+          (expression
+            (expression_content)))))
+    (column_definition
+      (column_name
+        (identifier))
+      (column_type
+        (type_name
+          (identifier)))
+      (settings_list
+        (setting
+          (setting_name
+            (identifier))
+          (signed_number
+            (number)))))
+    (column_definition
+      (column_name
+        (identifier))
+      (column_type
+        (type_name
+          (identifier)))
+      (settings_list
+        (setting
+          (setting_name
+            (identifier))
+          (boolean))))
+    (column_definition
+      (column_name
+        (identifier))
+      (column_type
+        (type_name
+          (identifier)))
+      (settings_list
+        (setting
+          (setting_name
+            (identifier))
+          (null))))
+    (column_definition
+      (column_name
+        (identifier))
+      (column_type
+        (type_name
+          (identifier)))
+      (settings_list
+        (setting
+          (setting_name
+            (identifier))
+          (enum_constant
+            (enum_name
+              (identifier))
+            (identifier)))))))
+
+==================
+inline refs in column settings
+==================
+
+Table t {
+  user_id int [ref: > users.id, ref: - core.users.id]
+}
+
+---
+
+(source_file
+  (table_definition
+    (table_name
+      (identifier))
+    (column_definition
+      (column_name
+        (identifier))
+      (column_type
+        (type_name
+          (identifier)))
+      (settings_list
+        (setting
+          (setting_name
+            (identifier))
+          (inline_ref
+            (cardinality)
+            (ref_endpoint
+              (ref_target
+                (identifier))
+              (column_name
+                (identifier)))))
+        (setting
+          (setting_name
+            (identifier))
+          (inline_ref
+            (cardinality)
+            (ref_endpoint
+              (ref_target
+                (identifier)
+                (identifier))
+              (column_name
+                (identifier)))))))))
+
+==================
+case-insensitive keywords
+==================
+
+TABLE users {
+  ID INT PK
+}
+table posts {
+  id int
+}
+
+---
+
+(source_file
+  (table_definition
+    (table_name
+      (identifier))
+    (column_definition
+      (column_name
+        (identifier))
+      (column_type
+        (type_name
+          (identifier)))
+      (legacy_flag)))
+  (table_definition
+    (table_name
+      (identifier))
+    (column_definition
+      (column_name
+        (identifier))
+      (column_type
+        (type_name
+          (identifier))))))
+
+==================
+identifier starting with digits
+==================
+
+Table t {
+  2fa_enabled bool
+}
+
+---
+
+(source_file
+  (table_definition
+    (table_name
+      (identifier))
+    (column_definition
+      (column_name
+        (identifier))
+      (column_type
+        (type_name
+          (identifier))))))
+
+==================
+table partial definition and injection
+==================
+
+TablePartial base [headercolor: #ff0000] {
+  id int [pk]
+}
+
+Table users {
+  ~base
+  name varchar
+}
+
+---
+
+(source_file
+  (table_partial_definition
+    (partial_name
+      (identifier))
+    (settings_list
+      (setting
+        (setting_name
+          (identifier))
+        (color)))
+    (column_definition
+      (column_name
+        (identifier))
+      (column_type
+        (type_name
+          (identifier)))
+      (settings_list
+        (setting
+          (setting_name
+            (identifier))))))
+  (table_definition
+    (table_name
+      (identifier))
+    (partial_injection
+      (partial_name
+        (identifier)))
+    (column_definition
+      (column_name
+        (identifier))
+      (column_type
+        (type_name
+          (identifier))))))
+
+==================
+two columns on one line is an error
+:error
+==================
+
+Table t { id int name varchar }
+
+---
+
+

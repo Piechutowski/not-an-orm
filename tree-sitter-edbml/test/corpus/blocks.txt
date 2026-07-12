@@ -1,0 +1,239 @@
+==================
+indexes: plain, composite, expression, settings
+==================
+
+Table t {
+  id int
+  indexes {
+    id [pk]
+    (id, `lower(name)`) [name: 'ix', unique]
+    created_at [type: btree]
+    `floor(balance)`
+  }
+}
+
+---
+
+(source_file
+  (table_definition
+    (table_name
+      (identifier))
+    (column_definition
+      (column_name
+        (identifier))
+      (column_type
+        (type_name
+          (identifier))))
+    (indexes_block
+      (index_definition
+        (column_name
+          (identifier))
+        (settings_list
+          (setting
+            (setting_name
+              (identifier)))))
+      (index_definition
+        (composite_index
+          (column_name
+            (identifier))
+          (expression
+            (expression_content)))
+        (settings_list
+          (setting
+            (setting_name
+              (identifier))
+            (string
+              (string_content)))
+          (setting
+            (setting_name
+              (identifier)))))
+      (index_definition
+        (column_name
+          (identifier))
+        (settings_list
+          (setting
+            (setting_name
+              (identifier))
+            (setting_value_words
+              (identifier)))))
+      (index_definition
+        (expression
+          (expression_content))))))
+
+==================
+checks block
+==================
+
+Table t {
+  balance int
+  checks {
+    `balance >= 0` [name: 'nonneg']
+    `balance < 1000000`
+  }
+}
+
+---
+
+(source_file
+  (table_definition
+    (table_name
+      (identifier))
+    (column_definition
+      (column_name
+        (identifier))
+      (column_type
+        (type_name
+          (identifier))))
+    (checks_block
+      (check_definition
+        (expression
+          (expression_content))
+        (settings_list
+          (setting
+            (setting_name
+              (identifier))
+            (string
+              (string_content)))))
+      (check_definition
+        (expression
+          (expression_content))))))
+
+==================
+note forms: member colon and block
+==================
+
+Table t {
+  id int
+  Note: 'colon form'
+}
+
+Table s {
+  id int
+  Note {
+    'block form'
+  }
+}
+
+---
+
+(source_file
+  (table_definition
+    (table_name
+      (identifier))
+    (column_definition
+      (column_name
+        (identifier))
+      (column_type
+        (type_name
+          (identifier))))
+    (note_definition
+      (string
+        (string_content))))
+  (table_definition
+    (table_name
+      (identifier))
+    (column_definition
+      (column_name
+        (identifier))
+      (column_type
+        (type_name
+          (identifier))))
+    (note_definition
+      (string
+        (string_content)))))
+
+==================
+records: top-level with expressions, empties and null
+==================
+
+Records core.orders(id, user_id, total) {
+  1, 1, `1.0 + 2.0`
+  2, , 3.5
+  , null, -7
+  3, 2, 'true'
+}
+
+---
+
+(source_file
+  (records_definition
+    (table_name
+      (schema_name
+        (identifier))
+      (identifier))
+    (records_columns
+      (column_name
+        (identifier))
+      (column_name
+        (identifier))
+      (column_name
+        (identifier)))
+    (record_row
+      (number)
+      (number)
+      (expression
+        (expression_content)))
+    (record_row
+      (number)
+      (number))
+    (record_row
+      (null)
+      (signed_number
+        (number)))
+    (record_row
+      (number)
+      (number)
+      (string
+        (string_content)))))
+
+==================
+records: in-table with and without column list
+==================
+
+Table t {
+  id int
+  Records (id) {
+    1
+  }
+}
+
+Table s {
+  id int
+  Records {
+    1
+    2
+  }
+}
+
+---
+
+(source_file
+  (table_definition
+    (table_name
+      (identifier))
+    (column_definition
+      (column_name
+        (identifier))
+      (column_type
+        (type_name
+          (identifier))))
+    (records_block
+      (records_columns
+        (column_name
+          (identifier)))
+      (record_row
+        (number))))
+  (table_definition
+    (table_name
+      (identifier))
+    (column_definition
+      (column_name
+        (identifier))
+      (column_type
+        (type_name
+          (identifier))))
+    (records_block
+      (record_row
+        (number))
+      (record_row
+        (number)))))

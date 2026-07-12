@@ -1,0 +1,231 @@
+==================
+project with properties and note
+==================
+
+Project shop {
+  database_type: 'PostgreSQL'
+  anything_else: 'accepted'
+  Note: 'project note'
+}
+
+---
+
+(source_file
+  (project_definition
+    (identifier)
+    (project_property
+      (identifier)
+      (string
+        (string_content)))
+    (project_property
+      (identifier)
+      (string
+        (string_content)))
+    (note_definition
+      (string
+        (string_content)))))
+
+==================
+anonymous project
+==================
+
+Project {
+  database_type: 'MySQL'
+}
+
+---
+
+(source_file
+  (project_definition
+    (project_property
+      (identifier)
+      (string
+        (string_content)))))
+
+==================
+enum with settings and quoted value
+==================
+
+Enum status {
+  active [note: 'ok']
+  retired
+  "Not Yet Set"
+}
+
+---
+
+(source_file
+  (enum_definition
+    (table_name
+      (identifier))
+    (enum_value
+      (identifier)
+      (settings_list
+        (setting
+          (setting_name
+            (identifier))
+          (string
+            (string_content)))))
+    (enum_value
+      (identifier))
+    (enum_value
+      (quoted_identifier))))
+
+==================
+schema-qualified enum
+==================
+
+Enum v2.job_status {
+  queued
+}
+
+---
+
+(source_file
+  (enum_definition
+    (table_name
+      (schema_name
+        (identifier))
+      (identifier))
+    (enum_value
+      (identifier))))
+
+==================
+table group with settings, members and note
+==================
+
+TableGroup commerce [color: #cccccc, note: 'sales'] {
+  users
+  core.orders
+  Note: 'group note'
+}
+
+---
+
+(source_file
+  (table_group_definition
+    (identifier)
+    (settings_list
+      (setting
+        (setting_name
+          (identifier))
+        (color))
+      (setting
+        (setting_name
+          (identifier))
+        (string
+          (string_content))))
+    (group_member
+      (identifier))
+    (group_member
+      (schema_name
+        (identifier))
+      (identifier))
+    (note_definition
+      (string
+        (string_content)))))
+
+==================
+sticky note with color none
+==================
+
+Note reminder [color: none] {
+  'remember'
+}
+
+---
+
+(source_file
+  (sticky_note_definition
+    (identifier)
+    (settings_list
+      (setting
+        (setting_name
+          (identifier))
+        (setting_value_words
+          (identifier))))
+    (string
+      (string_content))))
+
+==================
+sticky note with triple-quoted markdown
+==================
+
+Note big {
+  '''
+  # Heading
+  *emphasis*
+  '''
+}
+
+---
+
+(source_file
+  (sticky_note_definition
+    (identifier)
+    (string
+      (string_content))))
+
+==================
+diagram view with wildcard and members
+==================
+
+DiagramView overview {
+  Tables {
+    users
+    core.orders
+  }
+  TableGroups { * }
+  Schemas {
+  }
+}
+
+---
+
+(source_file
+  (diagram_view_definition
+    (identifier)
+    (view_category
+      (view_member
+        (identifier))
+      (view_member
+        (schema_name
+          (identifier))
+        (identifier)))
+    (view_category
+      (wildcard))
+    (view_category)))
+
+==================
+imports: wildcard and item list
+==================
+
+use * from './base'
+reuse {
+  table auth.users as u
+  schema billing
+} from './auth.dbml'
+
+---
+
+(source_file
+  (import_statement
+    (wildcard)
+    (string
+      (string_content)))
+  (import_statement
+    (import_item
+      (element_kind
+        (identifier))
+      (table_name
+        (schema_name
+          (identifier))
+        (identifier))
+      (identifier))
+    (import_item
+      (element_kind
+        (identifier))
+      (table_name
+        (identifier)))
+    (string
+      (string_content))))
