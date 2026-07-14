@@ -24,7 +24,7 @@ func (d *Document) LSPDiagnostics() []protocol.Diagnostic {
 		}
 		sev := severity
 		code := dg.Code
-		source := "edbml-ls"
+		source := "nao"
 		out = append(out, protocol.Diagnostic{
 			Range:    d.diagnosticRange(dg.Pos),
 			Severity: &sev,

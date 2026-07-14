@@ -262,7 +262,7 @@ overrides after — the file is ordered that way on purpose.
 
 ### Protocol shape
 
-`edbml-ls` speaks LSP 3.16 over stdio via `tliron/glsp`, which supplies the
+`nao lsp` speaks LSP 3.16 over stdio via `tliron/glsp`, which supplies the
 JSON-RPC plumbing and typed protocol structs; the entire wiring is one
 `protocol.Handler` literal in `edbml/lsp/server.go`. Document sync is **full-text**
 (`TextDocumentSyncKindFull`): schema files are small, and full sync makes
