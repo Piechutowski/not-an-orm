@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strings"
 	"testing"
 
@@ -41,14 +42,23 @@ func generate(t *testing.T, dbmlPath string) []byte {
 // intentional changes.
 func TestGolden(t *testing.T) {
 	files, err := filepath.Glob(filepath.Join("..", "testdata", "*.dbml"))
-	if err != nil || len(files) == 0 {
+	if err != nil {
+		t.Fatal(err)
+	}
+	extended, err := filepath.Glob(filepath.Join("..", "testdata", "*.edbml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	files = append(files, extended...)
+	sort.Strings(files)
+	if len(files) == 0 {
 		t.Fatal("no shared corpus schemas in gen/testdata")
 	}
 	for _, dbml := range files {
 		dbml := dbml
 		t.Run(filepath.Base(dbml), func(t *testing.T) {
 			got := generate(t, dbml)
-			golden := filepath.Join("testdata", strings.TrimSuffix(filepath.Base(dbml), ".dbml")+".sql.golden")
+			golden := filepath.Join("testdata", strings.TrimSuffix(strings.TrimSuffix(filepath.Base(dbml), ".dbml"), ".edbml")+".sql.golden")
 			if *update {
 				if err := os.WriteFile(golden, got, 0o644); err != nil {
 					t.Fatal(err)

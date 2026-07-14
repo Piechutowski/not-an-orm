@@ -1,6 +1,6 @@
 // The integration fixture: one schema exercising every v0 CRUD shape
 // against a real SQLite (decision D25). The generated siblings
-// (dbml_models.go, dbml_queries.go, dbml_schema.sql) are checked in and
+// (edbml_models.go, edbml_queries.go, edbml_schema.sql) are checked in and
 // drift-tested; refresh them with go generate ./itest.
 Project itest {
   note: 'Integration-test fixture for the v0 CRUD generator.'

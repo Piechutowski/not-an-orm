@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strings"
 	"testing"
 
@@ -77,7 +78,7 @@ func compareGolden(t *testing.T, got []byte, golden string) {
 func TestGolden(t *testing.T) {
 	for _, dbml := range corpusSchemas(t) {
 		dbml := dbml
-		name := strings.TrimSuffix(filepath.Base(dbml), ".dbml")
+		name := schemaName(dbml)
 		t.Run(name, func(t *testing.T) {
 			compareGolden(t, generate(t, dbml), filepath.Join("testdata", name+".go.golden"))
 			compareGolden(t, generateQueries(t, dbml), filepath.Join("testdata", name+"_queries.go.golden"))
@@ -87,11 +88,27 @@ func TestGolden(t *testing.T) {
 
 func corpusSchemas(t *testing.T) []string {
 	t.Helper()
+	// .dbml fixtures are core DBML; .edbml fixtures exercise the language
+	// extensions — the split makes extension regressions visible by name.
 	files, err := filepath.Glob(filepath.Join("..", "testdata", "*.dbml"))
-	if err != nil || len(files) == 0 {
+	if err != nil {
+		t.Fatal(err)
+	}
+	extended, err := filepath.Glob(filepath.Join("..", "testdata", "*.edbml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	files = append(files, extended...)
+	sort.Strings(files)
+	if len(files) == 0 {
 		t.Fatal("no shared corpus schemas in gen/testdata")
 	}
 	return files
+}
+
+// schemaName is the fixture's base name without the .dbml/.edbml suffix.
+func schemaName(path string) string {
+	return strings.TrimSuffix(strings.TrimSuffix(filepath.Base(path), ".dbml"), ".edbml")
 }
 
 // TestGoldenGofmtStable proves the generated code is gofmt-clean: applying

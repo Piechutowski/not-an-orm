@@ -64,6 +64,10 @@ Locked decisions (docs/decisions.md) still bind until edited.
   exist to surface unintended output changes in review).
 - Every new vet rule = analyzer + `testdata/<rule>.dbml` (`//WANT` markers)
   + `### <rule>` section in `edbml/vet/RULES.md`, or the build fails.
+- **Fixture naming encodes the syntax level**: a test schema named `.dbml`
+  uses core DBML only; `.edbml` marks fixtures exercising the language
+  extensions (`[model:]`, Select, View, …). Keep the split honest — it is
+  how extension regressions stay visible by filename alone.
 - Generation failures are loud: unknown type, name collision → error naming
   the column. Never guess (D16-adjacent principle).
 

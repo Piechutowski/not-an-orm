@@ -31,7 +31,7 @@ func TestRulesDocumentation(t *testing.T) {
 	doc := string(docBytes)
 
 	headingRE := regexp.MustCompile(`(?m)^### ([a-z]+)$`)
-	linkRE := regexp.MustCompile(`\((testdata/[a-z_]+\.dbml)\)`)
+	linkRE := regexp.MustCompile(`\((testdata/[a-z_]+\.e?dbml)\)`)
 
 	// Slice the document into per-rule sections.
 	headings := headingRE.FindAllStringSubmatchIndex(doc, -1)
@@ -105,7 +105,15 @@ func TestRulesDocumentation(t *testing.T) {
 
 	// (5) no orphaned testdata
 	files, err := filepath.Glob(filepath.Join("testdata", "*.dbml"))
-	if err != nil || len(files) == 0 {
+	if err != nil {
+		t.Fatal(err)
+	}
+	extended, err := filepath.Glob(filepath.Join("testdata", "*.edbml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	files = append(files, extended...)
+	if len(files) == 0 {
 		t.Fatal("no testdata files")
 	}
 	for _, f := range files {

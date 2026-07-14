@@ -281,7 +281,7 @@ exactly the places where the guess deserves a human eye. Writing
 `[model: 'Menu']` both fixes the name and silences the warning — the
 setting is the documentation.
 
-**Examples.** [testdata/modelname.dbml](testdata/modelname.dbml) —
+**Examples.** [testdata/modelname.edbml](testdata/modelname.edbml) —
 regular plurals (`users`, `order_items`), irregulars the inflector knows
 (`people`, `account_statuses`), and a pinned `menus [model: 'Menu']` are
 good; `order_status`, `bonus` and `axis` warn.

@@ -24,7 +24,15 @@ var wantRE = regexp.MustCompile(`//WANT ([a-z,]+)`)
 
 func TestAnalyzers(t *testing.T) {
 	files, err := filepath.Glob(filepath.Join("testdata", "*.dbml"))
-	if err != nil || len(files) == 0 {
+	if err != nil {
+		t.Fatal(err)
+	}
+	extended, err := filepath.Glob(filepath.Join("testdata", "*.edbml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	files = append(files, extended...)
+	if len(files) == 0 {
 		t.Fatal("no testdata files")
 	}
 	for _, file := range files {
