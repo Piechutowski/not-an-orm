@@ -6,8 +6,8 @@ authors = ["Szymon Piechutowski <106471045+Piechutowski@users.noreply.github.com
 description = "EDBML (Extended Database Markup Language) support: syntax highlighting and language server."
 repository = "https://github.com/Piechutowski/not-an-orm"
 
-[language_servers.edbml-ls]
-name = "EDBML Language Server"
+[language_servers.nao]
+name = "nao (EDBML language server)"
 languages = ["EDBML"]
 
 # The grammar is loaded from a local git mirror of ../tree-sitter-edbml.

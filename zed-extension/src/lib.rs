@@ -1,11 +1,11 @@
 //! Zed glue for the EDBML language server.
 //!
-//! The extension's only job is to tell Zed how to launch `edbml lsp` (the
+//! The extension's only job is to tell Zed how to launch `nao lsp` (the
 //! language server is a subcommand of the project's one binary, D41). The
-//! binary is resolved in order: the user's `lsp.edbml-ls.binary.path`
-//! setting, then `edbml` on the worktree `PATH`. The extension is installed
-//! locally as a dev extension, so there is no download fallback — build the
-//! binary with `go install ./cmd/edbml` instead.
+//! binary is resolved in order: the user's `lsp.nao.binary.path` setting,
+//! then `nao` on the worktree `PATH`. The extension is installed locally as
+//! a dev extension, so there is no download fallback — build the binary
+//! with `go install ./cmd/nao` instead.
 
 use zed_extension_api::{self as zed, settings::LspSettings, LanguageServerId, Result};
 
@@ -35,9 +35,9 @@ impl zed::Extension for EdbmlExtension {
             });
         }
 
-        let path = worktree.which("edbml").ok_or_else(|| {
-            "edbml not found on PATH. Build it with `go install ./cmd/edbml`, or point \
-             Zed at the binary via the `lsp.edbml-ls.binary.path` setting."
+        let path = worktree.which("nao").ok_or_else(|| {
+            "nao not found on PATH. Build it with `go install ./cmd/nao`, or point \
+             Zed at the binary via the `lsp.nao.binary.path` setting."
                 .to_string()
         })?;
 

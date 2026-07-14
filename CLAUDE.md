@@ -45,7 +45,7 @@ Locked decisions (docs/decisions.md) still bind until edited.
 | `rt` | hand-written runtime for generated code: `Null[T]`, `DBTX`, `Tx`, `Open` (pragmas), `StmtCache` — stdlib-only, registers no driver |
 | `inflect` | deterministic singularizer behind model naming (D10); `edbml/vet/modelname` flags its guesses |
 | `itest` | integration fixture: checked-in generated files (drift-tested, `go generate ./itest` refreshes) + real-SQLite CRUD round trips (mattn, **test-only** cgo dep, D25) |
-| `cmd/edbml` | the one binary (D41): thin urfave/cli wrapper over everything above, `edbml lsp` serves the language server — all of it stays library-callable (D04) |
+| `cmd/nao` | the one binary (D41): thin urfave/cli wrapper over everything above, `nao lsp` serves the language server — all of it stays library-callable (D04) |
 | `edbml/conformance/` | spec snippet corpus + upstream `@dbml/parse` cross-check (`refcheck/`, needs bun) |
 
 ## Invariants the tests enforce (don't break, extend)

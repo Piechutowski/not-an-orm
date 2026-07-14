@@ -3,8 +3,8 @@ package itest
 // The generated siblings are checked in so the package always compiles;
 // these directives refresh them after editing schema.dbml:
 //
-//go:generate go run ../cmd/edbml gen go --out . --package itest schema.dbml
-//go:generate go run ../cmd/edbml gen sqlite --out . schema.dbml
+//go:generate go run ../cmd/nao gen go --out . --package itest schema.dbml
+//go:generate go run ../cmd/nao gen sqlite --out . schema.dbml
 
 import (
 	"bytes"

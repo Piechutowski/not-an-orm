@@ -1,14 +1,15 @@
-// Command edbml is the one binary of the project (D41): the CLI front end
-// over the edbml/ language packages plus the generators, built on urfave/cli:
+// Command nao ("not an ORM") is the one binary of the project (D41): the
+// CLI front end over the edbml/ language packages plus the generators,
+// built on urfave/cli:
 //
-//	edbml parse [--json] file.edbml...    syntax only
-//	edbml check [--json] file.edbml...    syntax + semantic errors
-//	edbml vet [--json] [--enable a,b] [--werror] file.edbml...
-//	                                      syntax + semantics + warnings
-//	edbml analyzers                       list vet analyzers
-//	edbml gen go     [-i in.edbml] [-o dir] [-p pkg] [-m]  Go models (+CRUD)
-//	edbml gen sqlite [-i in.edbml] [-o dir]                SQLite DDL + seeds
-//	edbml lsp                             language server on stdin/stdout
+//	nao parse [--json] file.edbml...    syntax only
+//	nao check [--json] file.edbml...    syntax + semantic errors
+//	nao vet [--json] [--enable a,b] [--werror] file.edbml...
+//	                                    syntax + semantics + warnings
+//	nao analyzers                       list vet analyzers
+//	nao gen go     [-i in.edbml] [-o dir] [-p pkg] [-m]  Go models (+CRUD)
+//	nao gen sqlite [-i in.edbml] [-o dir]                SQLite DDL + seeds
+//	nao lsp                             language server on stdin/stdout
 //
 // gen go -m/--models-only emits just edbml_models.go (structs/enums), for
 // sharing the row types across processes without the CRUD layer.
@@ -45,8 +46,8 @@ func main() {
 
 	app := &cli.Command{
 		EnableShellCompletion: true,
-		Name:  "edbml",
-		Usage: "parse, check, lint, generate from and serve EDBML schema files",
+		Name:  "nao",
+		Usage: "not an ORM: parse, check, lint, generate from and serve EDBML schema files",
 		Commands: []*cli.Command{
 			{
 				Name:      "parse",
@@ -72,7 +73,7 @@ func main() {
 				ArgsUsage: "file.edbml...",
 				Flags: []cli.Flag{
 					jsonFlag,
-					&cli.StringFlag{Name: "enable", Usage: "comma-separated analyzer `names` to run (default all; see 'edbml analyzers')"},
+					&cli.StringFlag{Name: "enable", Usage: "comma-separated analyzer `names` to run (default all; see 'nao analyzers')"},
 					&cli.BoolFlag{Name: "werror", Usage: "treat warnings as errors in the exit status"},
 				},
 				Action: func(_ context.Context, c *cli.Command) error {
@@ -222,7 +223,7 @@ func printJSON(all []diag.Diagnostic) error {
 	return enc.Encode(out)
 }
 
-// runGen implements 'edbml gen <lang>': parse + check one EDBML file,
+// runGen implements 'nao gen <lang>': parse + check one EDBML file,
 // generate into --out, refusing to clobber non-generated files.
 func runGen(c *cli.Command, lang string) error {
 	file, err := genInput(c)
@@ -241,7 +242,7 @@ func runGen(c *cli.Command, lang string) error {
 		for _, d := range diags {
 			fmt.Println(d)
 		}
-		return cli.Exit("gen: input has errors; fix them first (see 'edbml check')", 1)
+		return cli.Exit("gen: input has errors; fix them first (see 'nao check')", 1)
 	}
 
 	outDir := c.String("out")
@@ -296,7 +297,7 @@ func runGen(c *cli.Command, lang string) error {
 	return nil
 }
 
-// genInput resolves the EDBML input for 'edbml gen': the --input/-i flag if
+// genInput resolves the EDBML input for 'nao gen': the --input/-i flag if
 // set, else a single positional arg, else the ./schema.edbml convention.
 // Passing both the flag and a positional arg is an error, not a silent pick.
 func genInput(c *cli.Command) (string, error) {
