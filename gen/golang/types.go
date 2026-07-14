@@ -96,9 +96,9 @@ var typeMap = map[string]goType{
 	"varbinary":  {name: "[]byte", nilable: true},
 }
 
-// resolveType maps a column's DBML type to Go. enums maps canonical enum
+// typeResolve maps a column's DBML type to Go. enums maps canonical enum
 // keys ("public.job_status") to their generated Go type names.
-func resolveType(schema, base string, enums map[string]string) (goType, error) {
+func typeResolve(schema, base string, enums map[string]string) (goType, error) {
 	// enum reference? the type may be schema-qualified or inherit the
 	// default schema (spec §6.8.4)
 	key := base

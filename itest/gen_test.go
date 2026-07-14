@@ -3,19 +3,19 @@ package itest
 // The generated siblings are checked in so the package always compiles;
 // these directives refresh them after editing schema.dbml:
 //
-//go:generate go run ../cmd/dbml gen go --out . --package itest schema.dbml
-//go:generate go run ../cmd/dbml gen sqlite --out . schema.dbml
+//go:generate go run ../cmd/nao gen go --out . --package itest schema.dbml
+//go:generate go run ../cmd/nao gen sqlite --out . schema.dbml
 
 import (
 	"bytes"
 	"os"
 	"testing"
 
-	"github.com/Piechutowski/not-an-orm/check"
-	"github.com/Piechutowski/not-an-orm/diag"
+	"github.com/Piechutowski/not-an-orm/edbml/check"
+	"github.com/Piechutowski/not-an-orm/edbml/diag"
 	golanggen "github.com/Piechutowski/not-an-orm/gen/golang"
 	sqlitegen "github.com/Piechutowski/not-an-orm/gen/sqlite"
-	"github.com/Piechutowski/not-an-orm/parser"
+	"github.com/Piechutowski/not-an-orm/edbml/parser"
 )
 
 // TestGeneratedFilesCurrent proves the checked-in generated files match
@@ -50,9 +50,9 @@ func TestGeneratedFilesCurrent(t *testing.T) {
 		file string
 		want []byte
 	}{
-		{"dbml_models.go", models},
-		{"dbml_queries.go", queries},
-		{"dbml_schema.sql", schema},
+		{"nao_models.go", models},
+		{"nao_queries.go", queries},
+		{"nao_schema.sql", schema},
 	} {
 		got, err := os.ReadFile(tc.file)
 		if err != nil {

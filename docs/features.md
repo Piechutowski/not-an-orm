@@ -32,13 +32,13 @@ capability over the previous — and each maps to one piece of Not an ORM:
 | typed queries from SQL | write SQL, generate typed Go | `sqlc` | v1 `Select`/`View` blocks in the schema file, gen-time prepare validation (D06) |
 | full ORM | CRUD, associations, migrations, callbacks | Rails AR, GORM, Ent | v0 CRUD + v3 loaders + v4 migrations; callbacks/dirty tracking/lazy loading: never (D27) |
 
-We are not inventing a new problem — we are answering each rung with
+I am not inventing a new problem — I am answering each rung with
 codegen instead of runtime machinery, from one authored DBML file.
 
 ### Why there is no "any query" builder
 
 An ORM must let you build any query at runtime because runtime is its
-only chance to construct SQL. We have a build step, so we split "any
+only chance to construct SQL. I have a build step, so I split "any
 query" by **what actually varies when the program runs** — and the split
 is exhaustive (D32, the shape rule):
 
@@ -96,7 +96,7 @@ hand-writing them is boilerplate, an ORM hides them behind reflection.
 window functions — "almost any query". ORMs answer with a runtime DSL;
 sqlc answers with `.sql` files divorced from the schema. **Answer.**
 Declared query blocks *inside the schema file*: structure (select list,
-tables, joins, declared params) parsed by our front end and resolved
+tables, joins, declared params) parsed by my front end and resolved
 against `check.Info`; expression bodies opaque and proven by gen-time
 prepare against the generated DDL (D06). Each block mints its own result
 struct (the shape rule, D32) and a typed function.
@@ -166,7 +166,7 @@ is serialization.
 **Problem.** "Good luck" — the hardest sub-layer
 ([the-model-layer.md](the-model-layer.md)). **Answer.** Declarative:
 diff current DBML against the last-migrated snapshot; the ledger is
-generated, ordered, hash-pinned; we own SQLite's twelve-step rebuild.
+generated, ordered, hash-pinned; I own SQLite's twelve-step rebuild.
 
 | ID | Feature | Slice | Status |
 |---|---|---|---|

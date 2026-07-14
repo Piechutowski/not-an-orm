@@ -66,7 +66,7 @@ programmers were just generating code. It is a forgotten skill that Go's own
 toolchain kept alive (`go generate`, stringer, protoc).
 
 Not an ORM takes that bet and pushes it one step earlier in the pipeline. `sqlc`
-starts from SQL. We start from **DBML** — the place most developers already think
+starts from SQL. I start from **DBML** — the place most developers already think
 about their schema.
 
 ### Why DBML is the source of truth
@@ -77,7 +77,7 @@ live database — and they constantly drift apart (the full argument is in
 [`the-model-layer.md`](the-model-layer.md)). The only durable fix is to
 make **one** representation canonical and *derive* the rest.
 
-We pick the design as canonical, expressed in [DBML](https://dbml.dbdiagram.io/):
+I pick the design as canonical, expressed in [DBML](https://dbml.dbdiagram.io/):
 
 - It's how people **already** model — most developers visualize the database
   before they write a line of code or a single migration.
@@ -99,7 +99,7 @@ We pick the design as canonical, expressed in [DBML](https://dbml.dbdiagram.io/)
                                                      ┘
 ```
 
-## What we generate
+## What I generate
 
 ### 1. Structs
 
@@ -143,17 +143,17 @@ func (q *Queries) UserCount(ctx context.Context) (int64, error)
 
 The 20% that's specific to your app you declare in the same DBML file, as a
 `Select` element: the *structure* (columns, tables, joins, declared params) is
-resolved and type-checked by our own front end, while the *expressions* stay
+resolved and type-checked by my own front end, while the *expressions* stay
 SQLite's business — at generation time each query is prepared against an
 in-memory database built from the generated DDL, so **SQLite itself is the SQL
 parser and type checker**. Joins are inferred from declared `ref:`s where
-possible. No SQL grammar of our own, no sqlc dependency.
+possible. No SQL grammar of my own, no sqlc dependency.
 
 ### 4. Typed dynamic queries — the hard one, on purpose
 
 The classic case: a list view where the user can filter and sort by **any**
 column. You can't pre-generate every combination, so the query is built at
-runtime. But "runtime" doesn't have to mean "stringly-typed." We generate typed
+runtime. But "runtime" doesn't have to mean "stringly-typed." I generate typed
 column handles so the dynamic builder is column- and type-safe at the API
 boundary:
 
@@ -178,10 +178,10 @@ named args in lockstep — so predicates store in variables, compose with
 A `Post` reaching its `Comments` is the object-relational impedance mismatch in
 miniature. (Honest note: in embedded SQLite, N+1 is not the disaster it is over
 a network — a query is a function call, and SQLite's own docs bless the
-loop-of-queries pattern. Our batched loaders are the default for *atomicity* —
+loop-of-queries pattern. My batched loaders are the default for *atomicity* —
 one query sees one snapshot, while a loop in autocommit can interleave with
 writes — and for ergonomics and large-N speed, not out of network-era fear.)
-Because relationships are declared in DBML (`ref:`), we generate the loading
+Because relationships are declared in DBML (`ref:`), I generate the loading
 code — as explicit per-ref loaders, never as struct fields (a `Comments` field
 on `Post` can't distinguish "not loaded" from "empty", and that ambiguity is
 the seed of lazy loading):
@@ -203,7 +203,7 @@ hand-write `ALTER` scripts, you edit the schema and regenerate.
 
 The subtlety (and it's a real one): a declarative file can't carry an imperative
 "drop column X" annotation, because after the drop, column X isn't in the file to
-annotate. So we keep the rule clean:
+annotate. So I keep the rule clean:
 
 - **Add** a field → it appears in the file → differ emits `ADD COLUMN`.
 - **Drop** a field → you delete it from the file → differ emits the drop. No
@@ -222,10 +222,10 @@ is exactly how you avoid the two-truths drift. Migrations are applied by the CLI
 (`dbml migrate up`) or by the user's own binary embedding the runner — never
 implicitly on app startup.
 
-Views and triggers — which we add to the language — are the *cheap* part of
+Views and triggers — which I add to the language — are the *cheap* part of
 migrations: they're stateless, so drop-and-recreate is always safe. The expensive
 part stays the **table** structural change, because SQLite's `ALTER TABLE` forces
-the documented twelve-step rebuild dance. We own that dance too — we already
+the documented twelve-step rebuild dance. I own that dance too — I already
 generate full `CREATE TABLE` statements, so a rebuild is a new table, an
 `INSERT … SELECT` over the intersecting columns, a drop and a rename inside the
 pragma bracket — and the test harness executes it against real SQLite.
@@ -234,21 +234,21 @@ pragma bracket — and the test harness executes it against real SQLite.
 
 - **No reflection, no runtime magic.** Generated code uses explicit scans and
   explicit SQL. You can read it, grep it, and debug it. This is the line that
-  separates us from GORM — and, notably, from `sqlx`'s reflective `StructScan`:
-  since we generate the code anyway, explicit scans are free, so we take them.
+  separates me from GORM — and, notably, from `sqlx`'s reflective `StructScan`:
+  since I generate the code anyway, explicit scans are free, so I take them.
 - **One source of truth, everything derived.** You author DBML. Structs, CRUD, and
   schema are outputs. Drift has nowhere to live.
 - **One file for everything.** Tables, relationships, enums, indexes — *and* the
   things plain DBML lacks: views, queries, triggers, and migration intent — live
   in a single *extended-DBML* source. No scattered DBML + `.sql` + Go to keep in
   sync.
-- **SQL is not the enemy.** We generate SQL and let you write SQL fragments. We
+- **SQL is not the enemy.** I generate SQL and let you write SQL fragments. I
   don't bury it under an abstraction that you'll eventually have to fight.
 - **SQLite-first, all-in.** The target is SQLite — the database that's perfect for
   the solo dev and small-team apps this is built for. Every design simplification
-  bought by rejecting other DBMSes is a good trade. SQLite is also a *tool we
-  lean on*: at generation time it is our SQL parser and type checker.
-- **One coherent tool, not glued libraries.** We own the parser, the checker, the
+  bought by rejecting other DBMSes is a good trade. SQLite is also a *tool I
+  lean on*: at generation time it is my SQL parser and type checker.
+- **One coherent tool, not glued libraries.** I own the parser, the checker, the
   emitters and the small runtime end to end — one consistent style across structs,
   CRUD, dynamic queries, and associations. Modularity means one well-built,
   extensible API — not guerrilla-gluing a combine harvester in the trenches.
@@ -256,9 +256,9 @@ pragma bracket — and the test harness executes it against real SQLite.
   ship a CRUD app *super sonic fast* without rebuilding the data layer from
   scratch every time.
 
-## How we relate to what exists
+## How I relate to what exists
 
-We're not replacing the ecosystem — we're subsuming the good ideas and filling
+I'm not replacing the ecosystem — I'm subsuming the good ideas and filling
 the gap they leave.
 
 | Tool             | Approach                | Auto CRUD | Dynamic queries   | Schema source | Reflection / magic     |
@@ -273,12 +273,12 @@ the gap they leave.
 ¹ Only via the third-party `sqlc-gen-crud` plugin, which generates the CRUD `.sql`
 for you to then feed back into `sqlc`.
 
-What this table says plainly: `sqlc` is the closest predecessor — and the bar our
+What this table says plainly: `sqlc` is the closest predecessor — and the bar my
 generated code should clear — but it is **static**: it cannot express the
 filter-by-any-column list view, and it doesn't start from your design. `squirrel`
 *can* do dynamic, but with stringly-typed columns and no codegen. GORM does
 everything and pays for it with reflection. **The unclaimed corner is:
-DBML-first, auto-CRUD, *typed* dynamic queries, zero reflection.** That's us.
+DBML-first, auto-CRUD, *typed* dynamic queries, zero reflection.** That's me.
 
 ## Non-goals
 
@@ -289,7 +289,7 @@ Saying no is how this stays small and fast:
   feature.
 - **No lazy loading.** Associations load when you ask for them, in a batched query
   — never implicitly on field access. In Go this is impossible by construction
-  (struct field access is a memory read), and we keep it that way.
+  (struct field access is a memory read), and I keep it that way.
 - **No active-record `post.Save()`.** Objects don't persist themselves; a generated
   function does. Data stays DB-ignorant.
 - **No reflection-based mapping**, ever, in generated paths.

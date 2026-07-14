@@ -6,14 +6,15 @@ database code is *generated*: structs, CRUD, typed queries, DDL, and
 (coming) migrations. No reflection, no runtime magic, no `Save()` methods
 that lie. Plain Go you can read, grep, and step through in a debugger.
 
-(Yes, the name works like *Not a Flamethrower*.)
+> [!CAUTION]
+> **This project is an alpha version, and everything may change in the future.**
 
 ```text
-        schema.dbml  ──  the single source of truth (and your ER diagram)
+        schema.edbml  ──  the single source of truth (and your ER diagram)
              │
-   dbml gen ─┼──► dbml_models.go    structs, enums, notes as doc comments
-             ├──► dbml_queries.go   typed CRUD on a Queries handle
-             └──► dbml_schema.sql   DDL + seed data, FK/CHECK/UNIQUE real
+    nao gen ─┼──► nao_models.go    structs, enums, notes as doc comments
+             ├──► nao_queries.go   typed CRUD on a Queries handle
+             └──► nao_schema.sql   DDL + seed data, FK/CHECK/UNIQUE real
 ```
 
 ## Ten seconds of it
@@ -50,7 +51,7 @@ model. Generated code imports the standard library and the tiny
 The model layer's real job is keeping four representations of the same
 truth coherent: the diagram, the DDL, the code, and the live database
 ([the analysis](docs/the-model-layer.md)). ORMs fight the drift with
-runtime machinery; we remove it by construction — one canonical file,
+runtime machinery; I remove it by construction — one canonical file,
 everything else derived. And because SQLite is the only target (all-in,
 [D02](docs/decisions.md)), SQLite itself is the gen-time type checker:
 every generated statement is proven by preparing it against the generated
@@ -73,35 +74,38 @@ organized by problem solved, with per-feature status. The short version:
 ## The CLI
 
 ```sh
-dbml check  schema.dbml                 # syntax + semantics (spec §4–§8)
-dbml vet    schema.dbml                 # legal-but-suspicious DBML (vet/RULES.md)
+nao check  schema.edbml                 # syntax + semantics (spec §4–§8)
+nao vet    schema.edbml                 # legal-but-suspicious EDBML (edbml/vet/RULES.md)
 
-# From the directory that holds schema.dbml, gen needs no arguments:
-dbml gen go                             # ./schema.dbml -> ./dbml_{models,queries}.go
-dbml gen sqlite                         # ./schema.dbml -> ./dbml_schema.sql
+# From the directory that holds schema.edbml, gen needs no arguments:
+nao gen go                              # ./schema.edbml -> ./edbml_{models,queries}.go
+nao gen sqlite                          # ./schema.edbml -> ./nao_schema.sql
 
-# Defaults: input ./schema.dbml, output '.', Go package 'main'. Override with
+# Defaults: input ./schema.edbml, output '.', Go package 'main'. Override with
 # -i/--input, -o/--out, -p/--package:
-dbml gen go -i db/schema.dbml -o ./models -p models
+nao gen go -i db/schema.edbml -o ./models -p models
 
-# -m/--models-only emits just dbml_models.go (structs/enums, no CRUD) — for
+# -m/--models-only emits just nao_models.go (structs/enums, no CRUD) — for
 # sharing the row types across processes (e.g. gob between a server and a GUI):
-dbml gen go --models-only -o ./shared -p shared
+nao gen go --models-only -o ./shared -p shared
+
+# The language server (used by the Zed extension) is a subcommand too:
+nao lsp                                 # LSP over stdin/stdout
 ```
 
 Everything the CLI does is importable as a library
-([D04](docs/decisions.md)): `parser`, `check`, `vet`, `gen/golang`,
-`gen/sqlite`.
+([D04](docs/decisions.md)): `edbml/parser`, `edbml/check`, `edbml/vet`,
+`gen/golang`, `gen/sqlite`.
 
 ### Install
 
 ```sh
-go install github.com/Piechutowski/not-an-orm/cmd/dbml@latest
+go install github.com/Piechutowski/not-an-orm/cmd/nao@latest
 ```
 
-This builds the `dbml` binary into your Go bin directory (`$GOBIN`, else
+This builds the `nao` binary into your Go bin directory (`$GOBIN`, else
 `$GOPATH/bin`); put that directory on your `PATH`. From a clone,
-`go install ./cmd/dbml` does the same.
+`go install ./cmd/nao` does the same.
 
 ### Shell completion
 
@@ -110,18 +114,37 @@ script for your shell (add the line to your shell rc file to make it
 permanent):
 
 ```sh
-source <(dbml completion bash)   # ~/.bashrc
-source <(dbml completion zsh)    # ~/.zshrc
-dbml completion fish | source    # fish
-dbml completion pwsh             # PowerShell: pipe into your $PROFILE
+source <(nao completion bash)    # ~/.bashrc
+source <(nao completion zsh)     # ~/.zshrc
+nao completion fish | source     # fish
+nao completion pwsh              # PowerShell: pipe into your $PROFILE
 ```
+
+## Editor support
+
+The schema deserves the same editor experience as the code generated from
+it, so the repository also ships the editor tooling (D40):
+
+- [`edbml/grammar/`](edbml/grammar/) — a tree-sitter grammar
+  covering the full spec, for syntax highlighting;
+- [`zed-extension/`](zed-extension/) — a [Zed](https://zed.dev) extension:
+  highlighting, outline, auto-indent, Markdown rendered inside notes;
+- [`edbml/lsp/`](edbml/lsp/) — the language server, served by `nao lsp`,
+  wrapping the same front end as the CLI, so squiggles, `nao check` and codegen can never
+  disagree: live diagnostics (check errors + vet lints), completion,
+  hover, go-to-definition, find references, rename. Editor-agnostic LSP
+  over stdio — works in Zed, Neovim, Helix, VS Code.
+
+Install locally: `go install ./cmd/nao`, then `./scripts/sync-grammar.sh`,
+then Zed's `Install Dev Extension` pointed at `zed-extension/`. The design
+and every pattern used: [`docs/editor-architecture.md`](docs/editor-architecture.md).
 
 ## The DBML spec lives here too
 
 This repository also contains the **normative DBML language
 specification** — [`SPEC.md`](SPEC.md), a complete EBNF grammar with
-constraints — plus the [conformance corpus](conformance/) cross-checked
-against the upstream `@dbml/parse` compiler (0 disagreements). Our
+constraints — plus the [conformance corpus](edbml/conformance/) cross-checked
+against the upstream `@dbml/parse` compiler (0 disagreements). My
 extensions (`[model:]` today; `Select`, `View`, `[was:]`, `[repr:]` to
 come) are a strict superset: core schemas stay valid for
 [dbdiagram.io](https://dbdiagram.io) diagramming.
@@ -131,12 +154,13 @@ come) are a strict superset: core schemas stay valid for
 | Doc | What it is |
 |---|---|
 | [`docs/features.md`](docs/features.md) | the feature spec, by problem — **start here** |
-| [`docs/decisions.md`](docs/decisions.md) | locked design decisions D01–D38, the law |
-| [`docs/orm-capability-matrix.md`](docs/orm-capability-matrix.md) | every Rails AR capability vs. our verdict |
+| [`docs/decisions.md`](docs/decisions.md) | locked design decisions D01–D40, the law |
+| [`docs/orm-capability-matrix.md`](docs/orm-capability-matrix.md) | every Rails AR capability vs. my verdict |
 | [`docs/not-an-orm.md`](docs/not-an-orm.md) | the vision note |
 | [`docs/the-model-layer.md`](docs/the-model-layer.md) | why M is the hard layer |
 | [`SPEC.md`](SPEC.md) | the DBML language specification |
-| [`vet/RULES.md`](vet/RULES.md) | every lint rule, with executable examples |
+| [`edbml/vet/RULES.md`](edbml/vet/RULES.md) | every lint rule, with executable examples |
+| [`docs/editor-architecture.md`](docs/editor-architecture.md) | the editor tooling: grammar, Zed extension, language server |
 
 ## Development
 

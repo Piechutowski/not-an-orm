@@ -7,8 +7,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/Piechutowski/not-an-orm/ast"
-	"github.com/Piechutowski/not-an-orm/check"
+	"github.com/Piechutowski/not-an-orm/edbml/ast"
+	"github.com/Piechutowski/not-an-orm/edbml/check"
 )
 
 // sqliteType maps the lower-cased DBML type name (arguments stripped) to
@@ -58,9 +58,9 @@ var sqliteType = map[string]string{
 	"binary": "BLOB", "varbinary": "BLOB",
 }
 
-// resolveType maps a column type to its SQLite type; enum-typed columns
+// typeResolve maps a column type to its SQLite type; enum-typed columns
 // resolve to TEXT plus the enum whose values feed the CHECK constraint.
-func (g *generator) resolveType(col *ast.Column) (string, *check.EnumInfo, error) {
+func (g *generator) typeResolve(col *ast.Column) (string, *check.EnumInfo, error) {
 	schema, base := col.Type.Name.Schema(), col.Type.Name.Base()
 	key := "public." + base
 	if schema != "" {
@@ -121,24 +121,24 @@ var sqliteKeywords = map[string]bool{
 	"where": true, "window": true, "with": true, "without": true,
 }
 
-// quoteIdent quotes an identifier only when necessary: not a plain
+// identQuote quotes an identifier only when necessary: not a plain
 // lower-case identifier, or a SQLite keyword.
-func quoteIdent(name string) string {
+func identQuote(name string) string {
 	if plainIdent.MatchString(name) && !sqliteKeywords[name] {
 		return name
 	}
 	return `"` + strings.ReplaceAll(name, `"`, `""`) + `"`
 }
 
-func quoteJoin(names []string) string {
+func quotedJoin(names []string) string {
 	out := make([]string, len(names))
 	for i, n := range names {
-		out[i] = quoteIdent(n)
+		out[i] = identQuote(n)
 	}
 	return strings.Join(out, ", ")
 }
 
-// quoteString renders a SQL string literal with ” doubling.
-func quoteString(s string) string {
+// stringQuote renders a SQL string literal with ” doubling.
+func stringQuote(s string) string {
 	return "'" + strings.ReplaceAll(s, "'", "''") + "'"
 }

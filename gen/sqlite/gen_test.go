@@ -7,12 +7,13 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strings"
 	"testing"
 
-	"github.com/Piechutowski/not-an-orm/check"
-	"github.com/Piechutowski/not-an-orm/diag"
-	"github.com/Piechutowski/not-an-orm/parser"
+	"github.com/Piechutowski/not-an-orm/edbml/check"
+	"github.com/Piechutowski/not-an-orm/edbml/diag"
+	"github.com/Piechutowski/not-an-orm/edbml/parser"
 )
 
 var update = flag.Bool("update", false, "rewrite golden files")
@@ -41,14 +42,23 @@ func generate(t *testing.T, dbmlPath string) []byte {
 // intentional changes.
 func TestGolden(t *testing.T) {
 	files, err := filepath.Glob(filepath.Join("..", "testdata", "*.dbml"))
-	if err != nil || len(files) == 0 {
+	if err != nil {
+		t.Fatal(err)
+	}
+	extended, err := filepath.Glob(filepath.Join("..", "testdata", "*.edbml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	files = append(files, extended...)
+	sort.Strings(files)
+	if len(files) == 0 {
 		t.Fatal("no shared corpus schemas in gen/testdata")
 	}
 	for _, dbml := range files {
 		dbml := dbml
 		t.Run(filepath.Base(dbml), func(t *testing.T) {
 			got := generate(t, dbml)
-			golden := filepath.Join("testdata", strings.TrimSuffix(filepath.Base(dbml), ".dbml")+".sql.golden")
+			golden := filepath.Join("testdata", strings.TrimSuffix(strings.TrimSuffix(filepath.Base(dbml), ".dbml"), ".edbml")+".sql.golden")
 			if *update {
 				if err := os.WriteFile(golden, got, 0o644); err != nil {
 					t.Fatal(err)
@@ -168,11 +178,11 @@ func TestQuoting(t *testing.T) {
 		{`we"ird`, `"we""ird"`},      // embedded quote doubled
 	}
 	for _, tc := range cases {
-		if got := quoteIdent(tc.in); got != tc.want {
-			t.Errorf("quoteIdent(%q) = %s, want %s", tc.in, got, tc.want)
+		if got := identQuote(tc.in); got != tc.want {
+			t.Errorf("identQuote(%q) = %s, want %s", tc.in, got, tc.want)
 		}
 	}
-	if got := quoteString("it's"); got != "'it''s'" {
-		t.Errorf("quoteString = %s", got)
+	if got := stringQuote("it's"); got != "'it''s'" {
+		t.Errorf("stringQuote = %s", got)
 	}
 }

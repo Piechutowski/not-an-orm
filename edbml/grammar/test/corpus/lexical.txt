@@ -1,0 +1,294 @@
+==================
+comments everywhere
+==================
+
+// leading comment
+Table t { // trailing
+  /* block */ id int // after
+  /* multi
+     line */
+  name varchar
+}
+
+---
+
+(source_file
+  (comment)
+  (table_definition
+    (table_name
+      (identifier))
+    (comment)
+    (comment)
+    (column_definition
+      (column_name
+        (identifier))
+      (column_type
+        (type_name
+          (identifier))))
+    (comment)
+    (comment)
+    (column_definition
+      (column_name
+        (identifier))
+      (column_type
+        (type_name
+          (identifier))))))
+
+==================
+string escapes
+==================
+
+Table t {
+  a text [note: 'it\'s fine']
+  b text [note: 'tab\there']
+}
+
+---
+
+(source_file
+  (table_definition
+    (table_name
+      (identifier))
+    (column_definition
+      (column_name
+        (identifier))
+      (column_type
+        (type_name
+          (identifier)))
+      (settings_list
+        (setting
+          (setting_name
+            (identifier))
+          (string
+            (string_content)))))
+    (column_definition
+      (column_name
+        (identifier))
+      (column_type
+        (type_name
+          (identifier)))
+      (settings_list
+        (setting
+          (setting_name
+            (identifier))
+          (string
+            (string_content)))))))
+
+==================
+triple-quoted string with inner quotes and lines
+==================
+
+Table t {
+  a text [note: '''
+    line one
+    ''quoted'' and don't
+  ''']
+}
+
+---
+
+(source_file
+  (table_definition
+    (table_name
+      (identifier))
+    (column_definition
+      (column_name
+        (identifier))
+      (column_type
+        (type_name
+          (identifier)))
+      (settings_list
+        (setting
+          (setting_name
+            (identifier))
+          (string
+            (string_content)))))))
+
+==================
+expression literal spanning lines
+==================
+
+Table t {
+  a timestamp [default: `now()
+    - interval '5 days'`]
+}
+
+---
+
+(source_file
+  (table_definition
+    (table_name
+      (identifier))
+    (column_definition
+      (column_name
+        (identifier))
+      (column_type
+        (type_name
+          (identifier)))
+      (settings_list
+        (setting
+          (setting_name
+            (identifier))
+          (expression
+            (expression_content)))))))
+
+==================
+numbers: integer, decimal, exponent, negative default
+==================
+
+Table t {
+  a int [default: 42]
+  b float [default: 3.14]
+  c float [default: 1e2]
+  d float [default: 3.14e-5]
+  e int [default: -100]
+}
+
+---
+
+(source_file
+  (table_definition
+    (table_name
+      (identifier))
+    (column_definition
+      (column_name
+        (identifier))
+      (column_type
+        (type_name
+          (identifier)))
+      (settings_list
+        (setting
+          (setting_name
+            (identifier))
+          (number))))
+    (column_definition
+      (column_name
+        (identifier))
+      (column_type
+        (type_name
+          (identifier)))
+      (settings_list
+        (setting
+          (setting_name
+            (identifier))
+          (number))))
+    (column_definition
+      (column_name
+        (identifier))
+      (column_type
+        (type_name
+          (identifier)))
+      (settings_list
+        (setting
+          (setting_name
+            (identifier))
+          (setting_value_words
+            (identifier)))))
+    (column_definition
+      (column_name
+        (identifier))
+      (column_type
+        (type_name
+          (identifier)))
+      (settings_list
+        (setting
+          (setting_name
+            (identifier))
+          (number))))
+    (column_definition
+      (column_name
+        (identifier))
+      (column_type
+        (type_name
+          (identifier)))
+      (settings_list
+        (setting
+          (setting_name
+            (identifier))
+          (signed_number
+            (number)))))))
+
+==================
+colors: short and long
+==================
+
+Table t [headercolor: #fff] {
+  id int
+}
+Table s [headercolor: #3498DB] {
+  id int
+}
+
+---
+
+(source_file
+  (table_definition
+    (table_name
+      (identifier))
+    (settings_list
+      (setting
+        (setting_name
+          (identifier))
+        (color)))
+    (column_definition
+      (column_name
+        (identifier))
+      (column_type
+        (type_name
+          (identifier)))))
+  (table_definition
+    (table_name
+      (identifier))
+    (settings_list
+      (setting
+        (setting_name
+          (identifier))
+        (color)))
+    (column_definition
+      (column_name
+        (identifier))
+      (column_type
+        (type_name
+          (identifier))))))
+
+==================
+quoted identifiers with spaces and escapes
+==================
+
+Table "user accounts" {
+  "column one" int
+  "quo\"ted" int
+}
+
+---
+
+(source_file
+  (table_definition
+    (table_name
+      (quoted_identifier))
+    (column_definition
+      (column_name
+        (quoted_identifier))
+      (column_type
+        (type_name
+          (identifier))))
+    (column_definition
+      (column_name
+        (quoted_identifier))
+      (column_type
+        (type_name
+          (identifier))))))
+
+==================
+unterminated block comment is an error
+:error
+==================
+
+Table t {
+  id int
+}
+/* never closed
+
+---
+
+

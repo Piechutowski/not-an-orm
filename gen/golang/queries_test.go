@@ -6,14 +6,14 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Piechutowski/not-an-orm/check"
-	"github.com/Piechutowski/not-an-orm/diag"
+	"github.com/Piechutowski/not-an-orm/edbml/check"
+	"github.com/Piechutowski/not-an-orm/edbml/diag"
 	sqlitegen "github.com/Piechutowski/not-an-orm/gen/sqlite"
-	"github.com/Piechutowski/not-an-orm/parser"
+	"github.com/Piechutowski/not-an-orm/edbml/parser"
 )
 
 // planStatements re-derives every SQL statement the emitter writes,
-// mirroring emitTable's conditions (D17). Used by the prepare test below.
+// mirroring tableEmit's conditions (D17). Used by the prepare test below.
 func planStatements(t *testing.T, p *plan) map[string]string {
 	t.Helper()
 	stmts := map[string]string{}
@@ -77,9 +77,9 @@ for name, stmt in sorted(inp["stmts"].items()):
 			if err != nil {
 				t.Fatalf("gen/sqlite: %v", err)
 			}
-			p, err := buildPlan(f, info)
+			p, err := planBuild(f, info)
 			if err != nil {
-				t.Fatalf("buildPlan: %v", err)
+				t.Fatalf("planBuild: %v", err)
 			}
 			input, err := json.Marshal(map[string]any{
 				"ddl":   string(ddl),

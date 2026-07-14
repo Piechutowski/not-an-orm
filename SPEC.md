@@ -1306,7 +1306,7 @@ for Go + SQLite. The design record lives in [`docs/`](./docs/):
 [`not-an-orm.md`](./docs/not-an-orm.md) (the vision),
 [`the-model-layer.md`](./docs/the-model-layer.md) (the problem analysis),
 [`orm-capability-matrix.md`](./docs/orm-capability-matrix.md) (every ORM
-capability with our verdict), and [`decisions.md`](./docs/decisions.md)
+capability with my verdict), and [`decisions.md`](./docs/decisions.md)
 (locked design decisions).
 
 ---
