@@ -77,7 +77,7 @@ Roadmap slices: **v0** CRUD + runtime *(shipped 2026-07-08)* · **v1** declared 
 | Group / Having / aggregates of groups | `group/having` | `DBML(v1)` | aggregate shapes belong in declared queries where the result struct is generated |
 | Calculations (`count/sum/min/max/average`) | relation terminals | `GEN(v0)` `DONE` count; `RT(v2)` rest | `UserCount` now; typed terminals on the builder later |
 | `explain` | debugging | `LATER` | runtime debug hook logging SQL + `EXPLAIN QUERY PLAN` |
-| Overriding (`unscope/except/rewhere/...`) | un-doing scopes | `NO` | exists only because relations mutate implicitly; our builder composes explicitly, there is nothing to un-do |
+| Overriding (`unscope/except/rewhere/...`) | un-doing scopes | `NO` | exists only because relations mutate implicitly; my builder composes explicitly, there is nothing to un-do |
 | `none` (null relation) | polymorphic no-op | `NO` | return an empty slice |
 | `readonly` | runtime guard | `NO` | rows are value copies; there is nothing to protect |
 
@@ -129,7 +129,7 @@ Roadmap slices: **v0** CRUD + runtime *(shipped 2026-07-08)* · **v1** declared 
 
 The stance (from [`the-model-layer.md`](the-model-layer.md)): shape → type
 system, invariants → hand-written methods, last resort → DB constraints.
-We generate the first and third; the middle is yours.
+I generate the first and third; the middle is yours.
 
 | Capability | Rails | Verdict | How / why |
 |---|---|---|---|

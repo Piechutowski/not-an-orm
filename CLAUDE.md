@@ -5,23 +5,32 @@ SQLite. One authored file (the DBML schema) — structs, CRUD, typed queries,
 DDL and migrations derived from it. The repo also contains the normative
 DBML language specification and its reference front end.
 
+> [!CAUTION]
+> **This project is an alpha version, and everything may change in the future.**
+
+The project is deliberately fluid: names, layout, CLI surface and APIs are
+still seeking their best shape. There are no users yet, so there is no
+backward compatibility to protect — when a better shape appears, propose
+it and rename/restructure boldly instead of preserving the status quo.
+Locked decisions (docs/decisions.md) still bind until edited.
+
 ## Read these first, in this order
 
 1. [`docs/decisions.md`](docs/decisions.md) — **the law.** Numbered locked
-   decisions (D01–D38). Never contradict one silently; changing a decision
+   decisions (D01–D40). Never contradict one silently; changing a decision
    means editing that file in the same commit.
 2. [`docs/features.md`](docs/features.md) — **the build plan.** Every
    feature by problem solved, with stable IDs (`CRUD-3`, `SEL-2`, `MIG-1`),
    slice and status. Implementation sessions work off this list; landing a
    feature updates its status in the same commit.
 3. [`docs/orm-capability-matrix.md`](docs/orm-capability-matrix.md) — every
-   ORM capability with our verdict and roadmap slice (v0–v4); the
+   ORM capability with my verdict and roadmap slice (v0–v4); the
    exhaustiveness audit behind features.md. Scope changes update the matrix.
 4. [`docs/not-an-orm.md`](docs/not-an-orm.md) — the vision;
    [`docs/the-model-layer.md`](docs/the-model-layer.md) — the problem
    analysis behind it.
 5. [`SPEC.md`](SPEC.md) — the DBML language spec (normative, EBNF).
-   Extensions we add (Select, View, `[was:]`, `[model:]`, `[repr:]`) are a
+   Extensions I add (Select, View, `[was:]`, `[model:]`, `[repr:]`) are a
    superset; the core stays conformant to upstream DBML.
 
 ## Architecture (Go-toolchain layering; keep stages decoupled)

@@ -6,6 +6,9 @@ database code is *generated*: structs, CRUD, typed queries, DDL, and
 (coming) migrations. No reflection, no runtime magic, no `Save()` methods
 that lie. Plain Go you can read, grep, and step through in a debugger.
 
+> [!CAUTION]
+> **This project is an alpha version, and everything may change in the future.**
+
 ```text
         schema.dbml  ──  the single source of truth (and your ER diagram)
              │
@@ -48,7 +51,7 @@ model. Generated code imports the standard library and the tiny
 The model layer's real job is keeping four representations of the same
 truth coherent: the diagram, the DDL, the code, and the live database
 ([the analysis](docs/the-model-layer.md)). ORMs fight the drift with
-runtime machinery; we remove it by construction — one canonical file,
+runtime machinery; I remove it by construction — one canonical file,
 everything else derived. And because SQLite is the only target (all-in,
 [D02](docs/decisions.md)), SQLite itself is the gen-time type checker:
 every generated statement is proven by preparing it against the generated
@@ -138,7 +141,7 @@ and every pattern used: [`docs/editor-architecture.md`](docs/editor-architecture
 This repository also contains the **normative DBML language
 specification** — [`SPEC.md`](SPEC.md), a complete EBNF grammar with
 constraints — plus the [conformance corpus](conformance/) cross-checked
-against the upstream `@dbml/parse` compiler (0 disagreements). Our
+against the upstream `@dbml/parse` compiler (0 disagreements). My
 extensions (`[model:]` today; `Select`, `View`, `[was:]`, `[repr:]` to
 come) are a strict superset: core schemas stay valid for
 [dbdiagram.io](https://dbdiagram.io) diagramming.
@@ -148,7 +151,7 @@ come) are a strict superset: core schemas stay valid for
 | Doc | What it is |
 |---|---|
 | [`docs/features.md`](docs/features.md) | the feature spec, by problem — **start here** |
-| [`docs/decisions.md`](docs/decisions.md) | locked design decisions D01–D38, the law |
+| [`docs/decisions.md`](docs/decisions.md) | locked design decisions D01–D40, the law |
 | [`docs/orm-capability-matrix.md`](docs/orm-capability-matrix.md) | every Rails AR capability vs. my verdict |
 | [`docs/not-an-orm.md`](docs/not-an-orm.md) | the vision note |
 | [`docs/the-model-layer.md`](docs/the-model-layer.md) | why M is the hard layer |

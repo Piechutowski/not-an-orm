@@ -13,12 +13,12 @@ decision is changed by editing this file, not by drifting away from it.
   pre-pivot "dbml-docs" on 2026-07-09.)
 - **D02 — SQLite-first, all-in.** Every simplification bought by rejecting
   other DBMSes is a good trade. SQLite is also *tooling*: at generation time
-  an in-memory SQLite is our SQL parser and type checker (prepare-validate
-  everything we emit or accept).
+  an in-memory SQLite is my SQL parser and type checker (prepare-validate
+  everything I emit or accept).
 - **D03 — One coherent tool, zero runtime dependencies.** Generated code
-  imports stdlib and our own small runtime package only. No sqlc, squirrel,
+  imports stdlib and my own small runtime package only. No sqlc, squirrel,
   sqlx, Atlas. Proven *shapes* may be borrowed (e.g. Queries/DBTX); code is
-  ours.
+  mine.
 - **D04 — Library-first, CLI-thin.** Everything the CLI does is importable;
   user binaries embed subcommands (`app migrate up`) and migrations
   (`embed.FS`). One self-contained deployable binary.
@@ -53,10 +53,10 @@ decision is changed by editing this file, not by drifting away from it.
   cross-check pin it.** Extensions (Select, View, Trigger, `[was:]`,
   `[model:]`, `[repr:]`) are a superset; core stays projectable to vanilla
   DBML for diagramming.
-- **D06 — Structure ours, expressions SQLite's.** Extended-DBML queries parse
-  select lists, tables, joins and declared params with our front end
+- **D06 — Structure mine, expressions SQLite's.** Extended-DBML queries parse
+  select lists, tables, joins and declared params with my front end
   (resolved against `check.Info`); WHERE/HAVING bodies and other expressions
-  stay opaque and are validated by gen-time prepare. We never build an SQL
+  stay opaque and are validated by gen-time prepare. I never build an SQL
   expression grammar.
 - **D07 — Query params are declared, not inferred** — `Select foo (rok int)`.
   Explicit signatures beat inference.
@@ -78,7 +78,7 @@ decision is changed by editing this file, not by drifting away from it.
 - **D12 — No enum CHECK constraints by default** (adding a value must not
   force SQLite's twelve-step rebuild); opt-in for belt-and-suspenders.
   Structural constraints (NOT NULL, FK, UNIQUE) always emitted.
-- **D13 — Nullable columns are `Null[T]`** — our runtime's generic value type
+- **D13 — Nullable columns are `Null[T]`** — my runtime's generic value type
   (`struct { V T; Valid bool }`) with Scan/Value and JSON that marshals as
   the value or `null`. Value semantics, no heap, no nil-deref. (Supersedes
   the pointer representation in early `gen go` output.)
@@ -155,7 +155,7 @@ decision is changed by editing this file, not by drifting away from it.
   because one `IN` query is *atomic* (a loop of queries in autocommit can
   interleave with writes — the single-writer property makes consistency,
   not speed, the argument) and still wins at large N. Statement overhead is
-  microseconds, not milliseconds; we say so honestly.
+  microseconds, not milliseconds; I say so honestly.
 
 ## Runtime and CRUD surface (v0 build, 2026-07-08)
 
@@ -196,7 +196,7 @@ decision is changed by editing this file, not by drifting away from it.
   generated ordered ledger + `schema_migrations` table.
 - **D21 — Each migration embeds the schema content hash** it targets, so
   "schema changed but no migration cut" is machine-detectable drift.
-- **D22 — We own the SQLite twelve-step rebuild** (we already generate full
+- **D22 — I own the SQLite twelve-step rebuild** (I already generate full
   CREATE TABLE; a rebuild is create-new + INSERT…SELECT + drop + rename in
   the pragma bracket). No Atlas.
 - **D23 — Migrations never run on app startup.** Applied by CLI or an

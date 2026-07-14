@@ -430,20 +430,12 @@ picks it up automatically.
 
 ## 7. Decision log
 
-- **Fresh grammar over extending `dynamotn/tree-sitter-dbml`** — the
-  prototype couldn't parse two-part refs or inline refs at all, had no
-  partials, no fields, no per-construct nodes, a 5/5-failing corpus; fixing
-  it meant redesigning tokenization anyway.
 - **Go for the server** — the reference front end is Go; wrapping it gives
   spec-exact diagnostics for free and one implementation to maintain.
 - **`tliron/glsp` over `go.lsp.dev`** — maintained, complete 3.16 types,
   handler-struct wiring with no codegen; the alternative is semi-dormant.
 - **Full-text sync over incremental** — schema files are small; statelessness
   beats patch bookkeeping.
-- **Local-first distribution** — dev extension + PATH-resolved binary; no
-  marketplace, no binary downloads. Publishing later only adds steps
-  (public grammar repo, `zed-industries/extensions` PR), it changes nothing
-  structural.
 - **`.dbml` and `.edbml` both registered** — EDBML is a superset; plain DBML
   files are valid EDBML.
 
