@@ -50,9 +50,9 @@ func TestGeneratedFilesCurrent(t *testing.T) {
 		file string
 		want []byte
 	}{
-		{"edbml_models.go", models},
-		{"edbml_queries.go", queries},
-		{"edbml_schema.sql", schema},
+		{"nao_models.go", models},
+		{"nao_queries.go", queries},
+		{"nao_schema.sql", schema},
 	} {
 		got, err := os.ReadFile(tc.file)
 		if err != nil {

@@ -11,7 +11,7 @@
 //	nao gen sqlite [-i in.edbml] [-o dir]                SQLite DDL + seeds
 //	nao lsp                             language server on stdin/stdout
 //
-// gen go -m/--models-only emits just edbml_models.go (structs/enums), for
+// gen go -m/--models-only emits just nao_models.go (structs/enums), for
 // sharing the row types across processes without the CRUD layer.
 //
 // gen defaults: input ./schema.edbml, output the current directory, Go
@@ -86,13 +86,13 @@ func main() {
 				Commands: []*cli.Command{
 					{
 						Name:      "go",
-						Usage:     "generate Go model structs and CRUD (edbml_models.go, edbml_queries.go)",
+						Usage:     "generate Go model structs and CRUD (nao_models.go, nao_queries.go)",
 						ArgsUsage: "[file.edbml]",
 						Flags: []cli.Flag{
 							&cli.StringFlag{Name: "input", Aliases: []string{"i"}, Usage: "input `file.edbml` (default: ./schema.edbml)"},
 							&cli.StringFlag{Name: "out", Aliases: []string{"o"}, Value: ".", Usage: "output `directory` for the generated .go files"},
 							&cli.StringFlag{Name: "package", Aliases: []string{"p"}, Value: "main", Usage: "package `name`"},
-							&cli.BoolFlag{Name: "models-only", Aliases: []string{"m"}, Usage: "emit only edbml_models.go (structs/enums); skip the CRUD queries"},
+							&cli.BoolFlag{Name: "models-only", Aliases: []string{"m"}, Usage: "emit only nao_models.go (structs/enums); skip the CRUD queries"},
 						},
 						Action: func(_ context.Context, c *cli.Command) error {
 							return runGen(c, "go")
@@ -100,11 +100,11 @@ func main() {
 					},
 					{
 						Name:      "sqlite",
-						Usage:     "generate SQLite DDL and seed inserts (edbml_schema.sql)",
+						Usage:     "generate SQLite DDL and seed inserts (nao_schema.sql)",
 						ArgsUsage: "[file.edbml]",
 						Flags: []cli.Flag{
 							&cli.StringFlag{Name: "input", Aliases: []string{"i"}, Usage: "input `file.edbml` (default: ./schema.edbml)"},
-							&cli.StringFlag{Name: "out", Aliases: []string{"o"}, Value: ".", Usage: "output `directory` for edbml_schema.sql"},
+							&cli.StringFlag{Name: "out", Aliases: []string{"o"}, Value: ".", Usage: "output `directory` for nao_schema.sql"},
 						},
 						Action: func(_ context.Context, c *cli.Command) error {
 							return runGen(c, "sqlite")
@@ -259,20 +259,20 @@ func runGen(c *cli.Command, lang string) error {
 		if err != nil {
 			return cli.Exit("gen: "+err.Error(), 1)
 		}
-		outputs = []output{{"edbml_models.go", models, "// Code generated "}}
+		outputs = []output{{"nao_models.go", models, "// Code generated "}}
 		if !c.Bool("models-only") {
 			queries, err := golanggen.GenerateQueries(f, info, opts)
 			if err != nil {
 				return cli.Exit("gen: "+err.Error(), 1)
 			}
-			outputs = append(outputs, output{"edbml_queries.go", queries, "// Code generated "})
+			outputs = append(outputs, output{"nao_queries.go", queries, "// Code generated "})
 		}
 	case "sqlite":
 		code, err := sqlitegen.Generate(f, info, sqlitegen.Options{Source: filepath.Base(file)})
 		if err != nil {
 			return cli.Exit("gen: "+err.Error(), 1)
 		}
-		outputs = []output{{"edbml_schema.sql", code, "-- Code generated "}}
+		outputs = []output{{"nao_schema.sql", code, "-- Code generated "}}
 	}
 
 	// Refuse every clobber before writing anything: all or nothing.

@@ -26,7 +26,7 @@ func newDB(t *testing.T) (*sql.DB, *Queries) {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { db.Close() })
-	ddl, err := os.ReadFile("edbml_schema.sql")
+	ddl, err := os.ReadFile("nao_schema.sql")
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -1,4 +1,4 @@
-// Package sqlite generates SQLite DDL (edbml_schema.sql) from a checked
+// Package sqlite generates SQLite DDL (nao_schema.sql) from a checked
 // DBML file: CREATE TABLE per table, CREATE INDEX per non-pk index, and
 // INSERT statements from records.
 //

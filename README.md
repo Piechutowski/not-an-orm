@@ -12,9 +12,9 @@ that lie. Plain Go you can read, grep, and step through in a debugger.
 ```text
         schema.edbml  ──  the single source of truth (and your ER diagram)
              │
-    nao gen ─┼──► edbml_models.go    structs, enums, notes as doc comments
-             ├──► edbml_queries.go   typed CRUD on a Queries handle
-             └──► edbml_schema.sql   DDL + seed data, FK/CHECK/UNIQUE real
+    nao gen ─┼──► nao_models.go    structs, enums, notes as doc comments
+             ├──► nao_queries.go   typed CRUD on a Queries handle
+             └──► nao_schema.sql   DDL + seed data, FK/CHECK/UNIQUE real
 ```
 
 ## Ten seconds of it
@@ -79,13 +79,13 @@ nao vet    schema.edbml                 # legal-but-suspicious EDBML (edbml/vet/
 
 # From the directory that holds schema.edbml, gen needs no arguments:
 nao gen go                              # ./schema.edbml -> ./edbml_{models,queries}.go
-nao gen sqlite                          # ./schema.edbml -> ./edbml_schema.sql
+nao gen sqlite                          # ./schema.edbml -> ./nao_schema.sql
 
 # Defaults: input ./schema.edbml, output '.', Go package 'main'. Override with
 # -i/--input, -o/--out, -p/--package:
 nao gen go -i db/schema.edbml -o ./models -p models
 
-# -m/--models-only emits just edbml_models.go (structs/enums, no CRUD) — for
+# -m/--models-only emits just nao_models.go (structs/enums, no CRUD) — for
 # sharing the row types across processes (e.g. gob between a server and a GUI):
 nao gen go --models-only -o ./shared -p shared
 
