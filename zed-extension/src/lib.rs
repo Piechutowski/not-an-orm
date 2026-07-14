@@ -4,7 +4,7 @@
 //! binary is resolved in order: the user's `lsp.edbml-ls.binary.path`
 //! setting, then the worktree `PATH`. The extension is installed locally as
 //! a dev extension, so there is no download fallback — build the server
-//! with scripts/install-ls.sh instead.
+//! with `go install ./cmd/edbml-ls` instead.
 
 use zed_extension_api::{self as zed, settings::LspSettings, LanguageServerId, Result};
 
@@ -35,7 +35,7 @@ impl zed::Extension for EdbmlExtension {
         }
 
         let path = worktree.which("edbml-ls").ok_or_else(|| {
-            "edbml-ls not found on PATH. Build it with scripts/install-ls.sh, or point \
+            "edbml-ls not found on PATH. Build it with `go install ./cmd/edbml-ls`, or point \
              Zed at the binary via the `lsp.edbml-ls.binary.path` setting."
                 .to_string()
         })?;

@@ -6,8 +6,6 @@ database code is *generated*: structs, CRUD, typed queries, DDL, and
 (coming) migrations. No reflection, no runtime magic, no `Save()` methods
 that lie. Plain Go you can read, grep, and step through in a debugger.
 
-(Yes, the name works like *Not a Flamethrower*.)
-
 ```text
         schema.dbml  ──  the single source of truth (and your ER diagram)
              │
@@ -131,7 +129,7 @@ it, so the repository also ships the editor tooling (D40):
   hover, go-to-definition, find references, rename. Editor-agnostic LSP
   over stdio — works in Zed, Neovim, Helix, VS Code.
 
-Install locally: `./scripts/install-ls.sh`, then `./scripts/sync-grammar.sh`,
+Install locally: `go install ./cmd/edbml-ls`, then `./scripts/sync-grammar.sh`,
 then Zed's `Install Dev Extension` pointed at `zed-extension/`. The design
 and every pattern used: [`docs/editor-architecture.md`](docs/editor-architecture.md).
 
@@ -151,7 +149,7 @@ come) are a strict superset: core schemas stay valid for
 |---|---|
 | [`docs/features.md`](docs/features.md) | the feature spec, by problem — **start here** |
 | [`docs/decisions.md`](docs/decisions.md) | locked design decisions D01–D38, the law |
-| [`docs/orm-capability-matrix.md`](docs/orm-capability-matrix.md) | every Rails AR capability vs. our verdict |
+| [`docs/orm-capability-matrix.md`](docs/orm-capability-matrix.md) | every Rails AR capability vs. my verdict |
 | [`docs/not-an-orm.md`](docs/not-an-orm.md) | the vision note |
 | [`docs/the-model-layer.md`](docs/the-model-layer.md) | why M is the hard layer |
 | [`SPEC.md`](SPEC.md) | the DBML language specification |

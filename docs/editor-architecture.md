@@ -221,7 +221,7 @@ first, then `worktree.which("edbml-ls")` — and two optional passthrough
 methods that forward `initialization_options` / workspace `settings` from
 Zed's `settings.json` to the server. There is deliberately no
 download-from-releases step (the Odin extension shows that pattern): this
-extension is local-first, and `scripts/install-ls.sh` is the installer.
+extension is local-first, and `go install ./cmd/edbml-ls` is the installer.
 
 ### Pattern: the local grammar mirror (`scripts/sync-grammar.sh`)
 
