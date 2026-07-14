@@ -22,8 +22,8 @@ func (c *checker) resolve(f *ast.File) {
 	for _, d := range f.Decls {
 		if r, ok := d.(*ast.Ref); ok {
 			ri := &RefInfo{Node: r, Op: r.OpTok.Kind}
-			ri.Left = c.resolveEndpoint(r.Left, lenient)
-			ri.Right = c.resolveEndpoint(r.Right, lenient)
+			ri.Left = c.endpointResolve(r.Left, lenient)
+			ri.Right = c.endpointResolve(r.Right, lenient)
 			c.info.Refs = append(c.info.Refs, ri)
 		}
 	}
@@ -43,7 +43,7 @@ func (c *checker) resolve(f *ast.File) {
 					Columns: []string{cd.Col.Name.Name()},
 					Pos:     s.Pos(),
 				}
-				ri.Right = c.resolveEndpoint(rv.Endpoint, lenient)
+				ri.Right = c.endpointResolve(rv.Endpoint, lenient)
 				if len(ri.Right.Columns) != 1 {
 					c.errorf(rv.Endpoint.Pos(), "6.7", "an inline ref endpoint has exactly one column")
 				}
@@ -51,7 +51,7 @@ func (c *checker) resolve(f *ast.File) {
 			}
 		}
 	}
-	c.checkDuplicateRefs()
+	c.duplicateRefsCheck()
 
 	// Index keys must name columns of their table (§6.5.2).
 	for _, ti := range c.info.Tables {
@@ -71,14 +71,14 @@ func (c *checker) resolve(f *ast.File) {
 	// Records: table and column resolution (§6.10).
 	for _, d := range f.Decls {
 		if r, ok := d.(*ast.Records); ok {
-			c.resolveRecords(r, nil, lenient)
+			c.recordsResolve(r, nil, lenient)
 		}
 	}
 	recordsSeen := map[string]token.Position{}
 	for _, ti := range c.info.Tables {
 		for _, item := range ti.Decl.Body {
 			if r, ok := item.(*ast.Records); ok {
-				c.resolveRecords(r, ti, lenient)
+				c.recordsResolve(r, ti, lenient)
 			}
 		}
 	}
@@ -89,7 +89,7 @@ func (c *checker) resolve(f *ast.File) {
 				c.errorf(r.Pos(), "6.10", "at most one records block per table (%q)", r.Table.String())
 			}
 			recordsSeen[key] = r.Pos()
-			if ti := c.lookupTable(r.Table); ti != nil {
+			if ti := c.tableLookup(r.Table); ti != nil {
 				for _, item := range ti.Decl.Body {
 					if _, ok := item.(*ast.Records); ok {
 						c.errorf(r.Pos(), "6.10", "table %q already has an in-table records block", r.Table.String())
@@ -107,7 +107,7 @@ func (c *checker) resolve(f *ast.File) {
 			continue
 		}
 		for _, m := range g.Members {
-			ti := c.lookupTable(m)
+			ti := c.tableLookup(m)
 			if ti == nil {
 				if !lenient {
 					c.errorf(m.Pos(), "6.12", "unknown table %q in TableGroup %q", m.String(), g.Name.Name())
@@ -135,7 +135,7 @@ func (c *checker) resolve(f *ast.File) {
 			for _, nm := range cat.Names {
 				switch strings.ToLower(cat.Kind.Name()) {
 				case "tables":
-					if c.lookupTable(nm) == nil {
+					if c.tableLookup(nm) == nil {
 						c.errorf(nm.Pos(), "6.13", "unknown table %q in DiagramView", nm.String())
 					}
 				case "notes":
@@ -156,17 +156,17 @@ func (c *checker) resolve(f *ast.File) {
 	}
 }
 
-// lookupTable resolves a table reference by canonical name or alias.
-func (c *checker) lookupTable(q *ast.QualName) *TableInfo {
+// tableLookup resolves a table reference by canonical name or alias.
+func (c *checker) tableLookup(q *ast.QualName) *TableInfo {
 	return c.info.byTable[canonKey(q)]
 }
 
-func (c *checker) resolveEndpoint(ep *ast.RefEndpoint, lenient bool) EndpointInfo {
+func (c *checker) endpointResolve(ep *ast.RefEndpoint, lenient bool) EndpointInfo {
 	out := EndpointInfo{Pos: ep.Pos()}
 	for _, col := range ep.Columns {
 		out.Columns = append(out.Columns, col.Name())
 	}
-	ti := c.lookupTable(ep.Table)
+	ti := c.tableLookup(ep.Table)
 	if ti == nil {
 		if !lenient {
 			c.errorf(ep.Table.Pos(), "8.3", "unknown table %q in relationship endpoint", ep.Table.String())
@@ -201,7 +201,7 @@ func refKey(r *RefInfo) (string, bool) {
 	return pair[0] + "|" + pair[1], true
 }
 
-func (c *checker) checkDuplicateRefs() {
+func (c *checker) duplicateRefsCheck() {
 	seen := map[string]bool{}
 	for _, r := range c.info.Refs {
 		key, ok := refKey(r)
@@ -216,9 +216,9 @@ func (c *checker) checkDuplicateRefs() {
 	}
 }
 
-func (c *checker) resolveRecords(r *ast.Records, ti *TableInfo, lenient bool) {
+func (c *checker) recordsResolve(r *ast.Records, ti *TableInfo, lenient bool) {
 	if r.Table != nil {
-		ti = c.lookupTable(r.Table)
+		ti = c.tableLookup(r.Table)
 		if ti == nil {
 			if !lenient {
 				c.errorf(r.Table.Pos(), "6.10", "unknown table %q in records", r.Table.String())

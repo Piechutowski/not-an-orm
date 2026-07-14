@@ -102,7 +102,7 @@ func File(f *ast.File) (*Info, []diag.Diagnostic) {
 		},
 	}
 	c.collect(f)
-	c.checkDecls(f)
+	c.declsCheck(f)
 	c.resolve(f)
 	diag.Sort(c.diags)
 	return c.info, c.diags
@@ -213,13 +213,13 @@ func (c *checker) collect(f *ast.File) {
 
 	// Effective columns: expand injections in source order (§8.4).
 	for _, ti := range c.info.Tables {
-		c.expandColumns(ti)
+		c.columnsExpand(ti)
 	}
 }
 
-// expandColumns applies §6.9.4 conflict resolution: direct definitions win;
+// columnsExpand applies §6.9.4 conflict resolution: direct definitions win;
 // otherwise the last-injected partial wins.
-func (c *checker) expandColumns(ti *TableInfo) {
+func (c *checker) columnsExpand(ti *TableInfo) {
 	type slot struct {
 		def   *ColumnDef
 		order int
@@ -232,7 +232,7 @@ func (c *checker) expandColumns(ti *TableInfo) {
 		def := &ColumnDef{Col: col, Partial: from}
 		if s, ok := byName[name]; ok {
 			if from == nil && direct[name] {
-				// duplicate direct definition — an error, reported in checkDecls
+				// duplicate direct definition — an error, reported in declsCheck
 				return
 			}
 			if from == nil || !direct[name] {

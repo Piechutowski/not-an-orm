@@ -121,7 +121,7 @@ func (p *parser) decl() (d ast.Decl) {
 				panic(r)
 			}
 			d = nil
-			p.syncTopLevel()
+			p.topLevelSync()
 		}
 	}()
 
@@ -156,9 +156,9 @@ func (p *parser) decl() (d ast.Decl) {
 	}
 }
 
-// syncTopLevel skips tokens until something that can start a declaration:
+// topLevelSync skips tokens until something that can start a declaration:
 // an identifier at the start of a line, balanced past any open braces.
-func (p *parser) syncTopLevel() {
+func (p *parser) topLevelSync() {
 	if !p.at(token.EOF) {
 		p.next() // always make progress past the offending token
 	}
@@ -183,10 +183,10 @@ func (p *parser) syncTopLevel() {
 	}
 }
 
-// syncLine skips to the next line inside a braced body. It always makes
+// lineSync skips to the next line inside a braced body. It always makes
 // progress: without the initial next() an error raised on a line-initial
 // token would be retried forever.
-func (p *parser) syncLine() {
+func (p *parser) lineSync() {
 	if !p.at(token.EOF) && !p.at(token.RBRACE) {
 		p.next()
 	}
@@ -312,7 +312,7 @@ func (p *parser) tableItem(what string) (item ast.TableItem) {
 				panic(r)
 			}
 			item = nil
-			p.syncLine()
+			p.lineSync()
 		}
 	}()
 

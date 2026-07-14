@@ -57,7 +57,7 @@ var (
 			"unique": flagOnly, "pk": flagOnly, "note": strValue,
 		},
 	}
-	checkSettings = settingSpec{
+	settingsCheck = settingSpec{
 		kinds: map[string]valueKind{"name": strValue},
 	}
 	refSettings = settingSpec{
@@ -77,7 +77,7 @@ var (
 	}
 )
 
-func (c *checker) checkSettings(sl *ast.SettingList, section string, spec settingSpec) {
+func (c *checker) settingsCheck(sl *ast.SettingList, section string, spec settingSpec) {
 	if sl == nil {
 		return
 	}
@@ -96,7 +96,7 @@ func (c *checker) checkSettings(sl *ast.SettingList, section string, spec settin
 			c.errorf(s.Pos(), "4.2", "setting %q may appear at most once", s.Name)
 		}
 		seen[canon] = true
-		c.checkSettingValue(s, section, kind)
+		c.settingValueCheck(s, section, kind)
 	}
 	for _, pair := range spec.conflicts {
 		if seen[pair[0]] && seen[pair[1]] {
@@ -105,7 +105,7 @@ func (c *checker) checkSettings(sl *ast.SettingList, section string, spec settin
 	}
 }
 
-func (c *checker) checkSettingValue(s *ast.Setting, section string, kind valueKind) {
+func (c *checker) settingValueCheck(s *ast.Setting, section string, kind valueKind) {
 	switch kind {
 	case flagOnly:
 		if s.Value != nil {
@@ -148,12 +148,12 @@ func (c *checker) checkSettingValue(s *ast.Setting, section string, kind valueKi
 	case actionValue:
 		switch s.Value.(type) {
 		case *ast.Ident, parser.MultiWord:
-			// the action vocabulary is validated in checkRefSettings
+			// the action vocabulary is validated in refSettingsCheck
 		default:
 			c.errorf(s.Value.Pos(), section, "%q must be a referential action", s.Name)
 		}
 	case defaultVal:
-		c.checkDefaultValue(s)
+		c.defaultValueCheck(s)
 	case refVal:
 		if _, ok := s.Value.(*ast.RefValue); !ok {
 			c.errorf(s.Value.Pos(), section, "'ref' must be a relationship operator followed by an endpoint")
@@ -161,9 +161,9 @@ func (c *checker) checkSettingValue(s *ast.Setting, section string, kind valueKi
 	}
 }
 
-// checkDefaultValue enforces §6.4: number, string, boolean, null,
+// defaultValueCheck enforces §6.4: number, string, boolean, null,
 // expression, or a dotted enum constant — never a bare identifier.
-func (c *checker) checkDefaultValue(s *ast.Setting) {
+func (c *checker) defaultValueCheck(s *ast.Setting) {
 	switch v := s.Value.(type) {
 	case *ast.BasicLit:
 		if v.Tok.Kind == token.COLOR {

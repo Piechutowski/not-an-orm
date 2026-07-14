@@ -10,30 +10,30 @@ import (
 	"github.com/Piechutowski/not-an-orm/edbml/token"
 )
 
-func (c *checker) checkDecls(f *ast.File) {
+func (c *checker) declsCheck(f *ast.File) {
 	for _, d := range f.Decls {
 		switch d := d.(type) {
 		case *ast.Use:
-			c.checkUse(d)
+			c.useCheck(d)
 		case *ast.Project:
 			// properties are free-form (§6.1.2); nothing local to check
 		case *ast.Table:
-			c.checkTableBody(d.Name.String(), d.Settings, d.Body, true)
+			c.tableBodyCheck(d.Name.String(), d.Settings, d.Body, true)
 		case *ast.TablePartial:
-			c.checkTableBody(d.Name.Name(), d.Settings, d.Body, false)
+			c.tableBodyCheck(d.Name.Name(), d.Settings, d.Body, false)
 		case *ast.Enum:
-			c.checkEnum(d)
+			c.enumCheck(d)
 		case *ast.Ref:
-			c.checkRefSettings(d.Settings)
-			c.checkEndpointArity(d.Left, d.Right)
+			c.refSettingsCheck(d.Settings)
+			c.endpointArityCheck(d.Left, d.Right)
 		case *ast.StickyNote:
-			c.checkSettings(d.Settings, "6.11", stickySettings)
+			c.settingsCheck(d.Settings, "6.11", stickySettings)
 		case *ast.TableGroup:
-			c.checkSettings(d.Settings, "6.12", groupSettings)
+			c.settingsCheck(d.Settings, "6.12", groupSettings)
 		case *ast.DiagramView:
-			c.checkView(d)
+			c.viewCheck(d)
 		case *ast.Records:
-			c.checkRecords(d, true)
+			c.recordsCheck(d, true)
 		}
 	}
 }
@@ -43,7 +43,7 @@ var importKinds = map[string]bool{
 	"note": true, "schema": true, "tablegroup": true,
 }
 
-func (c *checker) checkUse(d *ast.Use) {
+func (c *checker) useCheck(d *ast.Use) {
 	for _, it := range d.Items {
 		if !importKinds[strings.ToLower(it.Kind.Name())] || it.Kind.Quoted() {
 			c.errorf(it.Kind.Pos(), "7", "unknown import kind %q; expected table, enum, tablepartial, note, schema or tablegroup", it.Kind.Name())
@@ -53,15 +53,15 @@ func (c *checker) checkUse(d *ast.Use) {
 
 /* ===== table bodies (§6.2, §6.9) ===== */
 
-func (c *checker) checkTableBody(name string, settings *ast.SettingList, body []ast.TableItem, isTable bool) {
-	c.checkSettings(settings, "6.2", tableSettings)
+func (c *checker) tableBodyCheck(name string, settings *ast.SettingList, body []ast.TableItem, isTable bool) {
+	c.settingsCheck(settings, "6.2", tableSettings)
 
 	columns := map[string]bool{}
 	nCols, nInject, nNotes, nRecords := 0, 0, 0, 0
 	for _, item := range body {
 		switch item := item.(type) {
 		case *ast.Column:
-			c.checkColumn(item)
+			c.columnCheck(item)
 			if columns[item.Name.Name()] {
 				c.errorf(item.Pos(), "8.2", "duplicate column name %q", item.Name.Name())
 			}
@@ -74,11 +74,11 @@ func (c *checker) checkTableBody(name string, settings *ast.SettingList, body []
 			nInject++
 		case *ast.IndexesBlock:
 			for _, ix := range item.Indexes {
-				c.checkSettings(ix.Settings, "6.5", indexSettings)
+				c.settingsCheck(ix.Settings, "6.5", indexSettings)
 			}
 		case *ast.ChecksBlock:
 			for _, ck := range item.Checks {
-				c.checkSettings(ck.Settings, "6.6", checkSettings)
+				c.settingsCheck(ck.Settings, "6.6", settingsCheck)
 			}
 		case *ast.Note:
 			nNotes++
@@ -87,7 +87,7 @@ func (c *checker) checkTableBody(name string, settings *ast.SettingList, body []
 				c.errorf(item.Pos(), "6.9", "records are not allowed inside TablePartial")
 			}
 			nRecords++
-			c.checkRecords(item, false)
+			c.recordsCheck(item, false)
 		}
 	}
 	if isTable && nCols == 0 && nInject == 0 {
@@ -118,19 +118,19 @@ func bodyPos(body []ast.TableItem, settings *ast.SettingList) token.Position {
 	return token.Position{}
 }
 
-func (c *checker) checkColumn(col *ast.Column) {
+func (c *checker) columnCheck(col *ast.Column) {
 	for _, f := range col.LegacyFlags {
 		low := strings.ToLower(f.Name())
 		if f.Quoted() || (low != "pk" && low != "unique") {
 			c.errorf(f.Pos(), "6.3", "only the legacy flags pk and unique may follow the column type; found %q", f.Name())
 		}
 	}
-	c.checkSettings(col.Settings, "6.3", columnSettings)
+	c.settingsCheck(col.Settings, "6.3", columnSettings)
 }
 
 /* ===== Enum (§6.8) ===== */
 
-func (c *checker) checkEnum(d *ast.Enum) {
+func (c *checker) enumCheck(d *ast.Enum) {
 	if len(d.Values) == 0 {
 		c.errorf(d.Pos(), "6.8", "enum %q must contain at least one value", d.Name.String())
 	}
@@ -140,13 +140,13 @@ func (c *checker) checkEnum(d *ast.Enum) {
 			c.errorf(v.Pos(), "8.2", "duplicate enum value %q", v.Name.Name())
 		}
 		seen[v.Name.Name()] = true
-		c.checkSettings(v.Settings, "6.8", enumValueSettings)
+		c.settingsCheck(v.Settings, "6.8", enumValueSettings)
 	}
 }
 
 /* ===== Ref (§6.7) ===== */
 
-func (c *checker) checkEndpointArity(l, r *ast.RefEndpoint) {
+func (c *checker) endpointArityCheck(l, r *ast.RefEndpoint) {
 	if l == nil || r == nil {
 		return
 	}
@@ -160,8 +160,8 @@ var refActions = map[string]bool{
 	"set default": true, "no action": true,
 }
 
-func (c *checker) checkRefSettings(sl *ast.SettingList) {
-	c.checkSettings(sl, "6.7", refSettings)
+func (c *checker) refSettingsCheck(sl *ast.SettingList) {
+	c.settingsCheck(sl, "6.7", refSettings)
 	if sl == nil {
 		return
 	}
@@ -184,7 +184,7 @@ func (c *checker) checkRefSettings(sl *ast.SettingList) {
 
 /* ===== Records (§6.10) ===== */
 
-func (c *checker) checkRecords(d *ast.Records, topLevel bool) {
+func (c *checker) recordsCheck(d *ast.Records, topLevel bool) {
 	if topLevel && !d.HasColumns {
 		c.errorf(d.Pos(), "6.10", "top-level records must list columns")
 	}
@@ -209,7 +209,7 @@ var categoryKinds = map[string]bool{
 	"tables": true, "notes": true, "tablegroups": true, "schemas": true,
 }
 
-func (c *checker) checkView(d *ast.DiagramView) {
+func (c *checker) viewCheck(d *ast.DiagramView) {
 	seen := map[string]bool{}
 	for _, cat := range d.Categories {
 		low := strings.ToLower(cat.Kind.Name())

@@ -4,7 +4,7 @@
 // The implementation uses Rob Pike's state-function design ("Lexical
 // Scanning in Go", GTUG Sydney 2011): the scanner is a loop
 //
-//	for state := scanAny; state != nil; state = state(s) {}
+//	for state := anyScan; state != nil; state = state(s) {}
 //
 // where each state is a func(*Scanner) stateFn that consumes input, emits
 // tokens, and returns the next state. Control flow lives in the type
@@ -40,7 +40,7 @@ func Scan(filename, src string) ([]token.Token, []diag.Diagnostic) {
 		pos:  token.Position{Filename: filename, Line: 1, Column: 1},
 	}
 	s.nlBefore = true // start of file counts as a line break
-	for state := scanAny; state != nil; {
+	for state := anyScan; state != nil; {
 		state = state(s)
 	}
 	s.emit(token.EOF, "")
@@ -120,7 +120,7 @@ func (s *Scanner) emit(kind token.Kind, val string) {
 	s.nlBefore, s.spBefore = false, false
 }
 
-func (s *Scanner) emitTok(t token.Token) {
+func (s *Scanner) tokEmit(t token.Token) {
 	t.Pos = s.start
 	t.Text = s.raw()
 	t.NLBefore = s.nlBefore
@@ -145,8 +145,8 @@ func isHex(r rune) bool {
 
 /* ===== state functions ===== */
 
-// scanAny is the top-level state: it dispatches on the next rune.
-func scanAny(s *Scanner) stateFn {
+// anyScan is the top-level state: it dispatches on the next rune.
+func anyScan(s *Scanner) stateFn {
 	s.mark()
 	switch r := s.peek(); {
 	case r == eof:
@@ -154,44 +154,44 @@ func scanAny(s *Scanner) stateFn {
 	case r == ' ' || r == '\t':
 		s.next()
 		s.spBefore = true
-		return scanAny
+		return anyScan
 	case r == '\n':
 		s.next()
 		s.nlBefore = true
-		return scanAny
+		return anyScan
 	case r == '/' && s.peekAt(1) == '/':
-		return scanLineComment
+		return lineCommentScan
 	case r == '/' && s.peekAt(1) == '*':
-		return scanBlockComment
+		return blockCommentScan
 	case r == '\'':
 		if s.peekAt(1) == '\'' && s.peekAt(2) == '\'' {
-			return scanMultiString
+			return multiStringScan
 		}
-		return scanString
+		return stringScan
 	case r == '"':
-		return scanQuotedIdent
+		return quotedIdentScan
 	case r == '`':
-		return scanFuncExpr
+		return funcExprScan
 	case r == '#':
-		return scanColor
+		return colorScan
 	case isDigit(r):
-		return scanNumberOrIdent
+		return numberOrIdentScan
 	case isLetter(r):
-		return scanIdent
+		return identScan
 	default:
-		return scanOperator
+		return operatorScan
 	}
 }
 
-func scanLineComment(s *Scanner) stateFn {
+func lineCommentScan(s *Scanner) stateFn {
 	for r := s.peek(); r != '\n' && r != eof; r = s.peek() {
 		s.next()
 	}
 	s.spBefore = true // comments are trivia (§3.3.4)
-	return scanAny
+	return anyScan
 }
 
-func scanBlockComment(s *Scanner) stateFn {
+func blockCommentScan(s *Scanner) stateFn {
 	s.next()
 	s.next() // consume /*
 	for {
@@ -203,15 +203,15 @@ func scanBlockComment(s *Scanner) stateFn {
 			s.next()
 			s.next()
 			s.spBefore = true
-			return scanAny
+			return anyScan
 		default:
 			s.next()
 		}
 	}
 }
 
-// scanEscape handles one escape sequence (§3.8); the backslash is consumed.
-func (s *Scanner) scanEscape() {
+// escapeScan handles one escape sequence (§3.8); the backslash is consumed.
+func (s *Scanner) escapeScan() {
 	switch r := s.next(); r {
 	case 't':
 		s.val.WriteByte('\t')
@@ -247,7 +247,7 @@ func (s *Scanner) scanEscape() {
 	}
 }
 
-func scanString(s *Scanner) stateFn {
+func stringScan(s *Scanner) stateFn {
 	s.next() // opening '
 	for {
 		switch r := s.peek(); r {
@@ -256,21 +256,21 @@ func scanString(s *Scanner) stateFn {
 			return nil
 		case '\n':
 			s.errorf("syntax", "newline in single-line string (§3.6)")
-			return scanAny
+			return anyScan
 		case '\'':
 			s.next()
-			s.emitTok(token.Token{Kind: token.STRING, Val: s.val.String()})
-			return scanAny
+			s.tokEmit(token.Token{Kind: token.STRING, Val: s.val.String()})
+			return anyScan
 		case '\\':
 			s.next()
-			s.scanEscape()
+			s.escapeScan()
 		default:
 			s.val.WriteRune(s.next())
 		}
 	}
 }
 
-func scanMultiString(s *Scanner) stateFn {
+func multiStringScan(s *Scanner) stateFn {
 	s.next()
 	s.next()
 	s.next() // opening '''
@@ -283,19 +283,19 @@ func scanMultiString(s *Scanner) stateFn {
 			s.next()
 			s.next()
 			s.next()
-			s.emitTok(token.Token{Kind: token.STRING, Val: stripIndent(s.val.String()), Multi: true})
-			return scanAny
+			s.tokEmit(token.Token{Kind: token.STRING, Val: indentStrip(s.val.String()), Multi: true})
+			return anyScan
 		case r == '\\':
 			s.next()
-			s.scanEscape()
+			s.escapeScan()
 		default:
 			s.val.WriteRune(s.next())
 		}
 	}
 }
 
-// stripIndent implements §3.7.4 indentation stripping.
-func stripIndent(v string) string {
+// indentStrip implements §3.7.4 indentation stripping.
+func indentStrip(v string) string {
 	lines := strings.Split(v, "\n")
 	if len(lines) > 0 && strings.TrimSpace(lines[0]) == "" {
 		lines = lines[1:]
@@ -325,7 +325,7 @@ func stripIndent(v string) string {
 	return strings.Join(lines, "\n")
 }
 
-func scanQuotedIdent(s *Scanner) stateFn {
+func quotedIdentScan(s *Scanner) stateFn {
 	s.next() // opening "
 	for {
 		switch r := s.peek(); r {
@@ -334,21 +334,21 @@ func scanQuotedIdent(s *Scanner) stateFn {
 			return nil
 		case '\n':
 			s.errorf("syntax", "newline in quoted identifier (§3.4)")
-			return scanAny
+			return anyScan
 		case '"':
 			s.next()
-			s.emitTok(token.Token{Kind: token.IDENT, Val: s.val.String(), Quoted: true})
-			return scanAny
+			s.tokEmit(token.Token{Kind: token.IDENT, Val: s.val.String(), Quoted: true})
+			return anyScan
 		case '\\':
 			s.next()
-			s.scanEscape()
+			s.escapeScan()
 		default:
 			s.val.WriteRune(s.next())
 		}
 	}
 }
 
-func scanFuncExpr(s *Scanner) stateFn {
+func funcExprScan(s *Scanner) stateFn {
 	s.next() // opening `
 	for {
 		switch r := s.peek(); r {
@@ -357,8 +357,8 @@ func scanFuncExpr(s *Scanner) stateFn {
 			return nil
 		case '`':
 			s.next()
-			s.emitTok(token.Token{Kind: token.FUNCEXPR, Val: s.val.String()})
-			return scanAny
+			s.tokEmit(token.Token{Kind: token.FUNCEXPR, Val: s.val.String()})
+			return anyScan
 		default:
 			// §3.12: raw content, no escapes
 			s.val.WriteRune(s.next())
@@ -366,27 +366,27 @@ func scanFuncExpr(s *Scanner) stateFn {
 	}
 }
 
-func scanColor(s *Scanner) stateFn {
+func colorScan(s *Scanner) stateFn {
 	s.next() // #
 	for isIdentChar(s.peek()) {
 		s.next()
 	}
-	s.emitTok(token.Token{Kind: token.COLOR, Val: strings.TrimPrefix(s.raw(), "#")})
-	return scanAny
+	s.tokEmit(token.Token{Kind: token.COLOR, Val: strings.TrimPrefix(s.raw(), "#")})
+	return anyScan
 }
 
-func scanIdent(s *Scanner) stateFn {
+func identScan(s *Scanner) stateFn {
 	for isIdentChar(s.peek()) {
 		s.next()
 	}
-	s.emitTok(token.Token{Kind: token.IDENT, Val: s.raw()})
-	return scanAny
+	s.tokEmit(token.Token{Kind: token.IDENT, Val: s.raw()})
+	return anyScan
 }
 
-// scanNumberOrIdent resolves the digit-leading ambiguity of §3.4/§3.9:
+// numberOrIdentScan resolves the digit-leading ambiguity of §3.4/§3.9:
 // a token of digits (one optional dot, optional exponent) is a NUMBER; a
 // digit-leading token containing letters is an IDENT (no dot allowed).
-func scanNumberOrIdent(s *Scanner) stateFn {
+func numberOrIdentScan(s *Scanner) stateFn {
 	nDots, hasLetter := 0, false
 	for {
 		switch r := s.peek(); {
@@ -407,8 +407,8 @@ func scanNumberOrIdent(s *Scanner) stateFn {
 				hasLetter = true
 				continue
 			}
-			s.emitTok(token.Token{Kind: token.NUMBER, Val: s.raw()})
-			return scanAny
+			s.tokEmit(token.Token{Kind: token.NUMBER, Val: s.raw()})
+			return anyScan
 		case isLetter(r):
 			hasLetter = true
 			s.next()
@@ -416,14 +416,14 @@ func scanNumberOrIdent(s *Scanner) stateFn {
 			if hasLetter {
 				if nDots > 0 {
 					s.errorf("syntax", "invalid number %q (§3.9)", s.raw())
-					s.emitTok(token.Token{Kind: token.ILLEGAL, Val: s.raw()})
-					return scanAny
+					s.tokEmit(token.Token{Kind: token.ILLEGAL, Val: s.raw()})
+					return anyScan
 				}
-				s.emitTok(token.Token{Kind: token.IDENT, Val: s.raw()})
-				return scanAny
+				s.tokEmit(token.Token{Kind: token.IDENT, Val: s.raw()})
+				return anyScan
 			}
-			s.emitTok(token.Token{Kind: token.NUMBER, Val: s.raw()})
-			return scanAny
+			s.tokEmit(token.Token{Kind: token.NUMBER, Val: s.raw()})
+			return anyScan
 		}
 	}
 }
@@ -448,7 +448,7 @@ var singleOps = map[rune]token.Kind{
 	'-': token.MINUS, '>': token.GT,
 }
 
-func scanOperator(s *Scanner) stateFn {
+func operatorScan(s *Scanner) stateFn {
 	r := s.next()
 	if r == '<' {
 		if s.peek() == '>' { // §3.1 longest match: <> is one token
@@ -457,13 +457,13 @@ func scanOperator(s *Scanner) stateFn {
 		} else {
 			s.emit(token.LT, "<")
 		}
-		return scanAny
+		return anyScan
 	}
 	if k, ok := singleOps[r]; ok {
 		s.emit(k, string(r))
-		return scanAny
+		return anyScan
 	}
 	s.errorf("syntax", "unexpected character %q (§3)", string(r))
-	s.emitTok(token.Token{Kind: token.ILLEGAL, Val: string(r)})
-	return scanAny
+	s.tokEmit(token.Token{Kind: token.ILLEGAL, Val: string(r)})
+	return anyScan
 }

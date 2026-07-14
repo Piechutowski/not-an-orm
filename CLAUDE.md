@@ -73,8 +73,16 @@ Locked decisions (docs/decisions.md) still bind until edited.
 
 ## Conventions
 
-- Naming is subject-first, verb-last everywhere: `UserGet`, `UserCreateParams`,
-  `PostCommentsLoad`, `OrderStatusPending` (D09).
+- Naming is subject-first, verb-last everywhere — hand-written code
+  included: `UserGet`, `UserCreateParams`, `PostCommentsLoad`,
+  `OrderStatusPending` (D09). Internals follow suit: `columnCheck`,
+  `tableEmit`, `identScan`, `caseMatch`. Deliberate carve-outs: Go-mandated
+  interface methods (`String`, `MarshalJSON`, `Scan`, `Pos`, `End`),
+  `New*`/`is*`/`has*` idioms, stdlib-parallel APIs where the package name
+  is the subject (`parser.ParseFile` ~ `go/parser`, `check.File`,
+  `vet.Run`, `errorf` ~ `fmt`), verb-only cursor primitives whose receiver
+  is the subject (`next`, `peek`, `expect`, `emit`), and LSP handlers named
+  1:1 after protocol methods.
 - Zero runtime dependencies in generated code; the ecosystem (sqlc, squirrel,
   sqlx, Ent) is reference material, never a dependency (D03).
 - SQLite-first, all-in; SQLite itself is the gen-time SQL parser/type checker

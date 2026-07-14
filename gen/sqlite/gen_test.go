@@ -178,11 +178,11 @@ func TestQuoting(t *testing.T) {
 		{`we"ird`, `"we""ird"`},      // embedded quote doubled
 	}
 	for _, tc := range cases {
-		if got := quoteIdent(tc.in); got != tc.want {
-			t.Errorf("quoteIdent(%q) = %s, want %s", tc.in, got, tc.want)
+		if got := identQuote(tc.in); got != tc.want {
+			t.Errorf("identQuote(%q) = %s, want %s", tc.in, got, tc.want)
 		}
 	}
-	if got := quoteString("it's"); got != "'it''s'" {
-		t.Errorf("quoteString = %s", got)
+	if got := stringQuote("it's"); got != "'it''s'" {
+		t.Errorf("stringQuote = %s", got)
 	}
 }

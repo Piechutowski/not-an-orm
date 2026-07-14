@@ -64,13 +64,13 @@ func Singular(word string) (string, bool) {
 	}
 	lower := strings.ToLower(word)
 	if s, ok := irregular[lower]; ok {
-		return matchCase(word, s), true
+		return caseMatch(word, s), true
 	}
 
 	switch {
 	// categories -> category; "ties"-length words fall through to plain -s
 	case strings.HasSuffix(lower, "ies") && len(lower) > 4:
-		return word[:len(word)-3] + matchCase(word[len(word)-3:], "y"), true
+		return word[:len(word)-3] + caseMatch(word[len(word)-3:], "y"), true
 
 	// boxes, churches, dishes, buzzes, classes -> drop "es"
 	case strings.HasSuffix(lower, "xes"), strings.HasSuffix(lower, "ches"),
@@ -110,9 +110,9 @@ func SingularLast(name string) (string, bool) {
 	return name[:i+1] + last, ok
 }
 
-// matchCase copies the casing shape of src onto s: all-upper src yields
+// caseMatch copies the casing shape of src onto s: all-upper src yields
 // all-upper s, leading-upper src yields leading-upper s.
-func matchCase(src, s string) string {
+func caseMatch(src, s string) string {
 	if src == strings.ToUpper(src) && src != strings.ToLower(src) {
 		return strings.ToUpper(s)
 	}
