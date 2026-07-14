@@ -1,8 +1,8 @@
 package lsp
 
 import (
-	"github.com/Piechutowski/not-an-orm/ast"
-	"github.com/Piechutowski/not-an-orm/check"
+	"github.com/Piechutowski/not-an-orm/edbml/ast"
+	"github.com/Piechutowski/not-an-orm/edbml/check"
 )
 
 // SymKind classifies the symbols the server can navigate.

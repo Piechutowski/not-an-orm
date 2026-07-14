@@ -6,7 +6,7 @@ package vet
 import (
 	"strings"
 
-	"github.com/Piechutowski/not-an-orm/ast"
+	"github.com/Piechutowski/not-an-orm/edbml/ast"
 )
 
 func init() {

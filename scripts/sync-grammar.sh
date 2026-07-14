@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Publish the tree-sitter-edbml grammar to a local git mirror and point the
+# Publish the edbml/grammar tree-sitter grammar to a local git mirror and point the
 # Zed extension at it.
 #
 # Zed loads extension grammars from a git repository (repository + commit in
@@ -8,7 +8,7 @@
 # git checkout:
 #
 #   1. (optional) regenerate src/parser.c if a tree-sitter CLI is available
-#   2. mirror tree-sitter-edbml/ into ~/.cache/edbml/tree-sitter-edbml-git
+#   2. mirror edbml/grammar/ into ~/.cache/edbml/tree-sitter-edbml-git
 #      and commit the current state there
 #   3. rewrite [grammars.edbml] in zed-extension/extension.toml with the
 #      mirror's file:// URL and fresh commit hash
@@ -18,7 +18,7 @@
 set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-grammar_src="$repo_root/tree-sitter-edbml"
+grammar_src="$repo_root/edbml/grammar"
 extension_toml="$repo_root/zed-extension/extension.toml"
 mirror="${EDBML_GRAMMAR_MIRROR:-${XDG_CACHE_HOME:-$HOME/.cache}/edbml/tree-sitter-edbml-git}"
 

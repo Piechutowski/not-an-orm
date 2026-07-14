@@ -5,9 +5,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/Piechutowski/not-an-orm/check"
-	"github.com/Piechutowski/not-an-orm/diag"
-	"github.com/Piechutowski/not-an-orm/parser"
+	"github.com/Piechutowski/not-an-orm/edbml/check"
+	"github.com/Piechutowski/not-an-orm/edbml/diag"
+	"github.com/Piechutowski/not-an-orm/edbml/parser"
 )
 
 // TestConformanceCorpus runs the spec's snippet corpus through the full

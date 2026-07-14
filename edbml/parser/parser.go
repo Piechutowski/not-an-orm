@@ -16,10 +16,10 @@ package parser
 import (
 	"strings"
 
-	"github.com/Piechutowski/not-an-orm/ast"
-	"github.com/Piechutowski/not-an-orm/diag"
-	"github.com/Piechutowski/not-an-orm/scanner"
-	"github.com/Piechutowski/not-an-orm/token"
+	"github.com/Piechutowski/not-an-orm/edbml/ast"
+	"github.com/Piechutowski/not-an-orm/edbml/diag"
+	"github.com/Piechutowski/not-an-orm/edbml/scanner"
+	"github.com/Piechutowski/not-an-orm/edbml/token"
 )
 
 // ParseFile parses one DBML source file. It always returns a (possibly

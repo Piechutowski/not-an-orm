@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Piechutowski/not-an-orm/vet"
+	"github.com/Piechutowski/not-an-orm/edbml/vet"
 )
 
 // TestRulesDocumentation pins RULES.md, the analyzer registry and the

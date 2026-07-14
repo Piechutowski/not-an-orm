@@ -6,9 +6,9 @@ import (
 
 	protocol "github.com/tliron/glsp/protocol_3_16"
 
-	"github.com/Piechutowski/not-an-orm/ast"
-	"github.com/Piechutowski/not-an-orm/check"
-	"github.com/Piechutowski/not-an-orm/diag"
+	"github.com/Piechutowski/not-an-orm/edbml/ast"
+	"github.com/Piechutowski/not-an-orm/edbml/check"
+	"github.com/Piechutowski/not-an-orm/edbml/diag"
 )
 
 // ---------------------------------------------------------------------------

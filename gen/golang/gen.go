@@ -22,8 +22,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/Piechutowski/not-an-orm/ast"
-	"github.com/Piechutowski/not-an-orm/check"
+	"github.com/Piechutowski/not-an-orm/edbml/ast"
+	"github.com/Piechutowski/not-an-orm/edbml/check"
 )
 
 // rtImport is the runtime support package generated code may depend on

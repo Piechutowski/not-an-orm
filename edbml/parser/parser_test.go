@@ -3,9 +3,9 @@ package parser
 import (
 	"testing"
 
-	"github.com/Piechutowski/not-an-orm/ast"
-	"github.com/Piechutowski/not-an-orm/diag"
-	"github.com/Piechutowski/not-an-orm/token"
+	"github.com/Piechutowski/not-an-orm/edbml/ast"
+	"github.com/Piechutowski/not-an-orm/edbml/diag"
+	"github.com/Piechutowski/not-an-orm/edbml/token"
 )
 
 func mustParse(t *testing.T, src string) *ast.File {

@@ -11,12 +11,12 @@ import (
 
 	protocol "github.com/tliron/glsp/protocol_3_16"
 
-	"github.com/Piechutowski/not-an-orm/ast"
-	"github.com/Piechutowski/not-an-orm/check"
-	"github.com/Piechutowski/not-an-orm/diag"
-	"github.com/Piechutowski/not-an-orm/parser"
-	"github.com/Piechutowski/not-an-orm/token"
-	"github.com/Piechutowski/not-an-orm/vet"
+	"github.com/Piechutowski/not-an-orm/edbml/ast"
+	"github.com/Piechutowski/not-an-orm/edbml/check"
+	"github.com/Piechutowski/not-an-orm/edbml/diag"
+	"github.com/Piechutowski/not-an-orm/edbml/parser"
+	"github.com/Piechutowski/not-an-orm/edbml/token"
+	"github.com/Piechutowski/not-an-orm/edbml/vet"
 )
 
 // Document is one open text document plus everything derived from it.

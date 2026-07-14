@@ -11,8 +11,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/Piechutowski/not-an-orm/ast"
-	"github.com/Piechutowski/not-an-orm/token"
+	"github.com/Piechutowski/not-an-orm/edbml/ast"
+	"github.com/Piechutowski/not-an-orm/edbml/token"
 )
 
 func (c *checker) resolve(f *ast.File) {

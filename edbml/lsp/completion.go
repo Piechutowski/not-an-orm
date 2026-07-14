@@ -6,7 +6,7 @@ import (
 
 	protocol "github.com/tliron/glsp/protocol_3_16"
 
-	"github.com/Piechutowski/not-an-orm/check"
+	"github.com/Piechutowski/not-an-orm/edbml/check"
 )
 
 // Completion contexts are derived textually (the file rarely parses while a

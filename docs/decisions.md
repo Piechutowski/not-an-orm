@@ -36,8 +36,8 @@ decision is changed by editing this file, not by drifting away from it.
   between a server and a GUI client — without dragging in the CRUD layer;
   the models file only ever depends on the stdlib and `rt`.
 - **D40 — Editor tooling lives in this repository** (2026-07-12, extends
-  D01): the tree-sitter grammar (`tree-sitter-edbml/`), the Zed extension
-  (`zed-extension/`) and the language server (`lsp/`, `cmd/edbml-ls`) are
+  D01): the tree-sitter grammar (`edbml/grammar/`), the Zed extension
+  (`zed-extension/`) and the language server (`edbml/lsp/`, `cmd/edbml-ls`) are
   part of the project, not a sibling repo. Rationale: the LSP is a second
   consumer of the same front end the CLI wraps (D04 in action), and every
   language extension (Select, View, `[was:]`, `[repr:]`) must move the

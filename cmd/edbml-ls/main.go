@@ -8,7 +8,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/Piechutowski/not-an-orm/lsp"
+	"github.com/Piechutowski/not-an-orm/edbml/lsp"
 )
 
 func main() {

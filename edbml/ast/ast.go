@@ -5,7 +5,7 @@
 // it appeared. Legality is the check package's business.
 package ast
 
-import "github.com/Piechutowski/not-an-orm/token"
+import "github.com/Piechutowski/not-an-orm/edbml/token"
 
 // Node is implemented by all AST nodes.
 type Node interface {

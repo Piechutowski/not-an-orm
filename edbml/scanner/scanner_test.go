@@ -3,7 +3,7 @@ package scanner
 import (
 	"testing"
 
-	"github.com/Piechutowski/not-an-orm/token"
+	"github.com/Piechutowski/not-an-orm/edbml/token"
 )
 
 // kinds scans src and returns the token kinds without the trailing EOF.

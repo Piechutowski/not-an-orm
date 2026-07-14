@@ -7,10 +7,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Piechutowski/not-an-orm/check"
-	"github.com/Piechutowski/not-an-orm/diag"
-	"github.com/Piechutowski/not-an-orm/parser"
-	"github.com/Piechutowski/not-an-orm/vet"
+	"github.com/Piechutowski/not-an-orm/edbml/check"
+	"github.com/Piechutowski/not-an-orm/edbml/diag"
+	"github.com/Piechutowski/not-an-orm/edbml/parser"
+	"github.com/Piechutowski/not-an-orm/edbml/vet"
 )
 
 // The testdata format follows go/analysis's analysistest in miniature:

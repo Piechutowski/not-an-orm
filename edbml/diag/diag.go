@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/Piechutowski/not-an-orm/token"
+	"github.com/Piechutowski/not-an-orm/edbml/token"
 )
 
 type Severity int

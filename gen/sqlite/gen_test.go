@@ -10,9 +10,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Piechutowski/not-an-orm/check"
-	"github.com/Piechutowski/not-an-orm/diag"
-	"github.com/Piechutowski/not-an-orm/parser"
+	"github.com/Piechutowski/not-an-orm/edbml/check"
+	"github.com/Piechutowski/not-an-orm/edbml/diag"
+	"github.com/Piechutowski/not-an-orm/edbml/parser"
 )
 
 var update = flag.Bool("update", false, "rewrite golden files")

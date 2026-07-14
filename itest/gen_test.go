@@ -11,11 +11,11 @@ import (
 	"os"
 	"testing"
 
-	"github.com/Piechutowski/not-an-orm/check"
-	"github.com/Piechutowski/not-an-orm/diag"
+	"github.com/Piechutowski/not-an-orm/edbml/check"
+	"github.com/Piechutowski/not-an-orm/edbml/diag"
 	golanggen "github.com/Piechutowski/not-an-orm/gen/golang"
 	sqlitegen "github.com/Piechutowski/not-an-orm/gen/sqlite"
-	"github.com/Piechutowski/not-an-orm/parser"
+	"github.com/Piechutowski/not-an-orm/edbml/parser"
 )
 
 // TestGeneratedFilesCurrent proves the checked-in generated files match

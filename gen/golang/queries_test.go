@@ -6,10 +6,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Piechutowski/not-an-orm/check"
-	"github.com/Piechutowski/not-an-orm/diag"
+	"github.com/Piechutowski/not-an-orm/edbml/check"
+	"github.com/Piechutowski/not-an-orm/edbml/diag"
 	sqlitegen "github.com/Piechutowski/not-an-orm/gen/sqlite"
-	"github.com/Piechutowski/not-an-orm/parser"
+	"github.com/Piechutowski/not-an-orm/edbml/parser"
 )
 
 // planStatements re-derives every SQL statement the emitter writes,

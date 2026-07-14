@@ -12,7 +12,7 @@ existing patterns rather than reverse-engineering them.
 ```
                         ┌────────────────────── Zed process ──────────────────────┐
                         │                                                          │
-   tree-sitter-edbml/   │   ┌───────────────┐        ┌───────────────────────┐    │
+   edbml/grammar/   │   ┌───────────────┐        ┌───────────────────────┐    │
    grammar.js ──generate──▶ │ parser.c→WASM │        │ extension WASM (glue) │    │
                         │   │  incremental  │        │  zed-extension/src/   │    │
                         │   │  syntax tree  │        │  "how do I launch     │    │
@@ -40,14 +40,14 @@ existing patterns rather than reverse-engineering them.
 
 Three independently testable components:
 
-1. **The grammar** (`tree-sitter-edbml/`) — a *syntactic*, error-tolerant,
+1. **The grammar** (`edbml/grammar/`) — a *syntactic*, error-tolerant,
    incremental parser compiled to WebAssembly and run inside Zed on every
    keystroke. It powers everything visual: colors, outline panel, indent,
    bracket matching, Markdown-in-notes.
 2. **The extension** (`zed-extension/`) — a thin package. Declarative files
    (manifest, language config, queries) plus ~70 lines of Rust whose only
    job is telling Zed how to launch the language server.
-3. **The language server** (`lsp/`, `cmd/edbml-ls`) — a *semantic*, spec-exact
+3. **The language server** (`edbml/lsp/`, `cmd/edbml-ls`) — a *semantic*, spec-exact
    analyzer speaking LSP over stdio. It powers everything intelligent:
    diagnostics, completion, hover, navigation, rename.
 
@@ -82,7 +82,7 @@ lsp      all of the above → LSP       (this repo's addition)
 One source of truth: an error squiggle in Zed is *by construction* the same
 error `dbml vet` or codegen would report.
 
-## 2. The grammar (`tree-sitter-edbml/`)
+## 2. The grammar (`edbml/grammar/`)
 
 Tree-sitter compiles `grammar.js` (a JS DSL) into a table-driven GLR parser
 in C (`src/parser.c`, committed, because Zed builds the WASM from it). The
@@ -232,7 +232,7 @@ would create gitlink/submodule traps, so the script:
 
 1. regenerates `src/parser.c` if a tree-sitter CLI is present (the committed
    one keeps working when it isn't);
-2. mirrors `tree-sitter-edbml/` into `~/.cache/edbml/tree-sitter-edbml-git`
+2. mirrors `edbml/grammar/` into `~/.cache/edbml/tree-sitter-edbml-git`
    (a plain `tar` copy — no rsync dependency) and commits there;
 3. rewrites `[grammars.edbml]` with the mirror's `file://` URL and fresh SHA.
 
@@ -257,13 +257,13 @@ exactly this mistake). The queries here map *roles*, not node names:
 Later patterns win in a query file, so generic rules go first, specific
 overrides after — the file is ordered that way on purpose.
 
-## 4. The language server (`lsp/`)
+## 4. The language server (`edbml/lsp/`)
 
 ### Protocol shape
 
 `edbml-ls` speaks LSP 3.16 over stdio via `tliron/glsp`, which supplies the
 JSON-RPC plumbing and typed protocol structs; the entire wiring is one
-`protocol.Handler` literal in `lsp/server.go`. Document sync is **full-text**
+`protocol.Handler` literal in `edbml/lsp/server.go`. Document sync is **full-text**
 (`TextDocumentSyncKindFull`): schema files are small, and full sync makes
 the server stateless per edit — no incremental-patch bookkeeping to get
 wrong. (The `didChange` handler still applies ranged patches defensively if
@@ -293,7 +293,7 @@ Two deliberate choices:
   completion and hover keep working from the last coherent model while the
   user is mid-keystroke.
 
-### Pattern: the occurrence index (`lsp/index.go`)
+### Pattern: the occurrence index (`edbml/lsp/index.go`)
 
 Definition, references, rename and hover are all the same question —
 "which symbol is under the cursor, and where else does it appear?" — so
@@ -352,7 +352,7 @@ something visible to underline.
 ### Pattern: textual context + semantic fill for completion
 
 Completion cannot rely on the AST — the current line usually doesn't parse
-*while it is being typed*. So `lsp/completion.go` splits the problem:
+*while it is being typed*. So `edbml/lsp/completion.go` splits the problem:
 
 - **Where am I?** is answered textually: regexes over the line prefix
   (`~…`, inside `[…]`, after `ref: >`, after `users.`) plus `blockContext`,
@@ -382,14 +382,14 @@ Layered, one suite per component boundary:
 
 | Layer | What | Where |
 |---|---|---|
-| Grammar unit | 37 corpus cases incl. `:error` cases | `tree-sitter-edbml/test/corpus/` |
+| Grammar unit | 37 corpus cases incl. `:error` cases | `edbml/grammar/test/corpus/` |
 | Grammar ↔ front end | kitchen-sink + vet testdata parse clean under **both** parsers | `examples/`, cross-checked manually/CI |
 | Front end unit | the scanner/parser/check/vet suites (incl. `//WANT` marker corpus, RULES.md ↔ registry ↔ testdata pinning) | `*/_test.go` |
-| LSP unit | index, rename semantics, hover content, completion contexts, UTF-16 | `lsp/lsp_test.go` |
+| LSP unit | index, rename semantics, hover content, completion contexts, UTF-16 | `edbml/lsp/lsp_test.go` |
 | LSP integration | real JSON-RPC session against the built binary: initialize → didOpen → diagnostics → hover/def/refs/rename/symbols/completion | scripted (see git history: `lsp_smoke.py`) |
 
 `check/conformance_test.go` runs the spec's snippet corpus
-(`conformance/snippets/`) through the same front end the LSP wraps. The
+(`edbml/conformance/snippets/`) through the same front end the LSP wraps. The
 grammar is differentially validated against the same corpus: every valid
 snippet must produce zero tree-sitter ERROR nodes — currently 39/40, the
 exception being `34_no_reserved_words.dbml`, which is precisely the
@@ -403,8 +403,8 @@ kind of extension has a beaten path:
 **New setting on an existing construct** (e.g. enabling `model:`):
 grammar — nothing (generic settings). Checker — add a row to the setting
 whitelist in `check/settings.go`. LSP — add the key to `settingsByContext`
-in `lsp/completion.go`; re-enable the `modelname` analyzer in
-`lsp/document.go` if it's the `model:` setting itself.
+in `edbml/lsp/completion.go`; re-enable the `modelname` analyzer in
+`edbml/lsp/document.go` if it's the `model:` setting itself.
 
 **New element type** (a new top-level `Thing name { … }`):
 1. Grammar: add a `thing_definition` rule following an existing element's
@@ -443,7 +443,7 @@ picks it up automatically.
 
 - **`[model:]` is parsed but not assisted.** The grammar's generic settings
   rule parses it, but the language server does not run the `vet/modelname`
-  analyzer (`lsp/document.go: activeAnalyzers`) — the editor should not
+  analyzer (`edbml/lsp/document.go: activeAnalyzers`) — the editor should not
   push authors toward an extension setting the editor tooling itself does
   not yet understand end to end. Re-enable alongside full EDBML support.
 - **Grammar: unquoted columns named like block keywords.** DBML has no

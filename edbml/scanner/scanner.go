@@ -23,8 +23,8 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/Piechutowski/not-an-orm/diag"
-	"github.com/Piechutowski/not-an-orm/token"
+	"github.com/Piechutowski/not-an-orm/edbml/diag"
+	"github.com/Piechutowski/not-an-orm/edbml/token"
 )
 
 // Scan tokenizes src. It always returns the tokens produced so far, with a

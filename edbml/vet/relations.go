@@ -7,8 +7,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/Piechutowski/not-an-orm/check"
-	"github.com/Piechutowski/not-an-orm/token"
+	"github.com/Piechutowski/not-an-orm/edbml/check"
+	"github.com/Piechutowski/not-an-orm/edbml/token"
 )
 
 func init() {

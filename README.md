@@ -75,7 +75,7 @@ organized by problem solved, with per-feature status. The short version:
 
 ```sh
 dbml check  schema.dbml                 # syntax + semantics (spec §4–§8)
-dbml vet    schema.dbml                 # legal-but-suspicious DBML (vet/RULES.md)
+dbml vet    schema.dbml                 # legal-but-suspicious DBML (edbml/vet/RULES.md)
 
 # From the directory that holds schema.dbml, gen needs no arguments:
 dbml gen go                             # ./schema.dbml -> ./dbml_{models,queries}.go
@@ -91,8 +91,8 @@ dbml gen go --models-only -o ./shared -p shared
 ```
 
 Everything the CLI does is importable as a library
-([D04](docs/decisions.md)): `parser`, `check`, `vet`, `gen/golang`,
-`gen/sqlite`.
+([D04](docs/decisions.md)): `edbml/parser`, `edbml/check`, `edbml/vet`,
+`gen/golang`, `gen/sqlite`.
 
 ### Install
 
@@ -122,11 +122,11 @@ dbml completion pwsh             # PowerShell: pipe into your $PROFILE
 The schema deserves the same editor experience as the code generated from
 it, so the repository also ships the editor tooling (D40):
 
-- [`tree-sitter-edbml/`](tree-sitter-edbml/) — a tree-sitter grammar
+- [`edbml/grammar/`](edbml/grammar/) — a tree-sitter grammar
   covering the full spec, for syntax highlighting;
 - [`zed-extension/`](zed-extension/) — a [Zed](https://zed.dev) extension:
   highlighting, outline, auto-indent, Markdown rendered inside notes;
-- [`lsp/`](lsp/) + `cmd/edbml-ls` — a language server wrapping the same
+- [`edbml/lsp/`](edbml/lsp/) + `cmd/edbml-ls` — a language server wrapping the same
   front end as the CLI, so squiggles, `dbml check` and codegen can never
   disagree: live diagnostics (check errors + vet lints), completion,
   hover, go-to-definition, find references, rename. Editor-agnostic LSP
@@ -140,7 +140,7 @@ and every pattern used: [`docs/editor-architecture.md`](docs/editor-architecture
 
 This repository also contains the **normative DBML language
 specification** — [`SPEC.md`](SPEC.md), a complete EBNF grammar with
-constraints — plus the [conformance corpus](conformance/) cross-checked
+constraints — plus the [conformance corpus](edbml/conformance/) cross-checked
 against the upstream `@dbml/parse` compiler (0 disagreements). My
 extensions (`[model:]` today; `Select`, `View`, `[was:]`, `[repr:]` to
 come) are a strict superset: core schemas stay valid for
@@ -156,7 +156,7 @@ come) are a strict superset: core schemas stay valid for
 | [`docs/not-an-orm.md`](docs/not-an-orm.md) | the vision note |
 | [`docs/the-model-layer.md`](docs/the-model-layer.md) | why M is the hard layer |
 | [`SPEC.md`](SPEC.md) | the DBML language specification |
-| [`vet/RULES.md`](vet/RULES.md) | every lint rule, with executable examples |
+| [`edbml/vet/RULES.md`](edbml/vet/RULES.md) | every lint rule, with executable examples |
 | [`docs/editor-architecture.md`](docs/editor-architecture.md) | the editor tooling: grammar, Zed extension, language server |
 
 ## Development

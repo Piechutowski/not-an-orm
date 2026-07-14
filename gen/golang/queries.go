@@ -28,8 +28,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/Piechutowski/not-an-orm/ast"
-	"github.com/Piechutowski/not-an-orm/check"
+	"github.com/Piechutowski/not-an-orm/edbml/ast"
+	"github.com/Piechutowski/not-an-orm/edbml/check"
 )
 
 // GenerateQueries renders the queries file for one checked DBML file. It

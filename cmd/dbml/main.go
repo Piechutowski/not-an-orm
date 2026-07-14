@@ -30,12 +30,12 @@ import (
 
 	"github.com/urfave/cli/v3"
 
-	"github.com/Piechutowski/not-an-orm/check"
-	"github.com/Piechutowski/not-an-orm/diag"
+	"github.com/Piechutowski/not-an-orm/edbml/check"
+	"github.com/Piechutowski/not-an-orm/edbml/diag"
 	golanggen "github.com/Piechutowski/not-an-orm/gen/golang"
 	sqlitegen "github.com/Piechutowski/not-an-orm/gen/sqlite"
-	"github.com/Piechutowski/not-an-orm/parser"
-	"github.com/Piechutowski/not-an-orm/vet"
+	"github.com/Piechutowski/not-an-orm/edbml/parser"
+	"github.com/Piechutowski/not-an-orm/edbml/vet"
 )
 
 func main() {

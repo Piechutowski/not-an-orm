@@ -37,16 +37,16 @@ Locked decisions (docs/decisions.md) still bind until edited.
 
 | Package | Role |
 |---|---|
-| `token`, `scanner` | lexer (Pike state functions; newline-as-ASI flag) |
-| `ast`, `parser` | syntax only — no semantic judgment, multi-error recovery |
-| `check` | semantics + `check.Info` symbol table (partials expanded, refs resolved) — **all generators consume Info, never re-derive from the AST** |
-| `vet` | analyzer framework + rules; docs in `vet/RULES.md` |
+| `edbml/token`, `edbml/scanner` | lexer (Pike state functions; newline-as-ASI flag) |
+| `edbml/ast`, `edbml/parser` | syntax only — no semantic judgment, multi-error recovery |
+| `edbml/check` | semantics + `check.Info` symbol table (partials expanded, refs resolved) — **all generators consume Info, never re-derive from the AST** |
+| `edbml/vet` | analyzer framework + rules; docs in `edbml/vet/RULES.md` |
 | `gen/golang`, `gen/sqlite` | generators (structs + CRUD queries, DDL+seeds); shared corpus `gen/testdata/*.dbml` |
 | `rt` | hand-written runtime for generated code: `Null[T]`, `DBTX`, `Tx`, `Open` (pragmas), `StmtCache` — stdlib-only, registers no driver |
-| `inflect` | deterministic singularizer behind model naming (D10); `vet/modelname` flags its guesses |
+| `inflect` | deterministic singularizer behind model naming (D10); `edbml/vet/modelname` flags its guesses |
 | `itest` | integration fixture: checked-in generated files (drift-tested, `go generate ./itest` refreshes) + real-SQLite CRUD round trips (mattn, **test-only** cgo dep, D25) |
 | `cmd/dbml` | thin urfave/cli wrapper — everything must stay library-callable (D04) |
-| `conformance/` | spec snippet corpus + upstream `@dbml/parse` cross-check (`refcheck/`, needs bun) |
+| `edbml/conformance/` | spec snippet corpus + upstream `@dbml/parse` cross-check (`refcheck/`, needs bun) |
 
 ## Invariants the tests enforce (don't break, extend)
 
@@ -63,7 +63,7 @@ Locked decisions (docs/decisions.md) still bind until edited.
 - Golden refresh: `go test ./gen/... -update` (and inspect the diff — goldens
   exist to surface unintended output changes in review).
 - Every new vet rule = analyzer + `testdata/<rule>.dbml` (`//WANT` markers)
-  + `### <rule>` section in `vet/RULES.md`, or the build fails.
+  + `### <rule>` section in `edbml/vet/RULES.md`, or the build fails.
 - Generation failures are loud: unknown type, name collision → error naming
   the column. Never guess (D16-adjacent principle).
 

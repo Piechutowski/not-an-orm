@@ -8,7 +8,7 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/Piechutowski/not-an-orm/ast"
+	"github.com/Piechutowski/not-an-orm/edbml/ast"
 	"github.com/Piechutowski/not-an-orm/inflect"
 )
 
