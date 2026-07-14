@@ -65,12 +65,12 @@ func (d *Document) Complete(pos protocol.Position) []protocol.CompletionItem {
 
 	inSettings := strings.Count(prefix, "[") > strings.Count(prefix, "]")
 	if inSettings {
-		return d.completeInSettings(prefix, ctx)
+		return d.settingsComplete(prefix, ctx)
 	}
 
 	// endpoint chains: `users.`, `core.orders.`, `status.`
 	if m := dotChainRE.FindStringSubmatch(prefix); m != nil {
-		return d.completeDotChain(m)
+		return d.dotChainComplete(m)
 	}
 
 	// ref bodies: `Ref: ` / `Ref name: a.b > ` / inside Ref { }
@@ -158,7 +158,7 @@ func (d *Document) blockContext(line int) string {
 	return ""
 }
 
-func (d *Document) completeInSettings(prefix, ctx string) []protocol.CompletionItem {
+func (d *Document) settingsComplete(prefix, ctx string) []protocol.CompletionItem {
 	segment := prefix[strings.LastIndexAny(prefix, "[,")+1:]
 
 	if refValueRE.MatchString(segment) || afterCardRE.MatchString(segment) {
@@ -199,9 +199,9 @@ func (d *Document) completeInSettings(prefix, ctx string) []protocol.CompletionI
 	return keywordItemsKind(settingsByContext[kind], protocol.CompletionItemKindProperty)
 }
 
-// completeDotChain resolves `a.` and `a.b.` chains to columns, tables of a
+// dotChainComplete resolves `a.` and `a.b.` chains to columns, tables of a
 // schema, or enum values.
-func (d *Document) completeDotChain(m []string) []protocol.CompletionItem {
+func (d *Document) dotChainComplete(m []string) []protocol.CompletionItem {
 	first := unquote(m[1])
 	second := ""
 	if m[3] != "" {

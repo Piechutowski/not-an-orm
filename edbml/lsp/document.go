@@ -56,20 +56,20 @@ func (d *Document) Update(text string) {
 	// vet warnings only make sense on files that already check clean;
 	// stacking style advice on top of hard errors is noise while typing.
 	if !diag.HasErrors(diags) {
-		diags = append(diags, vet.Run(file, info, activeAnalyzers()...)...)
+		diags = append(diags, vet.Run(file, info, analyzersActive()...)...)
 	}
 	diag.Sort(diags)
 
 	d.File = file
 	d.Info = info
 	d.Diags = diags
-	d.Index = BuildIndex(file, info)
+	d.Index = NewIndex(file, info)
 }
 
-// activeAnalyzers is every registered vet analyzer except modelname: the
+// analyzersActive is every registered vet analyzer except modelname: the
 // [model:] setting it wants is part of EDBML, which this DBML server does
 // not implement yet (see docs/editor-architecture.md).
-func activeAnalyzers() []*vet.Analyzer {
+func analyzersActive() []*vet.Analyzer {
 	var out []*vet.Analyzer
 	for _, a := range vet.All() {
 		if a.Name != "modelname" {

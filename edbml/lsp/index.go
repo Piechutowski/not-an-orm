@@ -53,8 +53,8 @@ func canon(q *ast.QualName) string {
 	return q.String()
 }
 
-// BuildIndex resolves every name in the file against the semantic model.
-func BuildIndex(f *ast.File, info *check.Info) *Index {
+// NewIndex resolves every name in the file against the semantic model.
+func NewIndex(f *ast.File, info *check.Info) *Index {
 	ix := &Index{
 		Tables:   map[string]*check.TableInfo{},
 		Enums:    map[string]*check.EnumInfo{},

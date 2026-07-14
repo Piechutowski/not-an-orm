@@ -95,7 +95,7 @@ func main() {
 							&cli.BoolFlag{Name: "models-only", Aliases: []string{"m"}, Usage: "emit only nao_models.go (structs/enums); skip the CRUD queries"},
 						},
 						Action: func(_ context.Context, c *cli.Command) error {
-							return runGen(c, "go")
+							return genRun(c, "go")
 						},
 					},
 					{
@@ -107,7 +107,7 @@ func main() {
 							&cli.StringFlag{Name: "out", Aliases: []string{"o"}, Value: ".", Usage: "output `directory` for nao_schema.sql"},
 						},
 						Action: func(_ context.Context, c *cli.Command) error {
-							return runGen(c, "sqlite")
+							return genRun(c, "sqlite")
 						},
 					},
 				},
@@ -143,7 +143,7 @@ func run(c *cli.Command, mode string) error {
 	if len(files) == 0 {
 		return cli.Exit("no input files", 2)
 	}
-	analyzers, err := selectedAnalyzers(c, mode)
+	analyzers, err := analyzersSelected(c, mode)
 	if err != nil {
 		return err
 	}
@@ -154,11 +154,11 @@ func run(c *cli.Command, mode string) error {
 		if err != nil {
 			return cli.Exit(err.Error(), 2)
 		}
-		all = append(all, analyze(mode, file, string(src), analyzers)...)
+		all = append(all, fileAnalyze(mode, file, string(src), analyzers)...)
 	}
 
 	if c.Bool("json") {
-		if err := printJSON(all); err != nil {
+		if err := diagsPrintJSON(all); err != nil {
 			return cli.Exit(err.Error(), 2)
 		}
 	} else {
@@ -173,7 +173,7 @@ func run(c *cli.Command, mode string) error {
 	return nil
 }
 
-func selectedAnalyzers(c *cli.Command, mode string) ([]*vet.Analyzer, error) {
+func analyzersSelected(c *cli.Command, mode string) ([]*vet.Analyzer, error) {
 	if mode != "vet" || c.String("enable") == "" {
 		return nil, nil // nil means "all" for vet.Run
 	}
@@ -188,7 +188,7 @@ func selectedAnalyzers(c *cli.Command, mode string) ([]*vet.Analyzer, error) {
 	return out, nil
 }
 
-func analyze(mode, name, src string, analyzers []*vet.Analyzer) []diag.Diagnostic {
+func fileAnalyze(mode, name, src string, analyzers []*vet.Analyzer) []diag.Diagnostic {
 	f, diags := parser.ParseFile(name, src)
 	if mode == "parse" {
 		return diags
@@ -202,7 +202,7 @@ func analyze(mode, name, src string, analyzers []*vet.Analyzer) []diag.Diagnosti
 	return diags
 }
 
-func printJSON(all []diag.Diagnostic) error {
+func diagsPrintJSON(all []diag.Diagnostic) error {
 	type jsonDiag struct {
 		File     string `json:"file"`
 		Line     int    `json:"line"`
@@ -223,9 +223,9 @@ func printJSON(all []diag.Diagnostic) error {
 	return enc.Encode(out)
 }
 
-// runGen implements 'nao gen <lang>': parse + check one EDBML file,
+// genRun implements 'nao gen <lang>': parse + check one EDBML file,
 // generate into --out, refusing to clobber non-generated files.
-func runGen(c *cli.Command, lang string) error {
+func genRun(c *cli.Command, lang string) error {
 	file, err := genInput(c)
 	if err != nil {
 		return err

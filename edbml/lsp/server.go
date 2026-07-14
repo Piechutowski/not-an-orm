@@ -79,12 +79,12 @@ func (s *Server) didOpen(ctx *glsp.Context, params *protocol.DidOpenTextDocument
 	s.mu.Lock()
 	s.docs[params.TextDocument.URI] = doc
 	s.mu.Unlock()
-	s.publishDiagnostics(ctx, doc)
+	s.diagnosticsPublish(ctx, doc)
 	return nil
 }
 
 func (s *Server) didChange(ctx *glsp.Context, params *protocol.DidChangeTextDocumentParams) error {
-	doc := s.get(params.TextDocument.URI)
+	doc := s.docGet(params.TextDocument.URI)
 	if doc == nil {
 		return nil
 	}
@@ -102,7 +102,7 @@ func (s *Server) didChange(ctx *glsp.Context, params *protocol.DidChangeTextDocu
 			doc.Update(doc.Text[:start] + c.Text + doc.Text[end:])
 		}
 	}
-	s.publishDiagnostics(ctx, doc)
+	s.diagnosticsPublish(ctx, doc)
 	return nil
 }
 
@@ -118,14 +118,14 @@ func (s *Server) didClose(ctx *glsp.Context, params *protocol.DidCloseTextDocume
 	return nil
 }
 
-func (s *Server) publishDiagnostics(ctx *glsp.Context, doc *Document) {
+func (s *Server) diagnosticsPublish(ctx *glsp.Context, doc *Document) {
 	ctx.Notify(protocol.ServerTextDocumentPublishDiagnostics, protocol.PublishDiagnosticsParams{
 		URI:         doc.URI,
 		Diagnostics: doc.LSPDiagnostics(),
 	})
 }
 
-func (s *Server) get(uri string) *Document {
+func (s *Server) docGet(uri string) *Document {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.docs[uri]
@@ -135,7 +135,7 @@ func (s *Server) get(uri string) *Document {
 // language features
 
 func (s *Server) completion(_ *glsp.Context, params *protocol.CompletionParams) (any, error) {
-	doc := s.get(params.TextDocument.URI)
+	doc := s.docGet(params.TextDocument.URI)
 	if doc == nil {
 		return nil, nil
 	}
@@ -147,7 +147,7 @@ func (s *Server) completion(_ *glsp.Context, params *protocol.CompletionParams) 
 }
 
 func (s *Server) hover(_ *glsp.Context, params *protocol.HoverParams) (*protocol.Hover, error) {
-	doc := s.get(params.TextDocument.URI)
+	doc := s.docGet(params.TextDocument.URI)
 	if doc == nil {
 		return nil, nil
 	}
@@ -155,7 +155,7 @@ func (s *Server) hover(_ *glsp.Context, params *protocol.HoverParams) (*protocol
 }
 
 func (s *Server) definition(_ *glsp.Context, params *protocol.DefinitionParams) (any, error) {
-	doc := s.get(params.TextDocument.URI)
+	doc := s.docGet(params.TextDocument.URI)
 	if doc == nil {
 		return nil, nil
 	}
@@ -167,7 +167,7 @@ func (s *Server) definition(_ *glsp.Context, params *protocol.DefinitionParams) 
 }
 
 func (s *Server) references(_ *glsp.Context, params *protocol.ReferenceParams) ([]protocol.Location, error) {
-	doc := s.get(params.TextDocument.URI)
+	doc := s.docGet(params.TextDocument.URI)
 	if doc == nil {
 		return nil, nil
 	}
@@ -175,7 +175,7 @@ func (s *Server) references(_ *glsp.Context, params *protocol.ReferenceParams) (
 }
 
 func (s *Server) rename(_ *glsp.Context, params *protocol.RenameParams) (*protocol.WorkspaceEdit, error) {
-	doc := s.get(params.TextDocument.URI)
+	doc := s.docGet(params.TextDocument.URI)
 	if doc == nil {
 		return nil, nil
 	}
@@ -183,7 +183,7 @@ func (s *Server) rename(_ *glsp.Context, params *protocol.RenameParams) (*protoc
 }
 
 func (s *Server) documentSymbol(_ *glsp.Context, params *protocol.DocumentSymbolParams) (any, error) {
-	doc := s.get(params.TextDocument.URI)
+	doc := s.docGet(params.TextDocument.URI)
 	if doc == nil {
 		return nil, nil
 	}

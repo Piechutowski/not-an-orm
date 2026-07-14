@@ -239,15 +239,15 @@ func (d *Document) Hover(pos protocol.Position) *protocol.Hover {
 	var md string
 	switch occ.ID.Kind {
 	case SymTable:
-		md = d.hoverTable(occ.ID.Name)
+		md = d.tableHover(occ.ID.Name)
 	case SymEnum:
-		md = d.hoverEnum(occ.ID.Name)
+		md = d.enumHover(occ.ID.Name)
 	case SymPartial:
-		md = d.hoverPartial(occ.ID.Name)
+		md = d.partialHover(occ.ID.Name)
 	case SymColumn:
-		md = d.hoverColumn(occ.ID)
+		md = d.columnHover(occ.ID)
 	case SymEnumValue:
-		md = d.hoverEnumValue(occ.ID)
+		md = d.enumValueHover(occ.ID)
 	}
 	if md == "" {
 		return nil
@@ -259,7 +259,7 @@ func (d *Document) Hover(pos protocol.Position) *protocol.Hover {
 	}
 }
 
-func (d *Document) hoverTable(key string) string {
+func (d *Document) tableHover(key string) string {
 	ti, ok := d.Index.Tables[key]
 	if !ok {
 		return ""
@@ -283,7 +283,7 @@ func (d *Document) hoverTable(key string) string {
 	return b.String()
 }
 
-func (d *Document) hoverEnum(key string) string {
+func (d *Document) enumHover(key string) string {
 	ei, ok := d.Index.Enums[key]
 	if !ok {
 		return ""
@@ -300,7 +300,7 @@ func (d *Document) hoverEnum(key string) string {
 	return b.String()
 }
 
-func (d *Document) hoverPartial(name string) string {
+func (d *Document) partialHover(name string) string {
 	pi, ok := d.Index.Partials[name]
 	if !ok {
 		return ""
@@ -316,8 +316,8 @@ func (d *Document) hoverPartial(name string) string {
 	return b.String()
 }
 
-func (d *Document) hoverColumn(id SymbolID) string {
-	col := d.findColumn(id)
+func (d *Document) columnHover(id SymbolID) string {
+	col := d.columnFind(id)
 	if col == nil {
 		return ""
 	}
@@ -335,7 +335,7 @@ func (d *Document) hoverColumn(id SymbolID) string {
 	return b.String()
 }
 
-func (d *Document) hoverEnumValue(id SymbolID) string {
+func (d *Document) enumValueHover(id SymbolID) string {
 	key := strings.TrimPrefix(id.Container, "enum:")
 	ei, ok := d.Index.Enums[key]
 	if !ok {
@@ -353,8 +353,8 @@ func (d *Document) hoverEnumValue(id SymbolID) string {
 	return ""
 }
 
-// findColumn resolves a column SymbolID back to its AST node.
-func (d *Document) findColumn(id SymbolID) *ast.Column {
+// columnFind resolves a column SymbolID back to its AST node.
+func (d *Document) columnFind(id SymbolID) *ast.Column {
 	if name, ok := strings.CutPrefix(id.Container, "partial:"); ok {
 		pi, ok := d.Index.Partials[name]
 		if !ok {
