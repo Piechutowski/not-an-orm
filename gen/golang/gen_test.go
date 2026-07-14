@@ -137,9 +137,9 @@ func TestGoldenCompiles(t *testing.T) {
 			t.Fatal(err)
 		}
 		base := filepath.Base(strings.TrimSuffix(golden, ".go.golden"))
-		outName := "dbml_models.go"
+		outName := "edbml_models.go"
 		if strings.HasSuffix(base, "_queries") {
-			base, outName = strings.TrimSuffix(base, "_queries"), "dbml_queries.go"
+			base, outName = strings.TrimSuffix(base, "_queries"), "edbml_queries.go"
 		}
 		pkgDir := filepath.Join(dir, "p", base)
 		if err := os.MkdirAll(pkgDir, 0o755); err != nil {

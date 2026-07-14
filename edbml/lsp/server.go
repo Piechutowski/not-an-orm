@@ -11,7 +11,7 @@ import (
 // Version is stamped into the initialize response.
 const Version = "0.1.0"
 
-const serverName = "edbml-ls"
+const serverName = "edbml-lsp"
 
 // Server owns the open documents and the protocol handler.
 type Server struct {

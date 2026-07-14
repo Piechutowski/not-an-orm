@@ -1,7 +1,7 @@
 # Editor tooling: architecture and patterns
 
 This document explains how EDBML editor support (the Zed extension, the
-tree-sitter grammar and the `edbml-ls` language server — D40) is put
+tree-sitter grammar and the `edbml lsp` language server — D40, D41) is put
 together: the three
 components, why the system is shaped this way, and the specific patterns each
 component uses — so that extending it for EDBML is a matter of following
@@ -16,7 +16,7 @@ existing patterns rather than reverse-engineering them.
    grammar.js ──generate──▶ │ parser.c→WASM │        │ extension WASM (glue) │    │
                         │   │  incremental  │        │  zed-extension/src/   │    │
                         │   │  syntax tree  │        │  "how do I launch     │    │
-                        │   └──────┬────────┘        │   edbml-ls?"          │    │
+                        │   └──────┬────────┘        │   edbml lsp?"         │    │
                         │          │ tree                └────────┬──────────┘    │
                         │          ▼                              │ spawns        │
                         │   .scm queries                          │               │
@@ -25,7 +25,7 @@ existing patterns rather than reverse-engineering them.
                         │   injections                            │               │
                         └─────────────────────────────────────────┼───────────────┘
                                                                   ▼
-                                    ┌──────────────────── edbml-ls (Go) ─────────┐
+                                    ┌─────────────────── edbml lsp (Go) ─────────┐
                                     │  JSON-RPC over stdin/stdout (LSP 3.16)     │
                                     │                                            │
                                     │  scanner → parser → check → vet            │
@@ -47,7 +47,7 @@ Three independently testable components:
 2. **The extension** (`zed-extension/`) — a thin package. Declarative files
    (manifest, language config, queries) plus ~70 lines of Rust whose only
    job is telling Zed how to launch the language server.
-3. **The language server** (`edbml/lsp/`, `cmd/edbml-ls`) — a *semantic*, spec-exact
+3. **The language server** (`edbml/lsp/`, served by `edbml lsp`) — a *semantic*, spec-exact
    analyzer speaking LSP over stdio. It powers everything intelligent:
    diagnostics, completion, hover, navigation, rename.
 
@@ -217,11 +217,12 @@ fn language_server_command(...) -> Result<zed::Command>
 ```
 
 with a two-step resolution chain — user setting `lsp.edbml-ls.binary.path`
-first, then `worktree.which("edbml-ls")` — and two optional passthrough
+first, then `worktree.which("edbml")` plus the `lsp` argument — and two
+optional passthrough
 methods that forward `initialization_options` / workspace `settings` from
 Zed's `settings.json` to the server. There is deliberately no
 download-from-releases step (the Odin extension shows that pattern): this
-extension is local-first, and `go install ./cmd/edbml-ls` is the installer.
+extension is local-first, and `go install ./cmd/edbml` is the installer.
 
 ### Pattern: the local grammar mirror (`scripts/sync-grammar.sh`)
 

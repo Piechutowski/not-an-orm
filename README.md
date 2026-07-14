@@ -10,11 +10,11 @@ that lie. Plain Go you can read, grep, and step through in a debugger.
 > **This project is an alpha version, and everything may change in the future.**
 
 ```text
-        schema.dbml  ──  the single source of truth (and your ER diagram)
+        schema.edbml  ──  the single source of truth (and your ER diagram)
              │
-   dbml gen ─┼──► dbml_models.go    structs, enums, notes as doc comments
-             ├──► dbml_queries.go   typed CRUD on a Queries handle
-             └──► dbml_schema.sql   DDL + seed data, FK/CHECK/UNIQUE real
+  edbml gen ─┼──► edbml_models.go    structs, enums, notes as doc comments
+             ├──► edbml_queries.go   typed CRUD on a Queries handle
+             └──► edbml_schema.sql   DDL + seed data, FK/CHECK/UNIQUE real
 ```
 
 ## Ten seconds of it
@@ -74,20 +74,23 @@ organized by problem solved, with per-feature status. The short version:
 ## The CLI
 
 ```sh
-dbml check  schema.dbml                 # syntax + semantics (spec §4–§8)
-dbml vet    schema.dbml                 # legal-but-suspicious DBML (edbml/vet/RULES.md)
+edbml check  schema.edbml               # syntax + semantics (spec §4–§8)
+edbml vet    schema.edbml               # legal-but-suspicious EDBML (edbml/vet/RULES.md)
 
-# From the directory that holds schema.dbml, gen needs no arguments:
-dbml gen go                             # ./schema.dbml -> ./dbml_{models,queries}.go
-dbml gen sqlite                         # ./schema.dbml -> ./dbml_schema.sql
+# From the directory that holds schema.edbml, gen needs no arguments:
+edbml gen go                            # ./schema.edbml -> ./edbml_{models,queries}.go
+edbml gen sqlite                        # ./schema.edbml -> ./edbml_schema.sql
 
-# Defaults: input ./schema.dbml, output '.', Go package 'main'. Override with
+# Defaults: input ./schema.edbml, output '.', Go package 'main'. Override with
 # -i/--input, -o/--out, -p/--package:
-dbml gen go -i db/schema.dbml -o ./models -p models
+edbml gen go -i db/schema.edbml -o ./models -p models
 
-# -m/--models-only emits just dbml_models.go (structs/enums, no CRUD) — for
+# -m/--models-only emits just edbml_models.go (structs/enums, no CRUD) — for
 # sharing the row types across processes (e.g. gob between a server and a GUI):
-dbml gen go --models-only -o ./shared -p shared
+edbml gen go --models-only -o ./shared -p shared
+
+# The language server (used by the Zed extension) is a subcommand too:
+edbml lsp                               # LSP over stdin/stdout
 ```
 
 Everything the CLI does is importable as a library
@@ -97,12 +100,12 @@ Everything the CLI does is importable as a library
 ### Install
 
 ```sh
-go install github.com/Piechutowski/not-an-orm/cmd/dbml@latest
+go install github.com/Piechutowski/not-an-orm/cmd/edbml@latest
 ```
 
-This builds the `dbml` binary into your Go bin directory (`$GOBIN`, else
+This builds the `edbml` binary into your Go bin directory (`$GOBIN`, else
 `$GOPATH/bin`); put that directory on your `PATH`. From a clone,
-`go install ./cmd/dbml` does the same.
+`go install ./cmd/edbml` does the same.
 
 ### Shell completion
 
@@ -111,10 +114,10 @@ script for your shell (add the line to your shell rc file to make it
 permanent):
 
 ```sh
-source <(dbml completion bash)   # ~/.bashrc
-source <(dbml completion zsh)    # ~/.zshrc
-dbml completion fish | source    # fish
-dbml completion pwsh             # PowerShell: pipe into your $PROFILE
+source <(edbml completion bash)  # ~/.bashrc
+source <(edbml completion zsh)   # ~/.zshrc
+edbml completion fish | source   # fish
+edbml completion pwsh            # PowerShell: pipe into your $PROFILE
 ```
 
 ## Editor support
@@ -126,13 +129,13 @@ it, so the repository also ships the editor tooling (D40):
   covering the full spec, for syntax highlighting;
 - [`zed-extension/`](zed-extension/) — a [Zed](https://zed.dev) extension:
   highlighting, outline, auto-indent, Markdown rendered inside notes;
-- [`edbml/lsp/`](edbml/lsp/) + `cmd/edbml-ls` — a language server wrapping the same
-  front end as the CLI, so squiggles, `dbml check` and codegen can never
+- [`edbml/lsp/`](edbml/lsp/) — the language server, served by `edbml lsp`,
+  wrapping the same front end as the CLI, so squiggles, `edbml check` and codegen can never
   disagree: live diagnostics (check errors + vet lints), completion,
   hover, go-to-definition, find references, rename. Editor-agnostic LSP
   over stdio — works in Zed, Neovim, Helix, VS Code.
 
-Install locally: `go install ./cmd/edbml-ls`, then `./scripts/sync-grammar.sh`,
+Install locally: `go install ./cmd/edbml`, then `./scripts/sync-grammar.sh`,
 then Zed's `Install Dev Extension` pointed at `zed-extension/`. The design
 and every pattern used: [`docs/editor-architecture.md`](docs/editor-architecture.md).
 

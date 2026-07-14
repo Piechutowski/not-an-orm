@@ -1,10 +1,10 @@
 package itest
 
 // The generated siblings are checked in so the package always compiles;
-// these directives refresh them after editing schema.dbml:
+// these directives refresh them after editing schema.edbml:
 //
-//go:generate go run ../cmd/dbml gen go --out . --package itest schema.dbml
-//go:generate go run ../cmd/dbml gen sqlite --out . schema.dbml
+//go:generate go run ../cmd/edbml gen go --out . --package itest schema.edbml
+//go:generate go run ../cmd/edbml gen sqlite --out . schema.edbml
 
 import (
 	"bytes"
@@ -19,20 +19,20 @@ import (
 )
 
 // TestGeneratedFilesCurrent proves the checked-in generated files match
-// what the generators produce from schema.dbml today — the itest analogue
+// what the generators produce from schema.edbml today — the itest analogue
 // of the golden tests. On failure: go generate ./itest
 func TestGeneratedFilesCurrent(t *testing.T) {
-	src, err := os.ReadFile("schema.dbml")
+	src, err := os.ReadFile("schema.edbml")
 	if err != nil {
 		t.Fatal(err)
 	}
-	f, diags := parser.ParseFile("schema.dbml", string(src))
+	f, diags := parser.ParseFile("schema.edbml", string(src))
 	info, semDiags := check.File(f)
 	if diags = append(diags, semDiags...); diag.HasErrors(diags) {
-		t.Fatalf("schema.dbml must be valid: %v", diags)
+		t.Fatalf("schema.edbml must be valid: %v", diags)
 	}
 
-	opts := golanggen.Options{Package: "itest", Source: "schema.dbml"}
+	opts := golanggen.Options{Package: "itest", Source: "schema.edbml"}
 	models, err := golanggen.Generate(f, info, opts)
 	if err != nil {
 		t.Fatal(err)
@@ -41,7 +41,7 @@ func TestGeneratedFilesCurrent(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	schema, err := sqlitegen.Generate(f, info, sqlitegen.Options{Source: "schema.dbml"})
+	schema, err := sqlitegen.Generate(f, info, sqlitegen.Options{Source: "schema.edbml"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -50,9 +50,9 @@ func TestGeneratedFilesCurrent(t *testing.T) {
 		file string
 		want []byte
 	}{
-		{"dbml_models.go", models},
-		{"dbml_queries.go", queries},
-		{"dbml_schema.sql", schema},
+		{"edbml_models.go", models},
+		{"edbml_queries.go", queries},
+		{"edbml_schema.sql", schema},
 	} {
 		got, err := os.ReadFile(tc.file)
 		if err != nil {

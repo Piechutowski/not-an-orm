@@ -1,18 +1,19 @@
-// Command dbml is the CLI front end over the scanner/parser/check/vet
-// packages, built on urfave/cli:
+// Command edbml is the one binary of the project (D41): the CLI front end
+// over the edbml/ language packages plus the generators, built on urfave/cli:
 //
-//	dbml parse [--json] file.dbml...    syntax only
-//	dbml check [--json] file.dbml...    syntax + semantic errors
-//	dbml vet [--json] [--enable a,b] [--werror] file.dbml...
-//	                                    syntax + semantics + warnings
-//	dbml analyzers                      list vet analyzers
-//	dbml gen go     [-i in.dbml] [-o dir] [-p pkg] [-m]   Go models (+CRUD)
-//	dbml gen sqlite [-i in.dbml] [-o dir]                 SQLite DDL + seeds
+//	edbml parse [--json] file.edbml...    syntax only
+//	edbml check [--json] file.edbml...    syntax + semantic errors
+//	edbml vet [--json] [--enable a,b] [--werror] file.edbml...
+//	                                      syntax + semantics + warnings
+//	edbml analyzers                       list vet analyzers
+//	edbml gen go     [-i in.edbml] [-o dir] [-p pkg] [-m]  Go models (+CRUD)
+//	edbml gen sqlite [-i in.edbml] [-o dir]                SQLite DDL + seeds
+//	edbml lsp                             language server on stdin/stdout
 //
-// gen go -m/--models-only emits just dbml_models.go (structs/enums), for
+// gen go -m/--models-only emits just edbml_models.go (structs/enums), for
 // sharing the row types across processes without the CRUD layer.
 //
-// gen defaults: input ./schema.dbml, output the current directory, Go
+// gen defaults: input ./schema.edbml, output the current directory, Go
 // package "main".
 //
 // Exit status: 0 clean (warnings do not fail), 1 errors found (or any
@@ -35,6 +36,7 @@ import (
 	golanggen "github.com/Piechutowski/not-an-orm/gen/golang"
 	sqlitegen "github.com/Piechutowski/not-an-orm/gen/sqlite"
 	"github.com/Piechutowski/not-an-orm/edbml/parser"
+	"github.com/Piechutowski/not-an-orm/edbml/lsp"
 	"github.com/Piechutowski/not-an-orm/edbml/vet"
 )
 
@@ -43,13 +45,13 @@ func main() {
 
 	app := &cli.Command{
 		EnableShellCompletion: true,
-		Name:  "dbml",
-		Usage: "parse, check and lint DBML schema files",
+		Name:  "edbml",
+		Usage: "parse, check, lint, generate from and serve EDBML schema files",
 		Commands: []*cli.Command{
 			{
 				Name:      "parse",
 				Usage:     "tokenize and parse; report syntax errors only",
-				ArgsUsage: "file.dbml...",
+				ArgsUsage: "file.edbml...",
 				Flags:     []cli.Flag{jsonFlag},
 				Action: func(_ context.Context, c *cli.Command) error {
 					return run(c, "parse")
@@ -58,7 +60,7 @@ func main() {
 			{
 				Name:      "check",
 				Usage:     "parse and run semantic analysis (spec §4-§8)",
-				ArgsUsage: "file.dbml...",
+				ArgsUsage: "file.edbml...",
 				Flags:     []cli.Flag{jsonFlag},
 				Action: func(_ context.Context, c *cli.Command) error {
 					return run(c, "check")
@@ -67,10 +69,10 @@ func main() {
 			{
 				Name:      "vet",
 				Usage:     "check plus warnings for legal-but-suspicious DBML",
-				ArgsUsage: "file.dbml...",
+				ArgsUsage: "file.edbml...",
 				Flags: []cli.Flag{
 					jsonFlag,
-					&cli.StringFlag{Name: "enable", Usage: "comma-separated analyzer `names` to run (default all; see 'dbml analyzers')"},
+					&cli.StringFlag{Name: "enable", Usage: "comma-separated analyzer `names` to run (default all; see 'edbml analyzers')"},
 					&cli.BoolFlag{Name: "werror", Usage: "treat warnings as errors in the exit status"},
 				},
 				Action: func(_ context.Context, c *cli.Command) error {
@@ -79,17 +81,17 @@ func main() {
 			},
 			{
 				Name:  "gen",
-				Usage: "generate code from a DBML file",
+				Usage: "generate code from an EDBML file",
 				Commands: []*cli.Command{
 					{
 						Name:      "go",
-						Usage:     "generate Go model structs and CRUD (dbml_models.go, dbml_queries.go)",
-						ArgsUsage: "[file.dbml]",
+						Usage:     "generate Go model structs and CRUD (edbml_models.go, edbml_queries.go)",
+						ArgsUsage: "[file.edbml]",
 						Flags: []cli.Flag{
-							&cli.StringFlag{Name: "input", Aliases: []string{"i"}, Usage: "input `file.dbml` (default: ./schema.dbml)"},
+							&cli.StringFlag{Name: "input", Aliases: []string{"i"}, Usage: "input `file.edbml` (default: ./schema.edbml)"},
 							&cli.StringFlag{Name: "out", Aliases: []string{"o"}, Value: ".", Usage: "output `directory` for the generated .go files"},
 							&cli.StringFlag{Name: "package", Aliases: []string{"p"}, Value: "main", Usage: "package `name`"},
-							&cli.BoolFlag{Name: "models-only", Aliases: []string{"m"}, Usage: "emit only dbml_models.go (structs/enums); skip the CRUD queries"},
+							&cli.BoolFlag{Name: "models-only", Aliases: []string{"m"}, Usage: "emit only edbml_models.go (structs/enums); skip the CRUD queries"},
 						},
 						Action: func(_ context.Context, c *cli.Command) error {
 							return runGen(c, "go")
@@ -97,11 +99,11 @@ func main() {
 					},
 					{
 						Name:      "sqlite",
-						Usage:     "generate SQLite DDL and seed inserts (dbml_schema.sql)",
-						ArgsUsage: "[file.dbml]",
+						Usage:     "generate SQLite DDL and seed inserts (edbml_schema.sql)",
+						ArgsUsage: "[file.edbml]",
 						Flags: []cli.Flag{
-							&cli.StringFlag{Name: "input", Aliases: []string{"i"}, Usage: "input `file.dbml` (default: ./schema.dbml)"},
-							&cli.StringFlag{Name: "out", Aliases: []string{"o"}, Value: ".", Usage: "output `directory` for dbml_schema.sql"},
+							&cli.StringFlag{Name: "input", Aliases: []string{"i"}, Usage: "input `file.edbml` (default: ./schema.edbml)"},
+							&cli.StringFlag{Name: "out", Aliases: []string{"o"}, Value: ".", Usage: "output `directory` for edbml_schema.sql"},
 						},
 						Action: func(_ context.Context, c *cli.Command) error {
 							return runGen(c, "sqlite")
@@ -110,8 +112,15 @@ func main() {
 				},
 			},
 			{
+				Name:  "lsp",
+				Usage: "run the EDBML language server (LSP over stdin/stdout)",
+				Action: func(_ context.Context, _ *cli.Command) error {
+					return lsp.NewServer().RunStdio()
+				},
+			},
+			{
 				Name:  "analyzers",
-				Usage: "list vet analyzers (documented in vet/RULES.md)",
+				Usage: "list vet analyzers (documented in edbml/vet/RULES.md)",
 				Action: func(_ context.Context, _ *cli.Command) error {
 					for _, a := range vet.All() {
 						fmt.Printf("%-18s %s\n", a.Name, a.Doc)
@@ -213,7 +222,7 @@ func printJSON(all []diag.Diagnostic) error {
 	return enc.Encode(out)
 }
 
-// runGen implements 'dbml gen <lang>': parse + check one DBML file,
+// runGen implements 'edbml gen <lang>': parse + check one EDBML file,
 // generate into --out, refusing to clobber non-generated files.
 func runGen(c *cli.Command, lang string) error {
 	file, err := genInput(c)
@@ -232,7 +241,7 @@ func runGen(c *cli.Command, lang string) error {
 		for _, d := range diags {
 			fmt.Println(d)
 		}
-		return cli.Exit("gen: input has errors; fix them first (see 'dbml check')", 1)
+		return cli.Exit("gen: input has errors; fix them first (see 'edbml check')", 1)
 	}
 
 	outDir := c.String("out")
@@ -249,20 +258,20 @@ func runGen(c *cli.Command, lang string) error {
 		if err != nil {
 			return cli.Exit("gen: "+err.Error(), 1)
 		}
-		outputs = []output{{"dbml_models.go", models, "// Code generated "}}
+		outputs = []output{{"edbml_models.go", models, "// Code generated "}}
 		if !c.Bool("models-only") {
 			queries, err := golanggen.GenerateQueries(f, info, opts)
 			if err != nil {
 				return cli.Exit("gen: "+err.Error(), 1)
 			}
-			outputs = append(outputs, output{"dbml_queries.go", queries, "// Code generated "})
+			outputs = append(outputs, output{"edbml_queries.go", queries, "// Code generated "})
 		}
 	case "sqlite":
 		code, err := sqlitegen.Generate(f, info, sqlitegen.Options{Source: filepath.Base(file)})
 		if err != nil {
 			return cli.Exit("gen: "+err.Error(), 1)
 		}
-		outputs = []output{{"dbml_schema.sql", code, "-- Code generated "}}
+		outputs = []output{{"edbml_schema.sql", code, "-- Code generated "}}
 	}
 
 	// Refuse every clobber before writing anything: all or nothing.
@@ -287,8 +296,8 @@ func runGen(c *cli.Command, lang string) error {
 	return nil
 }
 
-// genInput resolves the DBML input for 'dbml gen': the --input/-i flag if
-// set, else a single positional arg, else the ./schema.dbml convention.
+// genInput resolves the EDBML input for 'edbml gen': the --input/-i flag if
+// set, else a single positional arg, else the ./schema.edbml convention.
 // Passing both the flag and a positional arg is an error, not a silent pick.
 func genInput(c *cli.Command) (string, error) {
 	flagFile := c.String("input")
@@ -300,8 +309,8 @@ func genInput(c *cli.Command) (string, error) {
 	case c.Args().Len() == 1:
 		return c.Args().First(), nil
 	case c.Args().Len() > 1:
-		return "", cli.Exit("gen takes exactly one DBML file", 2)
+		return "", cli.Exit("gen takes exactly one EDBML file", 2)
 	default:
-		return "schema.dbml", nil
+		return "schema.edbml", nil
 	}
 }
