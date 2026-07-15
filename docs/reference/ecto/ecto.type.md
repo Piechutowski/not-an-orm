@@ -305,7 +305,7 @@ to `field` with the `:autogenerate` flag.
 
 ---
 
-## `primitive?({:parameterized, _}), do: true`
+## `primitive?({:parameterized, _})`
 
 Checks if we have a primitive type.
 
@@ -322,7 +322,7 @@ Checks if we have a primitive type.
 
 ---
 
-## `parameterized?({:parameterized, {module, _}}, module), do: true`
+## `parameterized?({:parameterized, {module, _}}, module)`
 
 Checks if the given type is parameterized by the given module.
 
@@ -335,7 +335,7 @@ Checks if the given type is parameterized by the given module.
 
 ---
 
-## `composite?(atom), do: atom in @composite`
+## `composite?(atom)`
 
 Checks if the given atom can be used as composite type.
 
@@ -347,7 +347,7 @@ Checks if the given atom can be used as composite type.
 
 ---
 
-## `base?(atom), do: atom in @base`
+## `base?(atom)`
 
 Checks if the given atom can be used as base type.
 
@@ -361,7 +361,7 @@ Checks if the given atom can be used as base type.
 
 ---
 
-## `embed_as({:parameterized, {module, params}}, format), do: module.embed_as(format, params)`
+## `embed_as({:parameterized, {module, params}}, format)`
 
 Gets how the type is treated inside embeds for the given format.
 
@@ -487,7 +487,7 @@ Loads a value with the given type.
 
 ---
 
-## `cast({:parameterized, {type, params}}, value), do: type.cast(value, params)`
+## `cast({:parameterized, {type, params}}, value)`
 
 Casts a value to the given type.
 
@@ -602,7 +602,7 @@ It currently trims all strings, unless the type is `:binary`.
 
 ---
 
-## `equal?(_, nil, nil), do: true`
+## `equal?(_, nil, nil)`
 
 Checks if two terms are equal.
 

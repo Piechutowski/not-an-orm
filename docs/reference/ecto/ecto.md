@@ -502,7 +502,7 @@ the given posts, do:
 
 ---
 
-## `assoc_loaded?(%Ecto.Association.NotLoaded{}), do: false`
+## `assoc_loaded?(%Ecto.Association.NotLoaded{})`
 
 Checks if an association is loaded.
 
@@ -518,7 +518,7 @@ Checks if an association is loaded.
 
 ---
 
-## `reset_fields(struct, []), do: struct`
+## `reset_fields(struct, [])`
 
 Resets fields in a struct to their default values.
 
@@ -535,7 +535,7 @@ Resets fields in a struct to their default values.
 
 ---
 
-## `get_meta(struct, :context), do: struct.__meta__.context`
+## `get_meta(struct, :context)`
 
 Gets the metadata from the given struct.
 

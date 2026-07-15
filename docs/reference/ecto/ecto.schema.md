@@ -525,7 +525,7 @@ when calling `c:Ecto.Repo.insert/2` or `c:Ecto.Repo.update/2`.
 
 ---
 
-## `schema(source, do: block)`
+## `schema(source`
 
 Defines a schema struct with a source name and field definitions.
 
@@ -1614,7 +1614,7 @@ in the database, it's value will be `nil`.
 
 ---
 
-## `embeds_one(name, schema, opts, do: block)`
+## `embeds_one(name, schema, opts`
 
 Indicates an embedding of a schema.
 
@@ -1770,7 +1770,7 @@ For example:
 
 ---
 
-## `embeds_many(name, schema, opts, do: block)`
+## `embeds_many(name, schema, opts`
 
 Indicates an embedding of many schemas.
 

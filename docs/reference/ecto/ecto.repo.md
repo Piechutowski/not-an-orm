@@ -272,7 +272,7 @@ It does not consider the options given on `c:start_link/1`.
 
 ---
 
-## `@callback start_link(opts :: Keyword.t()) :: {:ok, pid}`
+## `@callback start_link(opts :: Keyword.t()) :: {:ok, pid} | {:error, {:already_started, pid}} | {:error, term}`
 
 Starts the Repo supervision tree.
 
@@ -1695,7 +1695,7 @@ Same as `c:delete/2` but returns the struct or raises if the changeset is invali
 
 ---
 
-## `@callback transaction(fun_or_multi :: fun | Ecto.Multi.t(), opts :: Keyword.t()) :: {:ok, any}`
+## `@callback transaction(fun_or_multi :: fun | Ecto.Multi.t(), opts :: Keyword.t()) :: {:ok, any} | {:error, any} …`
 
 Runs the given function or `Ecto.Multi` inside a transaction.
 

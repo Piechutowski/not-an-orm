@@ -502,7 +502,12 @@ To define a reversible command in a migration, see `Ecto.Migration.execute/2`.
 
 ---
 
-### `create(object, do: block)`
+## defmodule Ecto.Migration (continued)
+
+
+---
+
+### `create(object`
 
 Creates a table.
 
@@ -521,7 +526,7 @@ has a type of `:bigserial`. Check the `table/2` docs for more information.
 
 ---
 
-### `create_if_not_exists(object, do: block)`
+### `create_if_not_exists(object`
 
 Creates a table if it does not exist.
 
@@ -531,7 +536,7 @@ already exists.
 
 ---
 
-### `alter(object, do: block)`
+### `alter(object`
 
 Alters a table.
 

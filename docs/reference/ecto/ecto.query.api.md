@@ -48,91 +48,91 @@ queries.
 
 ---
 
-## `left == right, do: doc!([left, right])`
+## `left == right`
 
 Binary `==` operation.
 
 
 ---
 
-## `left != right, do: doc!([left, right])`
+## `left != right`
 
 Binary `!=` operation.
 
 
 ---
 
-## `left <= right, do: doc!([left, right])`
+## `left <= right`
 
 Binary `<=` operation.
 
 
 ---
 
-## `left >= right, do: doc!([left, right])`
+## `left >= right`
 
 Binary `>=` operation.
 
 
 ---
 
-## `left < right, do: doc!([left, right])`
+## `left < right`
 
 Binary `<` operation.
 
 
 ---
 
-## `left > right, do: doc!([left, right])`
+## `left > right`
 
 Binary `>` operation.
 
 
 ---
 
-## `left + right, do: doc!([left, right])`
+## `left + right`
 
 Binary `+` operation.
 
 
 ---
 
-## `left - right, do: doc!([left, right])`
+## `left - right`
 
 Binary `-` operation.
 
 
 ---
 
-## `left * right, do: doc!([left, right])`
+## `left * right`
 
 Binary `*` operation.
 
 
 ---
 
-## `left / right, do: doc!([left, right])`
+## `left / right`
 
 Binary `/` operation.
 
 
 ---
 
-## `left and right, do: doc!([left, right])`
+## `left and right`
 
 Binary `and` operation.
 
 
 ---
 
-## `left or right, do: doc!([left, right])`
+## `left or right`
 
 Binary `or` operation.
 
 
 ---
 
-## `not value, do: doc!([value])`
+## `not value`
 
 Unary `not` operation.
 
@@ -158,7 +158,7 @@ For example:
 
 ---
 
-## `left in right, do: doc!([left, right])`
+## `left in right`
 
 Checks if the left-value is included in the right one.
 
@@ -180,7 +180,7 @@ a single column:
 
 ---
 
-## `exists(subquery), do: doc!([subquery])`
+## `exists(subquery)`
 
 Evaluates to true if the provided subquery returns 1 or more rows.
 
@@ -203,7 +203,7 @@ has more than 5 replies.
 
 ---
 
-## `any(subquery), do: doc!([subquery])`
+## `any(subquery)`
 
 Tests whether one or more values returned from the provided subquery match in a comparison operation.
 
@@ -220,7 +220,7 @@ Both can be used with every comparison operator: `==`, `!=`, `>`, `>=`, `<`, `<=
 
 ---
 
-## `all(subquery), do: doc!([subquery])`
+## `all(subquery)`
 
 Evaluates whether all values returned from the provided subquery match in a comparison operation.
 
@@ -242,7 +242,7 @@ Both can be used with every comparison operator: `==`, `!=`, `>`, `>=`, `<`, `<=
 
 ---
 
-## `like(string, search), do: doc!([string, search])`
+## `like(string, search)`
 
 Searches for `search` in `string`.
 
@@ -261,7 +261,7 @@ as part of LIKE query, since they allow to perform
 
 ---
 
-## `ilike(string, search), do: doc!([string, search])`
+## `ilike(string, search)`
 
 Searches for `search` in `string` in a case insensitive fashion.
 
@@ -273,7 +273,7 @@ only available on PostgreSQL.
 
 ---
 
-## `is_nil(value), do: doc!([value])`
+## `is_nil(value)`
 
 Checks if the given value is nil.
 
@@ -286,7 +286,7 @@ To check if a given value is not nil use:
 
 ---
 
-## `count, do: doc!([])`
+## `count`
 
 Counts the entries in the table.
 
@@ -295,7 +295,7 @@ Counts the entries in the table.
 
 ---
 
-## `count(value), do: doc!([value])`
+## `count(value)`
 
 Counts the given entry.
 
@@ -304,7 +304,7 @@ Counts the given entry.
 
 ---
 
-## `count(value, :distinct), do: doc!([value, :distinct])`
+## `count(value, :distinct)`
 
 Counts the distinct values in given entry.
 
@@ -313,7 +313,7 @@ Counts the distinct values in given entry.
 
 ---
 
-## `coalesce(value, expr), do: doc!([value, expr])`
+## `coalesce(value, expr)`
 
 Takes the first value which is not null, or null if they both are.
 
@@ -326,7 +326,7 @@ effect.
 
 ---
 
-## `filter(value, filter), do: doc!([value, filter])`
+## `filter(value, filter)`
 
 Applies the given expression as a FILTER clause against an
 aggregate. This is currently only supported by Postgres.
@@ -338,7 +338,7 @@ aggregate. This is currently only supported by Postgres.
 
 ---
 
-## `avg(value), do: doc!([value])`
+## `avg(value)`
 
 Calculates the average for the given entry.
 
@@ -347,7 +347,7 @@ Calculates the average for the given entry.
 
 ---
 
-## `sum(value), do: doc!([value])`
+## `sum(value)`
 
 Calculates the sum for the given entry.
 
@@ -356,7 +356,7 @@ Calculates the sum for the given entry.
 
 ---
 
-## `min(value), do: doc!([value])`
+## `min(value)`
 
 Calculates the minimum for the given entry.
 
@@ -365,7 +365,7 @@ Calculates the minimum for the given entry.
 
 ---
 
-## `max(value), do: doc!([value])`
+## `max(value)`
 
 Calculates the maximum for the given entry.
 
@@ -374,7 +374,7 @@ Calculates the maximum for the given entry.
 
 ---
 
-## `datetime_add(datetime, count, interval), do: doc!([datetime, count, interval])`
+## `datetime_add(datetime, count, interval)`
 
 Adds a given interval to a datetime.
 
@@ -395,7 +395,7 @@ See [Intervals](#module-intervals) for supported `interval` values.
 
 ---
 
-## `date_add(date, count, interval), do: doc!([date, count, interval])`
+## `date_add(date, count, interval)`
 
 Adds a given interval to a date.
 
@@ -406,7 +406,7 @@ See [Intervals](#module-intervals) for supported `interval` values.
 
 ---
 
-## `from_now(count, interval), do: doc!([count, interval])`
+## `from_now(count, interval)`
 
 Adds the given interval to the current time in UTC.
 
@@ -422,7 +422,7 @@ See [Intervals](#module-intervals) for supported `interval` values.
 
 ---
 
-## `ago(count, interval), do: doc!([count, interval])`
+## `ago(count, interval)`
 
 Subtracts the given interval from the current time in UTC.
 
@@ -438,7 +438,7 @@ See [Intervals](#module-intervals) for supported `interval` values.
 
 ---
 
-## `fragment(fragments), do: doc!([fragments])`
+## `fragment(fragments)`
 
 Send fragments directly to the database.
 
@@ -552,7 +552,7 @@ queries, like MongoDB, fragments also allow keywords to be given:
 
 ---
 
-## `identifier(binary), do: doc!([binary])`
+## `identifier(binary)`
 
 Allows a dynamic identifier to be injected into a fragment:
 
@@ -570,7 +570,7 @@ which will be independently prepared and cached.
 
 ---
 
-## `constant(value), do: doc!([value])`
+## `constant(value)`
 
 Allows a dynamic string or number to be injected into a fragment:
 
@@ -588,7 +588,7 @@ which will be independently prepared and cached.
 
 ---
 
-## `splice(list), do: doc!([list])`
+## `splice(list)`
 
 Allows a list argument to be spliced into a fragment.
 
@@ -651,7 +651,7 @@ This would be transformed into
 
 ---
 
-## `values(values, types), do: doc!([values, types])`
+## `values(values, types)`
 
 Creates a values list/constant table.
 
@@ -721,7 +721,7 @@ Queries using a values list are not cacheable by Ecto.
 
 ---
 
-## `field(source, field), do: doc!([source, field])`
+## `field(source, field)`
 
 Allows a field to be dynamically accessed.
 
@@ -779,7 +779,7 @@ a large number of atoms.
 
 ---
 
-## `struct(source, fields), do: doc!([source, fields])`
+## `struct(source, fields)`
 
 Used in `select` to specify which struct fields should be returned.
 
@@ -829,7 +829,7 @@ otherwise Ecto will be unable to find associated records.
 
 ---
 
-## `map(source, fields), do: doc!([source, fields])`
+## `map(source, fields)`
 
 Used in `select` to specify which fields should be returned as a map.
 
@@ -874,7 +874,7 @@ otherwise Ecto will be unable to find associated records.
 
 ---
 
-## `merge(left_map, right_map), do: doc!([left_map, right_map])`
+## `merge(left_map, right_map)`
 
 Merges the map on the right over the map on the left.
 
@@ -890,7 +890,7 @@ to merge different select clauses.
 
 ---
 
-## `json_extract_path(json_field, path), do: doc!([json_field, path])`
+## `json_extract_path(json_field, path)`
 
 Returns value from the `json_field` pointed to by `path`.
 
@@ -956,7 +956,7 @@ to force the types on the database level.
 
 ---
 
-## `type(interpolated_value, type), do: doc!([interpolated_value, type])`
+## `type(interpolated_value, type)`
 
 Casts the given value to the given type at the database level.
 
@@ -1019,7 +1019,7 @@ in PostgreSQL, you might do `fragment("?::text", p.column)`.
 
 ---
 
-## `as(binding), do: doc!([binding])`
+## `as(binding)`
 
 Refer to a named atom binding.
 
@@ -1028,7 +1028,7 @@ See [Named Bindings](Ecto.Query.html#module-named-bindings) for more information
 
 ---
 
-## `parent_as(binding), do: doc!([binding])`
+## `parent_as(binding)`
 
 Refer to a named atom binding in the parent query.
 
@@ -1039,7 +1039,7 @@ See [Named Bindings](Ecto.Query.html#module-named-bindings) for more information
 
 ---
 
-## `selected_as(name), do: doc!([name])`
+## `selected_as(name)`
 
 Refer to an alias of a selected value.
 
@@ -1054,7 +1054,7 @@ to ensure the alias is being referenced correctly.
 
 ---
 
-## `selected_as(selected_value, name), do: doc!([selected_value, name])`
+## `selected_as(selected_value, name)`
 
 Creates an alias for the given selected value.
 

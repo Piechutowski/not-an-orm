@@ -408,61 +408,6 @@ may read its contents, but never modify them.
 
 ---
 
-## defmodule FromExpr
-
-
----
-
-## defmodule DynamicExpr
-
-
----
-
-## defmodule QueryExpr
-
-
----
-
-## defmodule ByExpr
-
-
----
-
-## defmodule BooleanExpr
-
-
----
-
-## defmodule SelectExpr
-
-
----
-
-## defmodule JoinExpr
-
-
----
-
-## defmodule WithExpr
-
-
----
-
-## defmodule LimitExpr
-
-
----
-
-## defmodule Tagged
-
-
----
-
-## defmodule Values
-
-
----
-
 ### `dynamic(binding \\ [], expr)`
 
 Builds a dynamic query expression.
@@ -812,7 +757,7 @@ Puts the given prefix in a query.
 
 ---
 
-### `exclude(%Ecto.Query{} = query, field), do: maybe_exclude_list(query, field)`
+### `exclude(%Ecto.Query{} = query, field)`
 
 Resets a previously set field or fields on a query.
 

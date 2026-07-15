@@ -3,11 +3,6 @@
 # Ecto.Adapters.SQL.Sandbox
 
 
----
-
-## defmodule Ecto.Adapters.SQL.Sandbox
-
-
 A pool for concurrent transactional tests.
 
 The sandbox pool is implemented on top of an ownership mechanism.
@@ -349,12 +344,7 @@ running asynchronously by setting  "async: false".
 
 ---
 
-## defmodule Connection
-
-
----
-
-### `start_owner!(repo, opts \\ [])`
+## `start_owner!(repo, opts \\ [])`
 
 Starts a process that will check out and own a connection, then returns that process's pid.
 
@@ -386,14 +376,14 @@ The remaining options are passed to `checkout/2`.
 
 ---
 
-### `stop_owner(pid)`
+## `stop_owner(pid)`
 
 Stops an owner process started by `start_owner!/2`.
 
 
 ---
 
-### `mode(repo, mode)`
+## `mode(repo, mode)`
 
 Sets the mode for the `repo` pool.
 
@@ -430,7 +420,7 @@ process set the ownership mode to `{:shared, _}` and is still alive.
 
 ---
 
-### `checkout(repo, opts \\ [])`
+## `checkout(repo, opts \\ [])`
 
 Checks a connection out for the given `repo`.
 
@@ -458,14 +448,14 @@ connection, it returns `{:already, :owner | :allowed}`.
 
 ---
 
-### `checkin(repo, _opts \\ [])`
+## `checkin(repo, _opts \\ [])`
 
 Checks in the connection back into the sandbox pool.
 
 
 ---
 
-### `allow(repo, parent, allow, opts \\ [])`
+## `allow(repo, parent, allow, opts \\ [])`
 
 Allows the `allow` process to use the same connection as `parent`.
 
@@ -478,6 +468,6 @@ checked out a connection from the repo, it returns `:not_found`.
 
 ---
 
-### `unboxed_run(repo, fun)`
+## `unboxed_run(repo, fun)`
 
 Runs a function outside of the sandbox.

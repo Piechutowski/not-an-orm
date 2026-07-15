@@ -45,7 +45,7 @@ A raw binary representation of a UUID.
 
 ---
 
-## `@type option :: {:version, 4 | 7}`
+## `@type option :: {:version, 4 | 7} | {:precision, :millisecond | :monotonic}`
 
 Supported options: `:version` and `:precision` (v7-only).
 
@@ -104,7 +104,7 @@ Same as `dump/1` but raises `Ecto.ArgumentError` on invalid arguments.
 
 ---
 
-## `load(<<_::128>> = raw_uuid), do: {:ok, encode(raw_uuid)}`
+## `load(<<_::128>> = raw_uuid)`
 
 Converts a binary UUID into a string.
 
@@ -118,7 +118,7 @@ Same as `load/1` but raises `Ecto.ArgumentError` on invalid arguments.
 
 ---
 
-## `generate(opts \\ []), do: encode(bingenerate(opts))`
+## `generate(opts \\ [])`
 
 Generates a UUID string.
 
@@ -164,7 +164,7 @@ See `generate/1` for details and available options.
 
 ---
 
-## `to_datetime(<<milliseconds::48, @version_7::4, _::76>>), do: DateTime.from_unix!(milliseconds, :millisecond)`
+## `to_datetime(<<milliseconds::48, @version_7::4, _::76>>)`
 
 Converts the timestamp in the UUID to a datetime. Only works for UUID v7.
 
@@ -182,6 +182,6 @@ Raises `ArgumentError` for non-v7 UUIDs.
 
 ---
 
-## `version(<<_::48, version::4, _::76>>), do: version`
+## `version(<<_::48, version::4, _::76>>)`
 
 Returns the version number for the UUID.

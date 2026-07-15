@@ -30,7 +30,7 @@ expressions, such as `:partition_by` and `:order_by`.
 
 ---
 
-## `count, do: doc! []`
+## `count`
 
 Counts the entries in the table.
 
@@ -39,7 +39,7 @@ Counts the entries in the table.
 
 ---
 
-## `count(value), do: doc! [value]`
+## `count(value)`
 
 Counts the given entry.
 
@@ -48,7 +48,7 @@ Counts the given entry.
 
 ---
 
-## `avg(value), do: doc! [value]`
+## `avg(value)`
 
 Calculates the average for the given entry.
 
@@ -57,7 +57,7 @@ Calculates the average for the given entry.
 
 ---
 
-## `sum(value), do: doc! [value]`
+## `sum(value)`
 
 Calculates the sum for the given entry.
 
@@ -66,7 +66,7 @@ Calculates the sum for the given entry.
 
 ---
 
-## `min(value), do: doc! [value]`
+## `min(value)`
 
 Calculates the minimum for the given entry.
 
@@ -75,7 +75,7 @@ Calculates the minimum for the given entry.
 
 ---
 
-## `max(value), do: doc! [value]`
+## `max(value)`
 
 Calculates the maximum for the given entry.
 
@@ -84,7 +84,7 @@ Calculates the maximum for the given entry.
 
 ---
 
-## `over(window_function, window_name), do: doc! [window_function, window_name]`
+## `over(window_function, window_name)`
 
 Defines a value based on the function and the window. See moduledoc for more information.
 
@@ -93,7 +93,7 @@ Defines a value based on the function and the window. See moduledoc for more inf
 
 ---
 
-## `row_number(), do: doc! []`
+## `row_number()`
 
 Returns number of the current row within its partition, counting from 1.
 
@@ -105,7 +105,7 @@ Note that this function must be invoked using window function syntax.
 
 ---
 
-## `rank(), do: doc! []`
+## `rank()`
 
 Returns rank of the current row with gaps; same as `row_number/0` of its first peer.
 
@@ -117,7 +117,7 @@ Note that this function must be invoked using window function syntax.
 
 ---
 
-## `dense_rank(), do: doc! []`
+## `dense_rank()`
 
 Returns rank of the current row without gaps; this function counts peer groups.
 
@@ -129,7 +129,7 @@ Note that this function must be invoked using window function syntax.
 
 ---
 
-## `percent_rank(), do: doc! []`
+## `percent_rank()`
 
 Returns relative rank of the current row: (rank - 1) / (total rows - 1).
 
@@ -141,7 +141,7 @@ Note that this function must be invoked using window function syntax.
 
 ---
 
-## `cume_dist(), do: doc! []`
+## `cume_dist()`
 
 Returns relative rank of the current row:
 (number of rows preceding or peer with current row) / (total rows).
@@ -154,7 +154,7 @@ Note that this function must be invoked using window function syntax.
 
 ---
 
-## `ntile(num_buckets), do: doc! [num_buckets]`
+## `ntile(num_buckets)`
 
 Returns integer ranging from 1 to the argument value, dividing the partition as equally as possible.
 
@@ -166,7 +166,7 @@ Note that this function must be invoked using window function syntax.
 
 ---
 
-## `first_value(value), do: doc! [value]`
+## `first_value(value)`
 
 Returns value evaluated at the row that is the first row of the window frame.
 
@@ -178,7 +178,7 @@ Note that this function must be invoked using window function syntax.
 
 ---
 
-## `last_value(value), do: doc! [value]`
+## `last_value(value)`
 
 Returns value evaluated at the row that is the last row of the window frame.
 
@@ -190,7 +190,7 @@ Note that this function must be invoked using window function syntax.
 
 ---
 
-## `filter(value, filter), do: doc! [value, filter]`
+## `filter(value, filter)`
 
 Applies the given expression as a FILTER clause against an
 aggregate. This is currently only supported by Postgres.
@@ -203,7 +203,7 @@ aggregate. This is currently only supported by Postgres.
 
 ---
 
-## `nth_value(value, nth), do: doc! [value, nth]`
+## `nth_value(value, nth)`
 
 Returns value evaluated at the row that is the nth row of the window
 frame (counting from 1); `nil` if no such row.
@@ -216,7 +216,7 @@ Note that this function must be invoked using window function syntax.
 
 ---
 
-## `lag(value, offset \\ 1, default \\ nil), do: doc! [value, offset, default]`
+## `lag(value, offset \\ 1, default \\ nil)`
 
 Returns value evaluated at the row that is offset rows before
 the current row within the partition.
@@ -240,7 +240,7 @@ Note that this function must be invoked using window function syntax.
 
 ---
 
-## `lead(value, offset \\ 1, default \\ nil), do: doc! [value, offset, default]`
+## `lead(value, offset \\ 1, default \\ nil)`
 
 Returns value evaluated at the row that is offset rows after
 the current row within the partition.
