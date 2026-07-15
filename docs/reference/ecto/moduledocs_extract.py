@@ -28,21 +28,26 @@ import sys
 MODULE_RE = re.compile(
     r'^(\s*)(?:defmodule|defprotocol)\s+([A-Z][A-Za-z0-9_.]*)\s+do\s*$')
 END_RE = re.compile(r'^(\s*)end\b')
-HEREDOC_RE = re.compile(r'^(\s*)@(moduledoc|doc|typedoc)\s+~?[sS]?"""\s*$')
+HEREDOC_RE = re.compile(
+    r"^(\s*)@(moduledoc|doc|typedoc)\s+~?[sS]?(\"\"\"|''')\s*$")
 ONELINE_RE = re.compile(r'^\s*@(moduledoc|doc|typedoc)\s+~?[sS]?"(.+)"\s*$')
-ATTR_HEREDOC_RE = re.compile(r'^(\s*)@([a-z_]\w*)\s+~?[sS]?"""\s*$')
+ATTR_HEREDOC_RE = re.compile(r"^(\s*)@([a-z_]\w*)\s+~?[sS]?(\"\"\"|''')\s*$")
 DOCREF_RE = re.compile(r'^\s*@doc\s+@([a-z_]\w*)\s*$')
-CLOSE_RE = re.compile(r'^(\s*)"""\s*$')
 SIG_RE = re.compile(
     r'^\s*(def|defmacro|defguard|defdelegate|defstruct|@callback'
     r'|@macrocallback|@type|@typep|@opaque)\s'
 )
 
 
-def heredoc_read(lines, start):
-    """Return (dedented content, index after closing delimiter)."""
+def heredoc_read(lines, start, delim):
+    """Return (dedented content, index after the closing delimiter).
+
+    The closer must match the opener — with_cte/3 in query.ex is a ~S'''
+    heredoc whose body may legitimately contain triple double-quotes.
+    """
+    close = re.compile(rf'^(\s*){delim}\s*$')
     for i in range(start, len(lines)):
-        m = CLOSE_RE.match(lines[i])
+        m = close.match(lines[i])
         if m:
             indent = len(m.group(1))
             body = [l[indent:] if l[:indent].isspace() else l
@@ -71,11 +76,27 @@ def signature_find(lines, start):
                 break
             i += 1
             sig += " " + lines[i].strip()
-        sig = re.sub(r'(\s+do|\s+when\s.+|,\s*do:.*)$', "", sig)
+        sig = body_strip(sig)
+        sig = re.sub(r'(\s+do|\s+when\s.+)$', "", sig)
         sig = re.sub(r'^(def|defmacro|defguard|defdelegate)\s+', "", sig)
         sig = re.sub(r'\s+', " ", sig)
         return sig if len(sig) <= 110 else sig[:110].rstrip() + " …"
     return None
+
+
+def body_strip(sig):
+    """Cut a one-line `, do:` body — but only outside brackets, so a
+    `do: block` that is part of the parameter list (embeds_one, create)
+    stays in the signature."""
+    depth = 0
+    for j, c in enumerate(sig):
+        if c in "([{":
+            depth += 1
+        elif c in ")]}":
+            depth -= 1
+        elif depth == 0 and sig.startswith(", do:", j):
+            return sig[:j]
+    return sig
 
 
 def file_scan(path, lines):
@@ -105,7 +126,7 @@ def file_scan(path, lines):
         if m:
             kind = m.group(2) if m.re is HEREDOC_RE else m.group(1)
             if m.re is HEREDOC_RE:
-                content, i = heredoc_read(lines, i + 1)
+                content, i = heredoc_read(lines, i + 1, m.group(3))
             else:
                 content, i = m.group(2), i + 1
             sig = None if kind == "moduledoc" else signature_find(lines, i)
@@ -124,7 +145,7 @@ def file_scan(path, lines):
             continue
         m = ATTR_HEREDOC_RE.match(line)
         if m:
-            attrs[m.group(2)], i = heredoc_read(lines, i + 1)
+            attrs[m.group(2)], i = heredoc_read(lines, i + 1, m.group(3))
             continue
         skipped += 1 if re.match(r'^\s*@(moduledoc|doc)\s+false\s*$',
                                  line) else 0

@@ -1089,6 +1089,151 @@ Join hints must be static compile-time strings when they are specified as (list 
 
 ---
 
+### `with_cte(query, name, opts)`
+
+A common table expression (CTE) also known as WITH expression.
+
+`name` must be a compile-time literal string that is being used
+as the table name to join the CTE in the main query or in the
+recursive CTE.
+
+**IMPORTANT!** Beware of using CTEs. In raw SQL, CTEs can be
+used as a mechanism to organize queries, but said mechanism
+has no purpose in Ecto since Ecto queries are composable by
+definition. In other words, if you need to break a large query
+into parts, use all of the functionality in Elixir and in this
+module to structure your code. Furthermore, breaking a query
+into CTEs can negatively impact performance, as the database
+may not optimize efficiently across CTEs. The main use case
+for CTEs in Ecto is to provide recursive definitions, which
+we outline in the following section. Non-recursive CTEs can
+often be written as joins or subqueries, which provide better
+performance.
+
+## Options
+
+  * `:as` - the CTE query itself or a fragment
+  * `:materialized` - a boolean indicating whether the CTE should
+  be materialized. If blank, the database's default behaviour
+  will be used (only supported by Postgrex, for the built-in adapters)
+  * `:operation` - one of `:all`, `:update_all`, or `:delete_all`
+  indicating the operation type of the CTE query. If blank, it defaults to `:all`,
+  making the CTE query a SELECT query. (only supported by Postgres built-in adapter)
+
+## Recursive CTEs
+
+Use `recursive_ctes/2` to enable recursive mode for CTEs.
+
+In the CTE query itself use the same table name to leverage
+recursion that has been passed to the `name` argument. Make sure
+to write a stop condition to avoid an infinite recursion loop.
+Generally speaking, you should only use CTEs in Ecto for
+writing recursive queries.
+
+## Expression examples
+
+Products and their category names for breadcrumbs:
+
+    category_tree_initial_query =
+      Category
+      |> where([c], is_nil(c.parent_id))
+
+    category_tree_recursion_query =
+      Category
+      |> join(:inner, [c], ct in "category_tree", on: c.parent_id == ct.id)
+
+    category_tree_query =
+      category_tree_initial_query
+      |> union_all(^category_tree_recursion_query)
+
+    Product
+    |> recursive_ctes(true)
+    |> with_cte("category_tree", as: ^category_tree_query)
+    |> join(:left, [p], c in "category_tree", on: c.id == p.category_id)
+    |> group_by([p], p.id)
+    |> select([p, c], %{p | category_names: fragment("ARRAY_AGG(?)", c.name)})
+
+It's also possible to pass a raw SQL fragment:
+
+    @raw_sql_category_tree """
+    SELECT * FROM categories WHERE c.parent_id IS NULL
+    UNION ALL
+    SELECT * FROM categories AS c, category_tree AS ct WHERE ct.id = c.parent_id
+    """
+
+    Product
+    |> recursive_ctes(true)
+    |> with_cte("category_tree", as: fragment(@raw_sql_category_tree))
+    |> join(:inner, [p], c in "category_tree", on: c.id == p.category_id)
+
+You can also query over the CTE table itself. In such cases, you can pass an
+`m:Ecto.Queryable#module-tuple` module tuple with the CTE table name as the first element
+and an Ecto schema as the second element. This will cast the result rows to Ecto
+structs, as long as the Ecto schema maps over the same fields in the CTE table:
+
+    {"category_tree", Category}
+    |> recursive_ctes(true)
+    |> with_cte("category_tree", as: ^category_tree_query)
+    |> join(:left, [c], p in assoc(c, :products))
+    |> group_by([c], c.id)
+    |> select([c, p], %{c | products_count: count(p.id)})
+
+Keep in mind that this will override the source table name to `"category_tree"` in the
+resulting structs, which will also inherit all other properties from the `Category` schema,
+including a `@schema_prefix` if any is set.
+
+In such cases, you can disable those properties by setting them as options:
+
+    from(cte in {"category_tree", Category}, prefix: nil)
+    |> recursive_ctes(true)
+    |> with_cte("category_tree", as: ^category_tree_query)
+
+or join the CTE's result to the original schema:
+
+    Category
+    |> recursive_ctes(true)
+    |> with_cte("category_tree", as: ^category_tree_query)
+    |> join(:inner, [c], tree in "category_tree", on: c.id == tree.id)
+
+While this requires an additional join, it will allow you to use the structs in further
+data-modifying operations throughout your application without the need to manually reset
+the source table name.
+
+For the Postgres built-in adapter, it is possible to define data-modifying CTE queries:
+
+    update_categories_query =
+      Category
+      |> where([c], is_nil(c.parent_id))
+      |> update([c], set: [name: "Root category"])
+      |> select([c], c)
+
+    {"update_categories", Category}
+    |> with_cte("update_categories", as: ^update_categories_query, operation: :update_all)
+    |> select([c], c)
+
+Note: In order to retrieve the updates rows from a CTE query, the parent query
+must select rows from the CTE table instead of the table referenced by the CTE query.
+For example, `"update_categories"` will return updated rows for `"category"` table, but
+selecting from `"category"` table directly will return unaffected rows.
+For more details see Postgres documentation on data-modifying CTEs and how these work
+with snapshots.
+
+Keyword syntax is not supported for this feature.
+
+## Limitation: CTEs on schemas with source fields
+
+Ecto allows developers to say that a table in their Ecto schema
+maps to a different column in their database:
+
+    field :group_id, :integer, source: :iGroupId
+
+At the moment, using a schema with source fields in CTE may emit
+invalid queries. If you are running into such scenarios, your best
+option is to use a fragment as your CTE.
+
+
+---
+
 ### `recursive_ctes(%__MODULE__{with_ctes: with_expr} = query, value)`
 
 Enables or disables recursive mode for CTEs.
