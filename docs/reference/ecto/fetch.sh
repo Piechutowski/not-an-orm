@@ -16,6 +16,9 @@ git -C "$tmp/ecto" sparse-checkout set guides lib
 git clone --depth 1 --filter=blob:none --sparse \
   https://github.com/elixir-ecto/ecto_sql "$tmp/ecto_sql"
 git -C "$tmp/ecto_sql" sparse-checkout set guides lib
+git clone --depth 1 --filter=blob:none --sparse \
+  https://github.com/elixir-sqlite/ecto_sqlite3 "$tmp/ecto_sqlite3"
+git -C "$tmp/ecto_sqlite3" sparse-checkout set lib
 
 # Guides and cheatsheets: verbatim copies, filenames normalized to the
 # snake_case used by the Rails reference ("Getting Started.md" ->
@@ -28,6 +31,11 @@ done
 for f in "$tmp"/ecto/guides/cheatsheets/*.cheatmd; do
   cp "$f" "$(basename "$f" .cheatmd)_cheatsheet.md"
 done
+# ecto_sqlite3 (MIT, elixir-sqlite org): the community SQLite3 adapter —
+# how another project maps the full Ecto surface onto SQLite. Its hexdocs
+# front page is the repo README; the rest of its manual is the adapter
+# moduledoc plus the TypeExtension behaviour, extracted below.
+cp "$tmp/ecto_sqlite3/README.md" ecto_sqlite3_readme.md
 
 # Module reference: the modules a capability comparison needs — schema,
 # changeset, query, repo, multi, types (ecto) and migrations, SQL adapter,
@@ -60,4 +68,6 @@ python3 moduledocs_extract.py \
   "$tmp"/ecto_sql/lib/mix/tasks/ecto.gen.migration.ex \
   "$tmp"/ecto_sql/lib/mix/tasks/ecto.dump.ex \
   "$tmp"/ecto_sql/lib/mix/tasks/ecto.load.ex \
-  "$tmp"/ecto_sql/lib/mix/tasks/ecto.query.ex
+  "$tmp"/ecto_sql/lib/mix/tasks/ecto.query.ex \
+  "$tmp"/ecto_sqlite3/lib/ecto/adapters/sqlite3.ex \
+  "$tmp"/ecto_sqlite3/lib/ecto/adapters/sqlite3/type_extension.ex

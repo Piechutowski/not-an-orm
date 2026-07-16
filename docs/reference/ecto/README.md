@@ -7,8 +7,12 @@ per capability. Of all the surveyed toolkits, Ecto sits closest to this
 project's shape: explicit data mapping over a hidden model layer, queries
 as composable data, migrations as code. Refresh with `./fetch.sh`.
 
-Two kinds of files, both from https://github.com/elixir-ecto/ecto and
-https://github.com/elixir-ecto/ecto_sql:
+Two kinds of files, from https://github.com/elixir-ecto/ecto,
+https://github.com/elixir-ecto/ecto_sql and
+https://github.com/elixir-sqlite/ecto_sqlite3 (the community SQLite3
+adapter — another project's answer to mapping the full Ecto surface onto
+SQLite, so its type-mapping choices and documented limitations are prior
+art for D02):
 
 - **Guides** (`getting_started.md`, `dynamic_queries.md`,
   `safe_migrations.md`, …) — verbatim copies of `guides/` from both repos,
@@ -23,8 +27,14 @@ https://github.com/elixir-ecto/ecto_sql:
   (+ query API), repo, multi, types, and from ecto_sql migrations, the
   SQL adapter, the test sandbox and the Mix tasks documenting the
   migration/database workflow (`mix.tasks.ecto.migrate.md`, …) —
-  adapter-implementer behaviours are left out.
+  adapter-implementer behaviours are left out. From ecto_sqlite3: the
+  adapter moduledoc (`ecto.adapters.sqlite3.md` — configuration, type
+  mapping, SQLite limitations), the TypeExtension behaviour, and its
+  README (`ecto_sqlite3_readme.md`), which is that package's hexdocs
+  front page.
 
-These documents are © Plataformatec and the Ecto contributors, licensed
-[Apache-2.0](https://github.com/elixir-ecto/ecto/blob/master/LICENSE), and
-kept here for offline reference across working sessions.
+These documents are © Plataformatec and the Ecto contributors
+([Apache-2.0](https://github.com/elixir-ecto/ecto/blob/master/LICENSE)),
+except the ecto_sqlite3 files, © Matthew A. Johnston and contributors
+([MIT](https://github.com/elixir-sqlite/ecto_sqlite3/blob/main/LICENSE));
+all kept here for offline reference across working sessions.

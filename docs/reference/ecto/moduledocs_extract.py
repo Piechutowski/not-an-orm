@@ -190,10 +190,11 @@ def file_extract(path):
             level = "###" if multi else "##"
             out.append(f"\n---\n\n{level} {head}\n\n{content}\n")
     dest = title.lower() + ".md"
-    src = re.sub(r'.*/(lib/.*)', r'\1', path)
+    repo, src = re.match(r'.*/([^/]+)/(lib/.*)', path).groups()
+    license_ = {"ecto": "Apache-2.0", "ecto_sql": "Apache-2.0",
+                "ecto_sqlite3": "MIT"}.get(repo, "see upstream LICENSE")
     header = (f"<!-- {title}: extracted verbatim from {src} "
-              f"({'ecto_sql' if 'ecto_sql' in path else 'ecto'} repo) "
-              f"by fetch.sh. Apache-2.0. -->\n\n")
+              f"({repo} repo) by fetch.sh. {license_}. -->\n\n")
     with open(dest, "w") as f:
         f.write(header + "\n".join(out).rstrip() + "\n")
     print(f"{dest}: {len(events)} doc blocks ({skipped} @doc false skipped)")
