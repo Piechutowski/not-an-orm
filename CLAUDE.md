@@ -98,9 +98,11 @@ Locked decisions (docs/decisions.md) still bind until edited.
 - No sqlite3 CLI; use python3's sqlite3 module (3.45) for executing SQL.
 - The upstream cross-check (`conformance/refcheck/setup.sh`) rebuilds the
   reference compiler from git history and runs under bun.
-- ORM doc reference copies: `docs/reference/rails/` (Rails guides) and
-  `docs/reference/ecto/` (Ecto guides + extracted module docs); each has a
-  `fetch.sh` that refreshes it.
+- ORM doc reference copies: `docs/reference/rails/` (Rails guides),
+  `docs/reference/ecto/` (Ecto guides + extracted module docs),
+  `docs/reference/bob/` (Bob website docs — nearest Go relative) and
+  `docs/reference/sqlboiler/` (SQLBoiler README — Bob's predecessor);
+  each has a `fetch.sh` that refreshes it.
 
 ## Working style expected by the maintainer
 

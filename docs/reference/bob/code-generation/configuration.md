@@ -1,0 +1,440 @@
+---
+sidebar_position: 2
+description: How to configure Bob's code generation
+---
+
+# Configuration
+
+Code generation is configured through a yaml configuration file (defaults to `./bobgen.yaml` in the current directory). A different configuration file can be passed with the `-c` or `--config` flag.
+
+Configuration is split into 3 parts:
+
+1. [Plugins Configuration](#plugins-configuration): To configure built-in plugins.
+1. [Driver Configuration](#driver-configuration): To configure the database driver and its options.
+1. [General Configuration](#general-configuration): To configure the code generation options.
+
+## Plugins Configuration
+
+When using the CLI, Bob loads several built-in plugins.
+
+- `dbinfo`: Generates code for information about each database. Schemas, tables, columns, indexes, primary keys, foreign keys, unique constraints, and check constraints.
+- `enums`: Generates code for enums in a separate package, if there are any present.
+- `models`: Generates code for models. Depends on `enums`.
+- `factory`: Generates code for factories. Depends on `models`.
+- `dberrors`: Generates code for unique constraint errors. Depends on `models`.
+- `where`: Adds templates to the `models` package to generate code for where clauses e.g `models.SelectWhere.Table.Where.Rel()`.
+- `loaders`: Adds templates to the `models` package to generate code for loaders e.g `models.SelectThenLoad.Table.Rel()`.
+- `joins`: Adds templates to the `models` package to generate code for joins e.g `models.SelectJoin.Table.LeftJoin.Rel`.
+- `counts`: Adds templates to the `models` package to generate code for counting relationships e.g `models.PreloadCount.Table.Rel()` and `models.ThenLoadCount.Table.Rel()`.
+- `queries`: Generates code for queries.
+
+They can be configured in the `plugins` section of the configuration file.
+
+```yaml
+plugins_preset: 'all' # Valid values are "default", "all" or "none".
+plugins:
+  dbinfo:
+    disabled: false
+    pkgname: 'dbinfo'
+    destination: 'dbinfo'
+  enums:
+    disabled: false
+    pkgname: 'enums'
+    destination: 'enums'
+  models:
+    disabled: false
+    pkgname: 'models'
+    destination: 'models'
+  factory:
+    disabled: false
+    pkgname: 'factory'
+    destination: 'factory'
+  dberrors:
+    disabled: false
+    pkgname: 'dberrors'
+    destination: 'dberrors'
+  where:
+    disabled: false
+  loaders:
+    disabled: false
+  joins:
+    disabled: false
+  counts:
+    disabled: false
+```
+
+:::tip
+
+Use the `plugins_preset` key to quickly enable or disable all plugins.
+Valid values are `all` or `none`. Defaults to `all`.
+
+:::
+
+:::warning
+
+The `disabled` setting will clear any generated `.bob.go` files in the target directory.
+
+:::
+
+## Driver Configuration
+
+The driver configruation is specific to each driver and is used to configure the connection to the database, as well as any driver-specific options.
+
+The details of the driver configuration are detailed in the documentation for each driver.
+
+- [Postgres](./psql.md)
+- [MySQL](./mysql.md)
+- [SQLite](./sqlite.md)
+- [SQL Migration Files](./sql.md)
+
+## General Configuration
+
+The configuration is unmarshalled into the following [Config](https://pkg.go.dev/github.com/stephenafamo/bob/gen#Config) struct.
+
+:::note
+
+All keys for general configuration are at the top level of the configuration file, and are not nested under `config` or any other key.
+
+:::
+
+```go
+// Config for the running of the commands
+type Config struct {
+	// Convention and library used for handling null and optional types
+	// available options are:
+	// - "github.com/aarondl/opt" (default)
+	//    * Uses null.Val[T] for optional values
+	//    * Uses null.Null[T] for nullable values
+	// - "database/sql"
+	//    * Uses pointers for optional values
+	//	  * Uses sql.Null[T] for nullable values
+	TypeSystem string `yaml:"type_system"`
+	// Struct tags to generate
+	Tags []string `yaml:"tags"`
+	// Disable generating go test files
+	NoTests bool `yaml:"no_tests"`
+	// Disable back referencing in the loaded relationship structs
+	NoBackReferencing bool `yaml:"no_back_referencing"`
+	// Decides the casing for go structure tag names. camel, title or snake (default snake)
+	StructTagCasing string `yaml:"struct_tag_casing"`
+	// Relationship struct tag name
+	RelationTag string `yaml:"relation_tag"`
+	// Counts struct tag name (for the C field added by the counts plugin)
+	RelationTagCount string `yaml:"relation_tag_count"`
+	// Name of the nested struct on R that tracks whether each relationship has been loaded.
+	// Must be an exported Go identifier. Defaults to "Loaded".
+	RelationLoadedName string `yaml:"relation_loaded_name"`
+	// List of column names that should have tags values set to '-' (ignored during parsing)
+	TagIgnore []string `yaml:"tag_ignore"`
+	// Format for enum value identifiers: "title_case" or "screaming_snake_case"
+	EnumFormat string `yaml:"enum_format"`
+
+	Types         drivers.Types `yaml:"types"`         // register custom types
+	Aliases       Aliases       `yaml:"aliases"`       // customize aliases
+	Constraints   Constraints   `yaml:"constraints"`   // define additional constraints
+	Relationships Relationships `yaml:"relationships"` // define additional relationships
+
+	Replacements []Replace   `yaml:"replacements"`
+	Inflections  Inflections `yaml:"inflections"`
+
+	// Customize the generator name in the top level comment of generated files
+	// >>   Code generated by **GENERATOR NAME**. DO NOT EDIT.
+	// defaults to "BobGen [driver] [version]"
+	Generator string `yaml:"generator"`
+}
+```
+
+| Name                | Description                                                                                                     | Default                  |
+| ------------------- | --------------------------------------------------------------------------------------------------------------- | ------------------------ |
+| type_system         | How to handle optional and nullable types. Available options are `github.com/aarondl/opt` and `database/sql`    | "github.com/aarondl/opt" |
+| tags                | Struct tags to generate                                                                                         | []                       |
+| no_tests            | Disable generating go test files                                                                                | false                    |
+| no_back_referencing | If this is set to true, when relationships are loaded, the parent is not added to the loaded object's relations | false                    |
+| struct_tag_casing   | Decides the casing for go structure tag names. camel, title or snake (default snake)                            | "snake"                  |
+| relation_tag        | Struct tag for the relationship object                                                                          | "-"                      |
+| relation_tag_count  | Struct tag for the counts (C) struct field added by the counts plugin                                           | "-"                      |
+| relation_loaded_name | Name of the nested struct on `R` that tracks whether each relationship has been loaded. Must be an exported Go identifier. Renames both the field on `R` and the underlying type suffix (`<table>R<name>`). [See more](./relationships#checking-if-a-relationship-has-been-loaded) | "Loaded"                 |
+| tag_ignore          | List of column names that should have tags values set to '-'                                                    | []                       |
+| enum_format         | Format for enum value identifiers. "title_case" (e.g., InProgress) or "screaming_snake_case" (e.g., IN_PROGRESS) | "title_case"             |
+| constraints         | Define additional constraints. [See more](#constraints)                                                         | {}                       |
+| aliases             | Customize aliases. [See more](#aliases)                                                                         | {}                       |
+| types               | Register custom types. [See more](#types)                                                                       | {}                       |
+| replacements        | Define replacements for types. [See more](#replacements)                                                        | []                       |
+| relationships       | Define additional relationships. [See more](#relationships)                                                     | {}                       |
+| inflections         | Define inflections for pluralization. [See more](#inflections)                                                  | {}                       |
+| generator           | Customize the generator name in the top level comment of generated files                                        | ""                       |
+
+### Aliases
+
+Names are automatically generated for you. If you name your database entities properly you will likely have descriptive names generated in the end. However, in the case where the names in your database are bad AND unchangeable, or Bob's inference doesn't understand the names you do have (even though they are good and correct) you can use aliases to change the name of your tables, columns and relationships in the generated Go code.
+
+:::note
+
+It is not required to provide all parts of all names. Anything left out will be inferred by default.
+
+:::
+
+```yaml
+# Although team_names works fine without configuration, we use it here for illustrative purposes
+aliases:
+  team_names:
+    up_plural: 'TeamNames'
+    up_singular: 'TeamName'
+    down_plural: 'teamNames'
+    down_singular: 'teamName'
+    columns: # Columns can be aliased by name
+      uuid: 'ID'
+    relationships: # Relationships can be aliased by name
+      team_id_fkey: 'Owner'
+```
+
+:::tip
+
+For relationship names you can find the key Bob uses by first generating your models and then looking into the generated model file.
+
+The key you need to use for the alias is in a comment in the `modelR` struct:
+
+```go
+// videoR is where relationships are stored.
+type videoR struct {
+    Tags    TagSlice // video_tags.video_tags_tag_id_fkeyvideo_tags.video_tags_video_id_fkey
+    Sponsor *Sponsor // videos.videos_sponsor_id_fkey
+    User    *User    // videos.videos_user_id_fkey
+}
+```
+
+```yaml
+aliases:
+  team:
+    relationships:
+      'video_tags.video_tags_tag_id_fkeyvideo_tags.video_tags_video_id_fkey': 'MyCustomAlias'
+```
+
+:::
+
+### Constraints
+
+It is possible to manually define additional constraints for your database. This is particularly useful if your database system or driver does not support constraints
+
+This can also be used to create relationships since those are derived from foreign key constraints.
+
+```yaml
+constraints:
+  pilots:
+    primary: # This will overwirte any existing primary key on the table
+      name: 'pilots_pkey'
+      columns: [id]
+    uniques: # These will be added to existing unique constraints
+      - name: 'pilot_name_unique'
+        columns: [name]
+      - name: 'pilot_nickname_unique'
+        columns: [nickname]
+    foreign: # These will be added to existing foreign constraints
+      - name: 'pilot_to_jets'
+        columns: [id]
+        foreign_table: 'jets'
+        foreign_columns: [pilot_id]
+```
+
+### Types
+
+Custom types can be registered with the `types` key.  
+This will also allow you to edit the configuration of existing types, for example, to change how it is randomized by default.
+
+When defining a type, you should provide the `randomExpr`. This is an expression that returns a random value of the type. It is used in `factory.random_type()`.
+
+There are things to note about writing the random expression:
+
+- The expression must return a value of type `T`
+- There is an existing variable of `f` which is of type `*faker.Faker`
+
+To prevent generating a test for the random expression, set `no_randomization_test` to `true`. This is useful for low-cardinality types like `bool`.
+
+In certain cases, it is necessary to compare values of the type to determine if they are equal.
+In such cases, you can provide a `compareExpr` which is an expression that compares two values of the type. Use the placeholders `AAA` and `BBB` as the types to be compared.
+
+#### Imports
+
+The `imports` key is used to specify any imports that are needed for the type.  
+The first import is the package that contains the type, and the rest are any other imports that are needed.
+
+For example, for the type `types.JSON[json.RawMessage]`, the imports will look like this:
+
+```yaml
+types:
+  type.JSON[json.RawMessage]:
+    # ......
+    imports:
+      - '"encoding/json"'
+      - '"github.com/stephenafamo/bob/types"'
+```
+
+#### Example Types Configuration
+
+```yaml
+types:
+  xml:
+    # OPTIONAL: If this type is an alias of another type
+    # this is useful to have custom randomization for a type e.g. xml
+    alias_of: 'string'
+    # If this depends on another type, you can specify the type here
+    depends_on:
+      - 'string'
+    # To be used in factory.random_type
+    # Use BASETYPE as a placeholder for the type
+    # * a variable `f` of type `faker.Faker` is available
+    # * another variable `limits` which is a slice of strings with any limits
+    #   for example, a VARCHAR(255) would have limits = ["255"]
+    #   another example, a DECIMAL(10,2) would have limits = ["10", "2"]
+    random_expr: |-
+      tag := f.Lorem().Word()
+      return fmt.Sprintf("<%s>%s</%s>", tag, f.Lorem().Word(), tag)
+  LocalType:
+    no_randomization_test: true
+    random_expr: |
+      localType := models.LocalType{}
+      return localType
+    # IMPORTANT: If the type is in the models package, you should specify the import alias
+    imports:
+      - 'models "github.com/path/to/models"'
+  types.JSON[json.RawMessage]:
+    # If true, a test for the random expression will not be generated
+    no_randomization_test: false
+    # Any imports that are needed for the type
+    imports:
+      - '"encoding/json"'
+      - '"github.com/stephenafamo/bob/types"'
+    # To be used in factory.random_type
+    # a variable `f` of type `faker.Faker` is available
+    # another variable `limits` which is a slice of strings with any limits
+    # for example, a VARCHAR(255) would have limits = ["255"]
+    # another example, a DECIMAL(10,2) would have limits = ["10", "2"]
+    random_expr: |-
+      s := &bytes.Buffer{}
+      s.WriteRune('{')
+      for i := range f.IntBetween(1, 5) {
+          if i > 0 {
+              fmt.Fprint(s, ", ")
+          }
+          fmt.Fprintf(s, "%q:%q", f.Lorem().Word(), f.Lorem().Word())
+      }
+      s.WriteRune('}')
+      return types.NewJSON[json.RawMessage](s.Bytes())`
+    # Imports for the random expression
+    random_expr_imports:
+      - '"bytes"'
+      - '"fmt"'
+    # CompareExpr is used to compare two values of this type
+    # if not provided, == is used
+    # Use AAA and BBB as placeholders for the two values
+    compare_expr: |-
+      bytes.Equal(AAA.Val, BBB.Val)
+    # Imports for the compare expression
+    compare_expr_imports:
+      - '"bytes"'
+```
+
+### Replacements
+
+There exists the ability to override types that the driver has inferred. The way to accomplish this is through the config file.
+
+```yaml
+replacements:
+  - tables: ['table_name'] # What tables to look inside. Matches all tables if empty
+
+    # The match is a `gen.ColumnFilter` struct, and specifies which column to match.
+    # Matches are done using "logical AND" meaning all the specified conditions must be met.
+    #
+    # All string fields can be specified as a regular expression by enclosing them with /.../.
+    # Values are matched in a case-insensitive manner.
+    match:
+      name: 'username' # Matches the column name
+      # name: "/id$/" # Regex is also supported (case-insensitive)
+      db_type: 'varchar(255)' # Matches the database type
+      type: 'string' # Matches the inferred column type
+      default: 'NULL' # Matches the default value (case-insensitive)
+      comment: 'The username' # Matches the column comment
+      nullable: true # Matches the nullable value. Defaults to false.
+      generated: false # Matches the generated value. Defaults to false.
+      autoincr: false # Matches the autoincr value. Defaults to false.
+
+    # The replace directive should either reference a pre-configured type, or a type
+    # defined in the `types` configuration.
+    replace: 'mynull.String'
+```
+
+### Relationships
+
+Relationships are automatically inferred from foreign key constraints. However, in certain cases, it is either not possible or not desirable to add a foreign key relationship.
+
+We can manually describe relationships in the configuration:
+
+```yaml
+relationships:
+  users: # The table name
+    - name: "custom_videos_relationship" # A unique identifier used to configure aliases
+      never_required: true # If true, the relationship would never be assumed to be required. This means that the factory will never auto-generate related objects for it.
+      sides:
+        - from: "users" # Name of the source of the relationship
+          to: "videos" # Table name of the other side of the relation
+          # mapping of columns from source to destination
+          columns:
+            - [id, user_id]
+
+          # Which side to modify, "from" or "to"
+          # If not set, it will try to "guess" which side to modify
+          # - if only one of the sides contains a primary key,
+          #   it will choose to modify the other side
+          # - If (both or none) of them contains a primary key,
+          #   it will try with "Unique" columns
+          # - If it still cannot choose, it defaults to "to"
+          modify: "" | from" | "to"
+```
+
+#### Related Through
+
+The configuration also allows us to describe relationships that span multiple tables. We achieve this by having multiple `sides`.
+
+In this example configuration, we add a relationship of users to videos through teams. The generated user model with have a `Videos` relation.
+
+```yaml
+relationships:
+  users:
+    - name: 'users_to_videos_through_teams'
+      sides:
+        - from: 'users'
+          to: 'teams'
+          columns: [[team_id, id]]
+        - from: 'teams'
+          to: 'videos'
+          columns: [[id, team_id]]
+```
+
+#### Related Where
+
+The configuration also allows us to describe relationships that are not only based on matching columns but also columns with static values. For example, we may want to add a relationship to teams for verified members.
+
+```yaml
+relationships:
+  users:
+    - name: 'users_to_videos_through_teams'
+      sides:
+        - from: 'teams'
+          to: 'users'
+          columns: [[id, team_id]]
+          to_where:
+            - column: 'verified'
+              sql_value: 'true'
+              go_value: 'true'
+```
+
+### Inflections
+
+With inflections, you can control the rules used to generate singular/plural variants. This is useful if a certain word or suffix is used multiple times, and you do not want to create aliases for every instance.
+
+```yaml
+inflections:
+  plural: # Rules to convert a suffix to its plural form
+    ium: ia
+  plural_exact: # Rul
+```
