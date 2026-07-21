@@ -46,7 +46,7 @@ is exhaustive (D32, the shape rule):
 |---|---|---|---|
 | nothing — fixed shapes | generated CRUD (`UserGet`, …) | [CRUD](#p2--default-crud) | v0 `DONE` |
 | values only | real SQL in a declared `Select` block, `:named` params, typed function generated, prepare-validated | [SEL](#p3--custom-queries-static-shapes-select--view) | v1 |
-| filter / order / limit | typed predicate **values** (`UserCols.Email.Eq(x)`) over generated column handles | [DYN](#p4--dynamic-queries-runtime-composition) | v2 `DONE` |
+| filter / order / limit | typed predicate **values** (`UserEmail.Eq(x)`) over generated column handles | [DYN](#p4--dynamic-queries-runtime-composition) | v2 `DONE` |
 | the shape itself | quarantined report engine over the exported schema catalog | [RPT](#p6--ad-hoc-user-defined-queries) | LATER |
 
 The long tail an ORM covers with its query DSL lands in tier two, where
@@ -126,7 +126,7 @@ lockstep (D42), statements cached by text (D31).
 | ID | Feature | Slice | Status |
 |---|---|---|---|
 | DYN-1 | Runtime core: `Pred[M]`, `And/Or/Not`, `Raw` escape hatch, deterministic interpreter, positional `?` binding | v2 | `DONE` (D28, D42) |
-| DYN-2 | Generated handles, one set per model: `UserCols.Email` (`rt.Column[User, string]`; nullable columns `rt.NullColumn` with `IsNull`/`SetNull`); operators `Eq/Ne/In/Gt/Lt/Like/IsNull/Desc/EqCol…` once in the runtime | v2 | `DONE` (D29) |
+| DYN-2 | Generated flat handles: `UserEmail = rt.Column[User, string]{…}` (nullable columns `rt.NullColumn` with `IsNull`/`SetNull`; enum types E-prefixed to stay out of the handle namespace, D11); operators `Eq/Ne/In/Gt/Lt/Like/IsNull/Desc/EqCol…` once in the runtime | v2 | `DONE` (D29) |
 | DYN-3 | Generated wrappers for value-less options: `UserLimit(n)`, `UserOffset(n)`, `UserOrderBy(…)`, `UserAfter(…)`, `UserDistinct()`, `UserSet(…)` | v2 | `DONE` (D30) |
 | DYN-4 | Verbs sharing predicates: `UserQuery`, `UserCount`, `UserExists`, `UserDeleteWhere`, `UserUpdateWhere` + typed `Assign[M]` setters (partial updates land here) | v2 | `DONE` (D32) |
 | DYN-5 | Keyset pagination first-class (`UserAfter(key)`, lexicographic expansion, mixed directions); OFFSET degrades linearly | v2 | `DONE` (D34) |

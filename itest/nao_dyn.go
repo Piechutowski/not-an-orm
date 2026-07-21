@@ -19,26 +19,17 @@ const (
 	userColumnsSQL = `"id", "email", "name", "bio", "created_at"`
 )
 
-// userColumns is the type of UserCols; see there.
-type userColumns struct {
-	ID        rt.Column[User, int32]
-	Email     rt.Column[User, string]
-	Name      rt.Column[User, string]
-	Bio       rt.NullColumn[User, string]
-	CreatedAt rt.Column[User, time.Time]
-}
-
-// UserCols holds the typed column handles of User (D29): inert
-// predicate, order and assignment builders for the dynamic query
-// layer (D28). A predicate built here can only enter User queries;
-// mixing models is a compile error.
-var UserCols = userColumns{
-	ID:        rt.Column[User, int32]{Name: "id"},
-	Email:     rt.Column[User, string]{Name: "email"},
-	Name:      rt.Column[User, string]{Name: "name"},
-	Bio:       rt.NullColumn[User, string]{Column: rt.Column[User, string]{Name: "bio"}},
-	CreatedAt: rt.Column[User, time.Time]{Name: "created_at"},
-}
+// Typed column handles of User (D29): inert predicate, order and
+// assignment builders for the dynamic query layer (D28). A predicate
+// built here can only enter User queries; mixing models is a compile
+// error.
+var (
+	UserID        = rt.Column[User, int32]{Name: "id"}
+	UserEmail     = rt.Column[User, string]{Name: "email"}
+	UserName      = rt.Column[User, string]{Name: "name"}
+	UserBio       = rt.NullColumn[User, string]{Column: rt.Column[User, string]{Name: "bio"}}
+	UserCreatedAt = rt.Column[User, time.Time]{Name: "created_at"}
+)
 
 // UserLimit caps how many rows UserQuery returns (D30).
 func UserLimit(n int) rt.Opt[User] { return rt.Limit[User](n) }
@@ -49,15 +40,16 @@ func UserOffset(n int) rt.Opt[User] { return rt.Offset[User](n) }
 // UserDistinct deduplicates the rows UserQuery returns.
 func UserDistinct() rt.Opt[User] { return rt.Distinct[User]() }
 
-// UserOrderBy sorts UserQuery's rows: UserOrderBy(UserCols.X.Asc(), UserCols.Y.Desc()).
+// UserOrderBy sorts UserQuery's rows by Asc/Desc terms built on the
+// User column handles.
 func UserOrderBy(terms ...rt.Order[User]) rt.Opt[User] { return rt.OrderBy(terms...) }
 
 // UserAfter resumes strictly after the row with the given key — keyset
 // pagination (D34): one value per UserOrderBy term, in the same order.
 func UserAfter(key ...any) rt.Opt[User] { return rt.After[User](key...) }
 
-// UserSet collects the typed assignments of a UserUpdateWhere:
-// UserSet(UserCols.X.Set(v), UserCols.Y.SetNull()).
+// UserSet collects the typed assignments of a UserUpdateWhere, built
+// with Set/SetNull on the User column handles.
 func UserSet(assigns ...rt.Assign[User]) []rt.Assign[User] { return assigns }
 
 // UserQuery returns the users rows matching every given predicate,
@@ -149,26 +141,17 @@ const (
 	orderColumnsSQL = `"id", "user_id", "status", "total", "placed_at"`
 )
 
-// orderColumns is the type of OrderCols; see there.
-type orderColumns struct {
-	ID       rt.Column[Order, int32]
-	UserID   rt.Column[Order, int32]
-	Status   rt.Column[Order, OrderStatus]
-	Total    rt.Column[Order, string]
-	PlacedAt rt.NullColumn[Order, time.Time]
-}
-
-// OrderCols holds the typed column handles of Order (D29): inert
-// predicate, order and assignment builders for the dynamic query
-// layer (D28). A predicate built here can only enter Order queries;
-// mixing models is a compile error.
-var OrderCols = orderColumns{
-	ID:       rt.Column[Order, int32]{Name: "id"},
-	UserID:   rt.Column[Order, int32]{Name: "user_id"},
-	Status:   rt.Column[Order, OrderStatus]{Name: "status"},
-	Total:    rt.Column[Order, string]{Name: "total"},
-	PlacedAt: rt.NullColumn[Order, time.Time]{Column: rt.Column[Order, time.Time]{Name: "placed_at"}},
-}
+// Typed column handles of Order (D29): inert predicate, order and
+// assignment builders for the dynamic query layer (D28). A predicate
+// built here can only enter Order queries; mixing models is a compile
+// error.
+var (
+	OrderID       = rt.Column[Order, int32]{Name: "id"}
+	OrderUserID   = rt.Column[Order, int32]{Name: "user_id"}
+	OrderStatus   = rt.Column[Order, EOrderStatus]{Name: "status"}
+	OrderTotal    = rt.Column[Order, string]{Name: "total"}
+	OrderPlacedAt = rt.NullColumn[Order, time.Time]{Column: rt.Column[Order, time.Time]{Name: "placed_at"}}
+)
 
 // OrderLimit caps how many rows OrderQuery returns (D30).
 func OrderLimit(n int) rt.Opt[Order] { return rt.Limit[Order](n) }
@@ -179,15 +162,16 @@ func OrderOffset(n int) rt.Opt[Order] { return rt.Offset[Order](n) }
 // OrderDistinct deduplicates the rows OrderQuery returns.
 func OrderDistinct() rt.Opt[Order] { return rt.Distinct[Order]() }
 
-// OrderOrderBy sorts OrderQuery's rows: OrderOrderBy(OrderCols.X.Asc(), OrderCols.Y.Desc()).
+// OrderOrderBy sorts OrderQuery's rows by Asc/Desc terms built on the
+// Order column handles.
 func OrderOrderBy(terms ...rt.Order[Order]) rt.Opt[Order] { return rt.OrderBy(terms...) }
 
 // OrderAfter resumes strictly after the row with the given key — keyset
 // pagination (D34): one value per OrderOrderBy term, in the same order.
 func OrderAfter(key ...any) rt.Opt[Order] { return rt.After[Order](key...) }
 
-// OrderSet collects the typed assignments of a OrderUpdateWhere:
-// OrderSet(OrderCols.X.Set(v), OrderCols.Y.SetNull()).
+// OrderSet collects the typed assignments of a OrderUpdateWhere, built
+// with Set/SetNull on the Order column handles.
 func OrderSet(assigns ...rt.Assign[Order]) []rt.Assign[Order] { return assigns }
 
 // OrderQuery returns the orders rows matching every given predicate,
@@ -279,20 +263,14 @@ const (
 	userTagColumnsSQL = `"user_id", "tag"`
 )
 
-// userTagColumns is the type of UserTagCols; see there.
-type userTagColumns struct {
-	UserID rt.Column[UserTag, int32]
-	Tag    rt.Column[UserTag, string]
-}
-
-// UserTagCols holds the typed column handles of UserTag (D29): inert
-// predicate, order and assignment builders for the dynamic query
-// layer (D28). A predicate built here can only enter UserTag queries;
-// mixing models is a compile error.
-var UserTagCols = userTagColumns{
-	UserID: rt.Column[UserTag, int32]{Name: "user_id"},
-	Tag:    rt.Column[UserTag, string]{Name: "tag"},
-}
+// Typed column handles of UserTag (D29): inert predicate, order and
+// assignment builders for the dynamic query layer (D28). A predicate
+// built here can only enter UserTag queries; mixing models is a compile
+// error.
+var (
+	UserTagUserID = rt.Column[UserTag, int32]{Name: "user_id"}
+	UserTagTag    = rt.Column[UserTag, string]{Name: "tag"}
+)
 
 // UserTagLimit caps how many rows UserTagQuery returns (D30).
 func UserTagLimit(n int) rt.Opt[UserTag] { return rt.Limit[UserTag](n) }
@@ -303,15 +281,16 @@ func UserTagOffset(n int) rt.Opt[UserTag] { return rt.Offset[UserTag](n) }
 // UserTagDistinct deduplicates the rows UserTagQuery returns.
 func UserTagDistinct() rt.Opt[UserTag] { return rt.Distinct[UserTag]() }
 
-// UserTagOrderBy sorts UserTagQuery's rows: UserTagOrderBy(UserTagCols.X.Asc(), UserTagCols.Y.Desc()).
+// UserTagOrderBy sorts UserTagQuery's rows by Asc/Desc terms built on the
+// UserTag column handles.
 func UserTagOrderBy(terms ...rt.Order[UserTag]) rt.Opt[UserTag] { return rt.OrderBy(terms...) }
 
 // UserTagAfter resumes strictly after the row with the given key — keyset
 // pagination (D34): one value per UserTagOrderBy term, in the same order.
 func UserTagAfter(key ...any) rt.Opt[UserTag] { return rt.After[UserTag](key...) }
 
-// UserTagSet collects the typed assignments of a UserTagUpdateWhere:
-// UserTagSet(UserTagCols.X.Set(v), UserTagCols.Y.SetNull()).
+// UserTagSet collects the typed assignments of a UserTagUpdateWhere, built
+// with Set/SetNull on the UserTag column handles.
 func UserTagSet(assigns ...rt.Assign[UserTag]) []rt.Assign[UserTag] { return assigns }
 
 // UserTagQuery returns the user_tags rows matching every given predicate,

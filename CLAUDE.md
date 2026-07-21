@@ -75,7 +75,7 @@ Locked decisions (docs/decisions.md) still bind until edited.
 
 - Naming is subject-first, verb-last everywhere — hand-written code
   included: `UserGet`, `UserCreateParams`, `PostCommentsLoad`,
-  `OrderStatusPending` (D09). Internals follow suit: `columnCheck`,
+  `EOrderStatusPending` (D09). Internals follow suit: `columnCheck`,
   `tableEmit`, `identScan`, `caseMatch`. Deliberate carve-outs: Go-mandated
   interface methods (`String`, `MarshalJSON`, `Scan`, `Pos`, `End`),
   `New*`/`is*`/`has*` idioms, stdlib-parallel APIs where the package name

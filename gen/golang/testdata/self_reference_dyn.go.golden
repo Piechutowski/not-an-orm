@@ -18,22 +18,15 @@ const (
 	employeeColumnsSQL = `"id", "full_name", "manager_id"`
 )
 
-// employeeColumns is the type of EmployeeCols; see there.
-type employeeColumns struct {
-	ID        rt.Column[Employee, int64]
-	FullName  rt.Column[Employee, string]
-	ManagerID rt.NullColumn[Employee, int64]
-}
-
-// EmployeeCols holds the typed column handles of Employee (D29): inert
-// predicate, order and assignment builders for the dynamic query
-// layer (D28). A predicate built here can only enter Employee queries;
-// mixing models is a compile error.
-var EmployeeCols = employeeColumns{
-	ID:        rt.Column[Employee, int64]{Name: "id"},
-	FullName:  rt.Column[Employee, string]{Name: "full_name"},
-	ManagerID: rt.NullColumn[Employee, int64]{Column: rt.Column[Employee, int64]{Name: "manager_id"}},
-}
+// Typed column handles of Employee (D29): inert predicate, order and
+// assignment builders for the dynamic query layer (D28). A predicate
+// built here can only enter Employee queries; mixing models is a compile
+// error.
+var (
+	EmployeeID        = rt.Column[Employee, int64]{Name: "id"}
+	EmployeeFullName  = rt.Column[Employee, string]{Name: "full_name"}
+	EmployeeManagerID = rt.NullColumn[Employee, int64]{Column: rt.Column[Employee, int64]{Name: "manager_id"}}
+)
 
 // EmployeeLimit caps how many rows EmployeeQuery returns (D30).
 func EmployeeLimit(n int) rt.Opt[Employee] { return rt.Limit[Employee](n) }
@@ -44,15 +37,16 @@ func EmployeeOffset(n int) rt.Opt[Employee] { return rt.Offset[Employee](n) }
 // EmployeeDistinct deduplicates the rows EmployeeQuery returns.
 func EmployeeDistinct() rt.Opt[Employee] { return rt.Distinct[Employee]() }
 
-// EmployeeOrderBy sorts EmployeeQuery's rows: EmployeeOrderBy(EmployeeCols.X.Asc(), EmployeeCols.Y.Desc()).
+// EmployeeOrderBy sorts EmployeeQuery's rows by Asc/Desc terms built on the
+// Employee column handles.
 func EmployeeOrderBy(terms ...rt.Order[Employee]) rt.Opt[Employee] { return rt.OrderBy(terms...) }
 
 // EmployeeAfter resumes strictly after the row with the given key — keyset
 // pagination (D34): one value per EmployeeOrderBy term, in the same order.
 func EmployeeAfter(key ...any) rt.Opt[Employee] { return rt.After[Employee](key...) }
 
-// EmployeeSet collects the typed assignments of a EmployeeUpdateWhere:
-// EmployeeSet(EmployeeCols.X.Set(v), EmployeeCols.Y.SetNull()).
+// EmployeeSet collects the typed assignments of a EmployeeUpdateWhere, built
+// with Set/SetNull on the Employee column handles.
 func EmployeeSet(assigns ...rt.Assign[Employee]) []rt.Assign[Employee] { return assigns }
 
 // EmployeeQuery returns the employees rows matching every given predicate,

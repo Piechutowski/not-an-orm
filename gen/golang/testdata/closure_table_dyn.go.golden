@@ -18,20 +18,14 @@ const (
 	categoryColumnsSQL = `"id", "name"`
 )
 
-// categoryColumns is the type of CategoryCols; see there.
-type categoryColumns struct {
-	ID   rt.Column[Category, int32]
-	Name rt.Column[Category, string]
-}
-
-// CategoryCols holds the typed column handles of Category (D29): inert
-// predicate, order and assignment builders for the dynamic query
-// layer (D28). A predicate built here can only enter Category queries;
-// mixing models is a compile error.
-var CategoryCols = categoryColumns{
-	ID:   rt.Column[Category, int32]{Name: "id"},
-	Name: rt.Column[Category, string]{Name: "name"},
-}
+// Typed column handles of Category (D29): inert predicate, order and
+// assignment builders for the dynamic query layer (D28). A predicate
+// built here can only enter Category queries; mixing models is a compile
+// error.
+var (
+	CategoryID   = rt.Column[Category, int32]{Name: "id"}
+	CategoryName = rt.Column[Category, string]{Name: "name"}
+)
 
 // CategoryLimit caps how many rows CategoryQuery returns (D30).
 func CategoryLimit(n int) rt.Opt[Category] { return rt.Limit[Category](n) }
@@ -42,15 +36,16 @@ func CategoryOffset(n int) rt.Opt[Category] { return rt.Offset[Category](n) }
 // CategoryDistinct deduplicates the rows CategoryQuery returns.
 func CategoryDistinct() rt.Opt[Category] { return rt.Distinct[Category]() }
 
-// CategoryOrderBy sorts CategoryQuery's rows: CategoryOrderBy(CategoryCols.X.Asc(), CategoryCols.Y.Desc()).
+// CategoryOrderBy sorts CategoryQuery's rows by Asc/Desc terms built on the
+// Category column handles.
 func CategoryOrderBy(terms ...rt.Order[Category]) rt.Opt[Category] { return rt.OrderBy(terms...) }
 
 // CategoryAfter resumes strictly after the row with the given key — keyset
 // pagination (D34): one value per CategoryOrderBy term, in the same order.
 func CategoryAfter(key ...any) rt.Opt[Category] { return rt.After[Category](key...) }
 
-// CategorySet collects the typed assignments of a CategoryUpdateWhere:
-// CategorySet(CategoryCols.X.Set(v), CategoryCols.Y.SetNull()).
+// CategorySet collects the typed assignments of a CategoryUpdateWhere, built
+// with Set/SetNull on the Category column handles.
 func CategorySet(assigns ...rt.Assign[Category]) []rt.Assign[Category] { return assigns }
 
 // CategoryQuery returns the categories rows matching every given predicate,
@@ -142,22 +137,15 @@ const (
 	categoryPathColumnsSQL = `"ancestor_id", "descendant_id", "depth"`
 )
 
-// categoryPathColumns is the type of CategoryPathCols; see there.
-type categoryPathColumns struct {
-	AncestorID   rt.Column[CategoryPath, int32]
-	DescendantID rt.Column[CategoryPath, int32]
-	Depth        rt.Column[CategoryPath, int32]
-}
-
-// CategoryPathCols holds the typed column handles of CategoryPath (D29): inert
-// predicate, order and assignment builders for the dynamic query
-// layer (D28). A predicate built here can only enter CategoryPath queries;
-// mixing models is a compile error.
-var CategoryPathCols = categoryPathColumns{
-	AncestorID:   rt.Column[CategoryPath, int32]{Name: "ancestor_id"},
-	DescendantID: rt.Column[CategoryPath, int32]{Name: "descendant_id"},
-	Depth:        rt.Column[CategoryPath, int32]{Name: "depth"},
-}
+// Typed column handles of CategoryPath (D29): inert predicate, order and
+// assignment builders for the dynamic query layer (D28). A predicate
+// built here can only enter CategoryPath queries; mixing models is a compile
+// error.
+var (
+	CategoryPathAncestorID   = rt.Column[CategoryPath, int32]{Name: "ancestor_id"}
+	CategoryPathDescendantID = rt.Column[CategoryPath, int32]{Name: "descendant_id"}
+	CategoryPathDepth        = rt.Column[CategoryPath, int32]{Name: "depth"}
+)
 
 // CategoryPathLimit caps how many rows CategoryPathQuery returns (D30).
 func CategoryPathLimit(n int) rt.Opt[CategoryPath] { return rt.Limit[CategoryPath](n) }
@@ -168,7 +156,8 @@ func CategoryPathOffset(n int) rt.Opt[CategoryPath] { return rt.Offset[CategoryP
 // CategoryPathDistinct deduplicates the rows CategoryPathQuery returns.
 func CategoryPathDistinct() rt.Opt[CategoryPath] { return rt.Distinct[CategoryPath]() }
 
-// CategoryPathOrderBy sorts CategoryPathQuery's rows: CategoryPathOrderBy(CategoryPathCols.X.Asc(), CategoryPathCols.Y.Desc()).
+// CategoryPathOrderBy sorts CategoryPathQuery's rows by Asc/Desc terms built on the
+// CategoryPath column handles.
 func CategoryPathOrderBy(terms ...rt.Order[CategoryPath]) rt.Opt[CategoryPath] {
 	return rt.OrderBy(terms...)
 }
@@ -177,8 +166,8 @@ func CategoryPathOrderBy(terms ...rt.Order[CategoryPath]) rt.Opt[CategoryPath] {
 // pagination (D34): one value per CategoryPathOrderBy term, in the same order.
 func CategoryPathAfter(key ...any) rt.Opt[CategoryPath] { return rt.After[CategoryPath](key...) }
 
-// CategoryPathSet collects the typed assignments of a CategoryPathUpdateWhere:
-// CategoryPathSet(CategoryPathCols.X.Set(v), CategoryPathCols.Y.SetNull()).
+// CategoryPathSet collects the typed assignments of a CategoryPathUpdateWhere, built
+// with Set/SetNull on the CategoryPath column handles.
 func CategoryPathSet(assigns ...rt.Assign[CategoryPath]) []rt.Assign[CategoryPath] { return assigns }
 
 // CategoryPathQuery returns the category_paths rows matching every given predicate,

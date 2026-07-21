@@ -79,13 +79,18 @@ decision is changed by editing this file, not by drifting away from it.
 ## Generated Go
 
 - **D09 — Naming is subject-first, verb-last**: `UserGet`, `UserList`,
-  `UserCreateParams`, `PostCommentsLoad`, `OrderStatusPending`. Autocomplete
+  `UserCreateParams`, `PostCommentsLoad`, `EOrderStatusPending`. Autocomplete
   and search group by model, then filter by verb.
 - **D10 — Models are singular** (`User` from `users`) via a small
   deterministic inflector; `[model: 'Person']` overrides; vet warns when the
   inflector guessed. Go names use the initialisms convention (`UserID`).
-- **D11 — Enums are string-backed by default** (`type OrderStatus string`,
-  constants `OrderStatusPending`), stored as TEXT. Int-backed
+- **D11 — Enums are string-backed by default, E-prefixed**
+  (`type EOrderStatus string`, constants `EOrderStatusPending`), stored
+  as TEXT. The `E` prefix (edited 2026-07-21, with D29) keeps enum
+  types out of the flat column-handle namespace: `Table orders { status
+  order_status }` mints the handle `OrderStatus` and the enum type
+  `EOrderStatus` instead of colliding — the tax lands on enum mentions,
+  not on query code, where names are typed most. Int-backed
   (`[repr: int]`) is opt-in and generates the full conversion suite
   (String, Valuer, Scanner, JSON) — the int must never escape the process.
 - **D12 — No enum CHECK constraints by default** (adding a value must not
@@ -129,24 +134,30 @@ decision is changed by editing this file, not by drifting away from it.
   (the scope replacement), append conditionally, and can be inspected,
   cached and tested — a closure can only be executed. A fluent facade could
   be layered on later; the value core is the irreversible part.
-- **D29 — Typed handles via a generic runtime column type, namespaced
-  per model.** The runtime defines `Column[M, T]` once (phantom model
-  type `M`, value type `T`; `NullColumn[M, T]` adds the explicit NULL
-  operations `IsNull`/`SetNull` — comparisons take plain `T`, never
-  `Null[T]`, because SQL comparison with NULL matches nothing anyway).
-  The generator emits one handle *set* per model: `UserCols.Email`,
-  a single package var whose fields mirror the struct's. (Originally
-  flat one-line vars, `UserEmail` — edited 2026-07-21, v2 build session:
-  flat names collide with ordinary schemas. `Table orders { status
-  order_status }`, the idiomatic enum pattern, mints `OrderStatus` twice —
-  once as the enum type, once as the handle — and broke the project's own
-  itest fixture. The namespace costs one selector and removes the whole
-  collision class.) Operators (`Eq/Ne/In/Gt/Like/Desc/EqCol/...`) live
-  once in the runtime. Phantom `M` makes cross-model mixups a compile
-  error (`Pred[Post]` cannot enter a `User` query). The remaining
-  package-scope names (`UserCols`, the D30 wrappers) can still collide
-  with model/enum names: generation fails loudly and the vet `dynname`
-  rule reports every collision with both origins named.
+- **D29 — Typed handles via a generic runtime column type, flat
+  one-line vars.** The runtime defines `Column[M, T]` once (phantom
+  model type `M`, value type `T`; `NullColumn[M, T]` adds the explicit
+  NULL operations `IsNull`/`SetNull` — comparisons take plain `T`,
+  never `Null[T]`, because SQL comparison with NULL matches nothing
+  anyway); the generator emits one-line vars:
+  `UserEmail = rt.Column[User, string]{...}`. Flat `Model+Field` names
+  live in the same package scope as everything else generated, and the
+  idiomatic enum pattern — `Table orders { status order_status }` —
+  minted `OrderStatus` twice (enum type and handle); that is resolved
+  on the *enum* side: enum types carry an `E` prefix (see the D11
+  edit), keeping the query-side names, the ones typed most, shortest.
+  (History: originally flat, briefly namespaced as `UserCols.Email`
+  during the 2026-07-21 build session when the collision surfaced;
+  reverted to flat + `E` the same day at the maintainer's direction —
+  short names and few dots outrank collision-proofing by namespace.)
+  Operators (`Eq/Ne/In/Gt/Like/Desc/EqCol/...`) live once in the
+  runtime. Phantom `M` makes cross-model mixups a compile error
+  (`Pred[Post]` cannot enter a `User` query). The remaining
+  concatenation collisions — a handle vs another table's model or
+  handle (`users.foo_bar` vs `user_foos.bar`), a model vs a D30
+  wrapper (`user_limits` vs `UserLimit`) — are rare: generation fails
+  loudly, never renames silently, and the vet `dynname` rule reports
+  every collision with both origins named.
 - **D30 — The generics wall is papered by codegen.** Go cannot infer `M`
   for value-less options (`Limit`), so the generator emits per-model
   wrappers: `UserLimit(n)`, `UserOffset(n)`. Subject-first everywhere.

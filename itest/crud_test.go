@@ -133,8 +133,8 @@ func TestOrderDefaultsEnumsAndFKs(t *testing.T) {
 		t.Fatalf("OrderCreate: %v", err)
 	}
 	// the defaulted enum column comes back typed (D11/D16)
-	if o.Status != OrderStatusPending {
-		t.Errorf("status = %q; want the database default %q", o.Status, OrderStatusPending)
+	if o.Status != EOrderStatusPending {
+		t.Errorf("status = %q; want the database default %q", o.Status, EOrderStatusPending)
 	}
 	if o.PlacedAt.Valid {
 		t.Errorf("placed_at should be NULL, got %+v", o.PlacedAt)
@@ -146,14 +146,14 @@ func TestOrderDefaultsEnumsAndFKs(t *testing.T) {
 	placed := time.Date(2026, 7, 8, 12, 0, 0, 0, time.UTC)
 	upd, err := q.OrderUpdate(ctx, o.ID, OrderUpdateParams{
 		UserID:   o.UserID,
-		Status:   OrderStatusShipped,
+		Status:   EOrderStatusShipped,
 		Total:    o.Total,
 		PlacedAt: rt.Some(placed),
 	})
 	if err != nil {
 		t.Fatalf("OrderUpdate: %v", err)
 	}
-	if upd.Status != OrderStatusShipped || !upd.PlacedAt.Valid || !upd.PlacedAt.V.Equal(placed) {
+	if upd.Status != EOrderStatusShipped || !upd.PlacedAt.Valid || !upd.PlacedAt.V.Equal(placed) {
 		t.Errorf("OrderUpdate returned %+v", upd)
 	}
 

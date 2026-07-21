@@ -19,18 +19,13 @@ const (
 	userColumnsSQL = `"id"`
 )
 
-// userColumns is the type of UserCols; see there.
-type userColumns struct {
-	ID rt.Column[User, int64]
-}
-
-// UserCols holds the typed column handles of User (D29): inert
-// predicate, order and assignment builders for the dynamic query
-// layer (D28). A predicate built here can only enter User queries;
-// mixing models is a compile error.
-var UserCols = userColumns{
-	ID: rt.Column[User, int64]{Name: "id"},
-}
+// Typed column handles of User (D29): inert predicate, order and
+// assignment builders for the dynamic query layer (D28). A predicate
+// built here can only enter User queries; mixing models is a compile
+// error.
+var (
+	UserID = rt.Column[User, int64]{Name: "id"}
+)
 
 // UserLimit caps how many rows UserQuery returns (D30).
 func UserLimit(n int) rt.Opt[User] { return rt.Limit[User](n) }
@@ -41,15 +36,16 @@ func UserOffset(n int) rt.Opt[User] { return rt.Offset[User](n) }
 // UserDistinct deduplicates the rows UserQuery returns.
 func UserDistinct() rt.Opt[User] { return rt.Distinct[User]() }
 
-// UserOrderBy sorts UserQuery's rows: UserOrderBy(UserCols.X.Asc(), UserCols.Y.Desc()).
+// UserOrderBy sorts UserQuery's rows by Asc/Desc terms built on the
+// User column handles.
 func UserOrderBy(terms ...rt.Order[User]) rt.Opt[User] { return rt.OrderBy(terms...) }
 
 // UserAfter resumes strictly after the row with the given key — keyset
 // pagination (D34): one value per UserOrderBy term, in the same order.
 func UserAfter(key ...any) rt.Opt[User] { return rt.After[User](key...) }
 
-// UserSet collects the typed assignments of a UserUpdateWhere:
-// UserSet(UserCols.X.Set(v), UserCols.Y.SetNull()).
+// UserSet collects the typed assignments of a UserUpdateWhere, built
+// with Set/SetNull on the User column handles.
 func UserSet(assigns ...rt.Assign[User]) []rt.Assign[User] { return assigns }
 
 // UserQuery returns the users rows matching every given predicate,
@@ -141,20 +137,14 @@ const (
 	roleColumnsSQL = `"id", "name"`
 )
 
-// roleColumns is the type of RoleCols; see there.
-type roleColumns struct {
-	ID   rt.Column[Role, int32]
-	Name rt.Column[Role, string]
-}
-
-// RoleCols holds the typed column handles of Role (D29): inert
-// predicate, order and assignment builders for the dynamic query
-// layer (D28). A predicate built here can only enter Role queries;
-// mixing models is a compile error.
-var RoleCols = roleColumns{
-	ID:   rt.Column[Role, int32]{Name: "id"},
-	Name: rt.Column[Role, string]{Name: "name"},
-}
+// Typed column handles of Role (D29): inert predicate, order and
+// assignment builders for the dynamic query layer (D28). A predicate
+// built here can only enter Role queries; mixing models is a compile
+// error.
+var (
+	RoleID   = rt.Column[Role, int32]{Name: "id"}
+	RoleName = rt.Column[Role, string]{Name: "name"}
+)
 
 // RoleLimit caps how many rows RoleQuery returns (D30).
 func RoleLimit(n int) rt.Opt[Role] { return rt.Limit[Role](n) }
@@ -165,15 +155,16 @@ func RoleOffset(n int) rt.Opt[Role] { return rt.Offset[Role](n) }
 // RoleDistinct deduplicates the rows RoleQuery returns.
 func RoleDistinct() rt.Opt[Role] { return rt.Distinct[Role]() }
 
-// RoleOrderBy sorts RoleQuery's rows: RoleOrderBy(RoleCols.X.Asc(), RoleCols.Y.Desc()).
+// RoleOrderBy sorts RoleQuery's rows by Asc/Desc terms built on the
+// Role column handles.
 func RoleOrderBy(terms ...rt.Order[Role]) rt.Opt[Role] { return rt.OrderBy(terms...) }
 
 // RoleAfter resumes strictly after the row with the given key — keyset
 // pagination (D34): one value per RoleOrderBy term, in the same order.
 func RoleAfter(key ...any) rt.Opt[Role] { return rt.After[Role](key...) }
 
-// RoleSet collects the typed assignments of a RoleUpdateWhere:
-// RoleSet(RoleCols.X.Set(v), RoleCols.Y.SetNull()).
+// RoleSet collects the typed assignments of a RoleUpdateWhere, built
+// with Set/SetNull on the Role column handles.
 func RoleSet(assigns ...rt.Assign[Role]) []rt.Assign[Role] { return assigns }
 
 // RoleQuery returns the roles rows matching every given predicate,
@@ -265,22 +256,15 @@ const (
 	userRoleColumnsSQL = `"user_id", "role_id", "granted_at"`
 )
 
-// userRoleColumns is the type of UserRoleCols; see there.
-type userRoleColumns struct {
-	UserID    rt.Column[UserRole, int64]
-	RoleID    rt.Column[UserRole, int32]
-	GrantedAt rt.Column[UserRole, time.Time]
-}
-
-// UserRoleCols holds the typed column handles of UserRole (D29): inert
-// predicate, order and assignment builders for the dynamic query
-// layer (D28). A predicate built here can only enter UserRole queries;
-// mixing models is a compile error.
-var UserRoleCols = userRoleColumns{
-	UserID:    rt.Column[UserRole, int64]{Name: "user_id"},
-	RoleID:    rt.Column[UserRole, int32]{Name: "role_id"},
-	GrantedAt: rt.Column[UserRole, time.Time]{Name: "granted_at"},
-}
+// Typed column handles of UserRole (D29): inert predicate, order and
+// assignment builders for the dynamic query layer (D28). A predicate
+// built here can only enter UserRole queries; mixing models is a compile
+// error.
+var (
+	UserRoleUserID    = rt.Column[UserRole, int64]{Name: "user_id"}
+	UserRoleRoleID    = rt.Column[UserRole, int32]{Name: "role_id"}
+	UserRoleGrantedAt = rt.Column[UserRole, time.Time]{Name: "granted_at"}
+)
 
 // UserRoleLimit caps how many rows UserRoleQuery returns (D30).
 func UserRoleLimit(n int) rt.Opt[UserRole] { return rt.Limit[UserRole](n) }
@@ -291,15 +275,16 @@ func UserRoleOffset(n int) rt.Opt[UserRole] { return rt.Offset[UserRole](n) }
 // UserRoleDistinct deduplicates the rows UserRoleQuery returns.
 func UserRoleDistinct() rt.Opt[UserRole] { return rt.Distinct[UserRole]() }
 
-// UserRoleOrderBy sorts UserRoleQuery's rows: UserRoleOrderBy(UserRoleCols.X.Asc(), UserRoleCols.Y.Desc()).
+// UserRoleOrderBy sorts UserRoleQuery's rows by Asc/Desc terms built on the
+// UserRole column handles.
 func UserRoleOrderBy(terms ...rt.Order[UserRole]) rt.Opt[UserRole] { return rt.OrderBy(terms...) }
 
 // UserRoleAfter resumes strictly after the row with the given key — keyset
 // pagination (D34): one value per UserRoleOrderBy term, in the same order.
 func UserRoleAfter(key ...any) rt.Opt[UserRole] { return rt.After[UserRole](key...) }
 
-// UserRoleSet collects the typed assignments of a UserRoleUpdateWhere:
-// UserRoleSet(UserRoleCols.X.Set(v), UserRoleCols.Y.SetNull()).
+// UserRoleSet collects the typed assignments of a UserRoleUpdateWhere, built
+// with Set/SetNull on the UserRole column handles.
 func UserRoleSet(assigns ...rt.Assign[UserRole]) []rt.Assign[UserRole] { return assigns }
 
 // UserRoleQuery returns the user_roles rows matching every given predicate,

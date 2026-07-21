@@ -18,22 +18,15 @@ const (
 	menuColumnsSQL = `"id", "title", "price"`
 )
 
-// menuColumns is the type of MenuCols; see there.
-type menuColumns struct {
-	ID    rt.Column[Menu, int32]
-	Title rt.Column[Menu, string]
-	Price rt.Column[Menu, string]
-}
-
-// MenuCols holds the typed column handles of Menu (D29): inert
-// predicate, order and assignment builders for the dynamic query
-// layer (D28). A predicate built here can only enter Menu queries;
-// mixing models is a compile error.
-var MenuCols = menuColumns{
-	ID:    rt.Column[Menu, int32]{Name: "id"},
-	Title: rt.Column[Menu, string]{Name: "title"},
-	Price: rt.Column[Menu, string]{Name: "price"},
-}
+// Typed column handles of Menu (D29): inert predicate, order and
+// assignment builders for the dynamic query layer (D28). A predicate
+// built here can only enter Menu queries; mixing models is a compile
+// error.
+var (
+	MenuID    = rt.Column[Menu, int32]{Name: "id"}
+	MenuTitle = rt.Column[Menu, string]{Name: "title"}
+	MenuPrice = rt.Column[Menu, string]{Name: "price"}
+)
 
 // MenuLimit caps how many rows MenuQuery returns (D30).
 func MenuLimit(n int) rt.Opt[Menu] { return rt.Limit[Menu](n) }
@@ -44,15 +37,16 @@ func MenuOffset(n int) rt.Opt[Menu] { return rt.Offset[Menu](n) }
 // MenuDistinct deduplicates the rows MenuQuery returns.
 func MenuDistinct() rt.Opt[Menu] { return rt.Distinct[Menu]() }
 
-// MenuOrderBy sorts MenuQuery's rows: MenuOrderBy(MenuCols.X.Asc(), MenuCols.Y.Desc()).
+// MenuOrderBy sorts MenuQuery's rows by Asc/Desc terms built on the
+// Menu column handles.
 func MenuOrderBy(terms ...rt.Order[Menu]) rt.Opt[Menu] { return rt.OrderBy(terms...) }
 
 // MenuAfter resumes strictly after the row with the given key — keyset
 // pagination (D34): one value per MenuOrderBy term, in the same order.
 func MenuAfter(key ...any) rt.Opt[Menu] { return rt.After[Menu](key...) }
 
-// MenuSet collects the typed assignments of a MenuUpdateWhere:
-// MenuSet(MenuCols.X.Set(v), MenuCols.Y.SetNull()).
+// MenuSet collects the typed assignments of a MenuUpdateWhere, built
+// with Set/SetNull on the Menu column handles.
 func MenuSet(assigns ...rt.Assign[Menu]) []rt.Assign[Menu] { return assigns }
 
 // MenuQuery returns the menus rows matching every given predicate,
@@ -144,20 +138,14 @@ const (
 	orderStatusColumnsSQL = `"code", "label"`
 )
 
-// orderStatusColumns is the type of OrderStatusCols; see there.
-type orderStatusColumns struct {
-	Code  rt.Column[OrderStatus, string]
-	Label rt.Column[OrderStatus, string]
-}
-
-// OrderStatusCols holds the typed column handles of OrderStatus (D29): inert
-// predicate, order and assignment builders for the dynamic query
-// layer (D28). A predicate built here can only enter OrderStatus queries;
-// mixing models is a compile error.
-var OrderStatusCols = orderStatusColumns{
-	Code:  rt.Column[OrderStatus, string]{Name: "code"},
-	Label: rt.Column[OrderStatus, string]{Name: "label"},
-}
+// Typed column handles of OrderStatus (D29): inert predicate, order and
+// assignment builders for the dynamic query layer (D28). A predicate
+// built here can only enter OrderStatus queries; mixing models is a compile
+// error.
+var (
+	OrderStatusCode  = rt.Column[OrderStatus, string]{Name: "code"}
+	OrderStatusLabel = rt.Column[OrderStatus, string]{Name: "label"}
+)
 
 // OrderStatusLimit caps how many rows OrderStatusQuery returns (D30).
 func OrderStatusLimit(n int) rt.Opt[OrderStatus] { return rt.Limit[OrderStatus](n) }
@@ -168,7 +156,8 @@ func OrderStatusOffset(n int) rt.Opt[OrderStatus] { return rt.Offset[OrderStatus
 // OrderStatusDistinct deduplicates the rows OrderStatusQuery returns.
 func OrderStatusDistinct() rt.Opt[OrderStatus] { return rt.Distinct[OrderStatus]() }
 
-// OrderStatusOrderBy sorts OrderStatusQuery's rows: OrderStatusOrderBy(OrderStatusCols.X.Asc(), OrderStatusCols.Y.Desc()).
+// OrderStatusOrderBy sorts OrderStatusQuery's rows by Asc/Desc terms built on the
+// OrderStatus column handles.
 func OrderStatusOrderBy(terms ...rt.Order[OrderStatus]) rt.Opt[OrderStatus] {
 	return rt.OrderBy(terms...)
 }
@@ -177,8 +166,8 @@ func OrderStatusOrderBy(terms ...rt.Order[OrderStatus]) rt.Opt[OrderStatus] {
 // pagination (D34): one value per OrderStatusOrderBy term, in the same order.
 func OrderStatusAfter(key ...any) rt.Opt[OrderStatus] { return rt.After[OrderStatus](key...) }
 
-// OrderStatusSet collects the typed assignments of a OrderStatusUpdateWhere:
-// OrderStatusSet(OrderStatusCols.X.Set(v), OrderStatusCols.Y.SetNull()).
+// OrderStatusSet collects the typed assignments of a OrderStatusUpdateWhere, built
+// with Set/SetNull on the OrderStatus column handles.
 func OrderStatusSet(assigns ...rt.Assign[OrderStatus]) []rt.Assign[OrderStatus] { return assigns }
 
 // OrderStatusQuery returns the order_status rows matching every given predicate,

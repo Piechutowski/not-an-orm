@@ -19,26 +19,17 @@ const (
 	postColumnsSQL = `"id", "title", "status", "body", "published_at"`
 )
 
-// postColumns is the type of PostCols; see there.
-type postColumns struct {
-	ID          rt.Column[Post, int64]
-	Title       rt.Column[Post, string]
-	Status      rt.Column[Post, PostStatus]
-	Body        rt.NullColumn[Post, string]
-	PublishedAt rt.NullColumn[Post, time.Time]
-}
-
-// PostCols holds the typed column handles of Post (D29): inert
-// predicate, order and assignment builders for the dynamic query
-// layer (D28). A predicate built here can only enter Post queries;
-// mixing models is a compile error.
-var PostCols = postColumns{
-	ID:          rt.Column[Post, int64]{Name: "id"},
-	Title:       rt.Column[Post, string]{Name: "title"},
-	Status:      rt.Column[Post, PostStatus]{Name: "status"},
-	Body:        rt.NullColumn[Post, string]{Column: rt.Column[Post, string]{Name: "body"}},
-	PublishedAt: rt.NullColumn[Post, time.Time]{Column: rt.Column[Post, time.Time]{Name: "published_at"}},
-}
+// Typed column handles of Post (D29): inert predicate, order and
+// assignment builders for the dynamic query layer (D28). A predicate
+// built here can only enter Post queries; mixing models is a compile
+// error.
+var (
+	PostID          = rt.Column[Post, int64]{Name: "id"}
+	PostTitle       = rt.Column[Post, string]{Name: "title"}
+	PostStatus      = rt.Column[Post, EPostStatus]{Name: "status"}
+	PostBody        = rt.NullColumn[Post, string]{Column: rt.Column[Post, string]{Name: "body"}}
+	PostPublishedAt = rt.NullColumn[Post, time.Time]{Column: rt.Column[Post, time.Time]{Name: "published_at"}}
+)
 
 // PostLimit caps how many rows PostQuery returns (D30).
 func PostLimit(n int) rt.Opt[Post] { return rt.Limit[Post](n) }
@@ -49,15 +40,16 @@ func PostOffset(n int) rt.Opt[Post] { return rt.Offset[Post](n) }
 // PostDistinct deduplicates the rows PostQuery returns.
 func PostDistinct() rt.Opt[Post] { return rt.Distinct[Post]() }
 
-// PostOrderBy sorts PostQuery's rows: PostOrderBy(PostCols.X.Asc(), PostCols.Y.Desc()).
+// PostOrderBy sorts PostQuery's rows by Asc/Desc terms built on the
+// Post column handles.
 func PostOrderBy(terms ...rt.Order[Post]) rt.Opt[Post] { return rt.OrderBy(terms...) }
 
 // PostAfter resumes strictly after the row with the given key — keyset
 // pagination (D34): one value per PostOrderBy term, in the same order.
 func PostAfter(key ...any) rt.Opt[Post] { return rt.After[Post](key...) }
 
-// PostSet collects the typed assignments of a PostUpdateWhere:
-// PostSet(PostCols.X.Set(v), PostCols.Y.SetNull()).
+// PostSet collects the typed assignments of a PostUpdateWhere, built
+// with Set/SetNull on the Post column handles.
 func PostSet(assigns ...rt.Assign[Post]) []rt.Assign[Post] { return assigns }
 
 // PostQuery returns the posts rows matching every given predicate,
@@ -149,20 +141,14 @@ const (
 	tagColumnsSQL = `"id", "name"`
 )
 
-// tagColumns is the type of TagCols; see there.
-type tagColumns struct {
-	ID   rt.Column[Tag, int32]
-	Name rt.Column[Tag, string]
-}
-
-// TagCols holds the typed column handles of Tag (D29): inert
-// predicate, order and assignment builders for the dynamic query
-// layer (D28). A predicate built here can only enter Tag queries;
-// mixing models is a compile error.
-var TagCols = tagColumns{
-	ID:   rt.Column[Tag, int32]{Name: "id"},
-	Name: rt.Column[Tag, string]{Name: "name"},
-}
+// Typed column handles of Tag (D29): inert predicate, order and
+// assignment builders for the dynamic query layer (D28). A predicate
+// built here can only enter Tag queries; mixing models is a compile
+// error.
+var (
+	TagID   = rt.Column[Tag, int32]{Name: "id"}
+	TagName = rt.Column[Tag, string]{Name: "name"}
+)
 
 // TagLimit caps how many rows TagQuery returns (D30).
 func TagLimit(n int) rt.Opt[Tag] { return rt.Limit[Tag](n) }
@@ -173,15 +159,16 @@ func TagOffset(n int) rt.Opt[Tag] { return rt.Offset[Tag](n) }
 // TagDistinct deduplicates the rows TagQuery returns.
 func TagDistinct() rt.Opt[Tag] { return rt.Distinct[Tag]() }
 
-// TagOrderBy sorts TagQuery's rows: TagOrderBy(TagCols.X.Asc(), TagCols.Y.Desc()).
+// TagOrderBy sorts TagQuery's rows by Asc/Desc terms built on the
+// Tag column handles.
 func TagOrderBy(terms ...rt.Order[Tag]) rt.Opt[Tag] { return rt.OrderBy(terms...) }
 
 // TagAfter resumes strictly after the row with the given key — keyset
 // pagination (D34): one value per TagOrderBy term, in the same order.
 func TagAfter(key ...any) rt.Opt[Tag] { return rt.After[Tag](key...) }
 
-// TagSet collects the typed assignments of a TagUpdateWhere:
-// TagSet(TagCols.X.Set(v), TagCols.Y.SetNull()).
+// TagSet collects the typed assignments of a TagUpdateWhere, built
+// with Set/SetNull on the Tag column handles.
 func TagSet(assigns ...rt.Assign[Tag]) []rt.Assign[Tag] { return assigns }
 
 // TagQuery returns the tags rows matching every given predicate,

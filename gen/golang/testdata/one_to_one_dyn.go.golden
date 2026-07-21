@@ -18,20 +18,14 @@ const (
 	userColumnsSQL = `"id", "email"`
 )
 
-// userColumns is the type of UserCols; see there.
-type userColumns struct {
-	ID    rt.Column[User, int64]
-	Email rt.Column[User, string]
-}
-
-// UserCols holds the typed column handles of User (D29): inert
-// predicate, order and assignment builders for the dynamic query
-// layer (D28). A predicate built here can only enter User queries;
-// mixing models is a compile error.
-var UserCols = userColumns{
-	ID:    rt.Column[User, int64]{Name: "id"},
-	Email: rt.Column[User, string]{Name: "email"},
-}
+// Typed column handles of User (D29): inert predicate, order and
+// assignment builders for the dynamic query layer (D28). A predicate
+// built here can only enter User queries; mixing models is a compile
+// error.
+var (
+	UserID    = rt.Column[User, int64]{Name: "id"}
+	UserEmail = rt.Column[User, string]{Name: "email"}
+)
 
 // UserLimit caps how many rows UserQuery returns (D30).
 func UserLimit(n int) rt.Opt[User] { return rt.Limit[User](n) }
@@ -42,15 +36,16 @@ func UserOffset(n int) rt.Opt[User] { return rt.Offset[User](n) }
 // UserDistinct deduplicates the rows UserQuery returns.
 func UserDistinct() rt.Opt[User] { return rt.Distinct[User]() }
 
-// UserOrderBy sorts UserQuery's rows: UserOrderBy(UserCols.X.Asc(), UserCols.Y.Desc()).
+// UserOrderBy sorts UserQuery's rows by Asc/Desc terms built on the
+// User column handles.
 func UserOrderBy(terms ...rt.Order[User]) rt.Opt[User] { return rt.OrderBy(terms...) }
 
 // UserAfter resumes strictly after the row with the given key — keyset
 // pagination (D34): one value per UserOrderBy term, in the same order.
 func UserAfter(key ...any) rt.Opt[User] { return rt.After[User](key...) }
 
-// UserSet collects the typed assignments of a UserUpdateWhere:
-// UserSet(UserCols.X.Set(v), UserCols.Y.SetNull()).
+// UserSet collects the typed assignments of a UserUpdateWhere, built
+// with Set/SetNull on the User column handles.
 func UserSet(assigns ...rt.Assign[User]) []rt.Assign[User] { return assigns }
 
 // UserQuery returns the users rows matching every given predicate,
@@ -142,22 +137,15 @@ const (
 	userProfileColumnsSQL = `"user_id", "bio", "avatar_url"`
 )
 
-// userProfileColumns is the type of UserProfileCols; see there.
-type userProfileColumns struct {
-	UserID    rt.Column[UserProfile, int64]
-	Bio       rt.NullColumn[UserProfile, string]
-	AvatarURL rt.NullColumn[UserProfile, string]
-}
-
-// UserProfileCols holds the typed column handles of UserProfile (D29): inert
-// predicate, order and assignment builders for the dynamic query
-// layer (D28). A predicate built here can only enter UserProfile queries;
-// mixing models is a compile error.
-var UserProfileCols = userProfileColumns{
-	UserID:    rt.Column[UserProfile, int64]{Name: "user_id"},
-	Bio:       rt.NullColumn[UserProfile, string]{Column: rt.Column[UserProfile, string]{Name: "bio"}},
-	AvatarURL: rt.NullColumn[UserProfile, string]{Column: rt.Column[UserProfile, string]{Name: "avatar_url"}},
-}
+// Typed column handles of UserProfile (D29): inert predicate, order and
+// assignment builders for the dynamic query layer (D28). A predicate
+// built here can only enter UserProfile queries; mixing models is a compile
+// error.
+var (
+	UserProfileUserID    = rt.Column[UserProfile, int64]{Name: "user_id"}
+	UserProfileBio       = rt.NullColumn[UserProfile, string]{Column: rt.Column[UserProfile, string]{Name: "bio"}}
+	UserProfileAvatarURL = rt.NullColumn[UserProfile, string]{Column: rt.Column[UserProfile, string]{Name: "avatar_url"}}
+)
 
 // UserProfileLimit caps how many rows UserProfileQuery returns (D30).
 func UserProfileLimit(n int) rt.Opt[UserProfile] { return rt.Limit[UserProfile](n) }
@@ -168,7 +156,8 @@ func UserProfileOffset(n int) rt.Opt[UserProfile] { return rt.Offset[UserProfile
 // UserProfileDistinct deduplicates the rows UserProfileQuery returns.
 func UserProfileDistinct() rt.Opt[UserProfile] { return rt.Distinct[UserProfile]() }
 
-// UserProfileOrderBy sorts UserProfileQuery's rows: UserProfileOrderBy(UserProfileCols.X.Asc(), UserProfileCols.Y.Desc()).
+// UserProfileOrderBy sorts UserProfileQuery's rows by Asc/Desc terms built on the
+// UserProfile column handles.
 func UserProfileOrderBy(terms ...rt.Order[UserProfile]) rt.Opt[UserProfile] {
 	return rt.OrderBy(terms...)
 }
@@ -177,8 +166,8 @@ func UserProfileOrderBy(terms ...rt.Order[UserProfile]) rt.Opt[UserProfile] {
 // pagination (D34): one value per UserProfileOrderBy term, in the same order.
 func UserProfileAfter(key ...any) rt.Opt[UserProfile] { return rt.After[UserProfile](key...) }
 
-// UserProfileSet collects the typed assignments of a UserProfileUpdateWhere:
-// UserProfileSet(UserProfileCols.X.Set(v), UserProfileCols.Y.SetNull()).
+// UserProfileSet collects the typed assignments of a UserProfileUpdateWhere, built
+// with Set/SetNull on the UserProfile column handles.
 func UserProfileSet(assigns ...rt.Assign[UserProfile]) []rt.Assign[UserProfile] { return assigns }
 
 // UserProfileQuery returns the user_profiles rows matching every given predicate,

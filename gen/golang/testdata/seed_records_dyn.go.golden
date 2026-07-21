@@ -19,20 +19,14 @@ const (
 	currencyColumnsSQL = `"code", "name"`
 )
 
-// currencyColumns is the type of CurrencyCols; see there.
-type currencyColumns struct {
-	Code rt.Column[Currency, string]
-	Name rt.Column[Currency, string]
-}
-
-// CurrencyCols holds the typed column handles of Currency (D29): inert
-// predicate, order and assignment builders for the dynamic query
-// layer (D28). A predicate built here can only enter Currency queries;
-// mixing models is a compile error.
-var CurrencyCols = currencyColumns{
-	Code: rt.Column[Currency, string]{Name: "code"},
-	Name: rt.Column[Currency, string]{Name: "name"},
-}
+// Typed column handles of Currency (D29): inert predicate, order and
+// assignment builders for the dynamic query layer (D28). A predicate
+// built here can only enter Currency queries; mixing models is a compile
+// error.
+var (
+	CurrencyCode = rt.Column[Currency, string]{Name: "code"}
+	CurrencyName = rt.Column[Currency, string]{Name: "name"}
+)
 
 // CurrencyLimit caps how many rows CurrencyQuery returns (D30).
 func CurrencyLimit(n int) rt.Opt[Currency] { return rt.Limit[Currency](n) }
@@ -43,15 +37,16 @@ func CurrencyOffset(n int) rt.Opt[Currency] { return rt.Offset[Currency](n) }
 // CurrencyDistinct deduplicates the rows CurrencyQuery returns.
 func CurrencyDistinct() rt.Opt[Currency] { return rt.Distinct[Currency]() }
 
-// CurrencyOrderBy sorts CurrencyQuery's rows: CurrencyOrderBy(CurrencyCols.X.Asc(), CurrencyCols.Y.Desc()).
+// CurrencyOrderBy sorts CurrencyQuery's rows by Asc/Desc terms built on the
+// Currency column handles.
 func CurrencyOrderBy(terms ...rt.Order[Currency]) rt.Opt[Currency] { return rt.OrderBy(terms...) }
 
 // CurrencyAfter resumes strictly after the row with the given key — keyset
 // pagination (D34): one value per CurrencyOrderBy term, in the same order.
 func CurrencyAfter(key ...any) rt.Opt[Currency] { return rt.After[Currency](key...) }
 
-// CurrencySet collects the typed assignments of a CurrencyUpdateWhere:
-// CurrencySet(CurrencyCols.X.Set(v), CurrencyCols.Y.SetNull()).
+// CurrencySet collects the typed assignments of a CurrencyUpdateWhere, built
+// with Set/SetNull on the Currency column handles.
 func CurrencySet(assigns ...rt.Assign[Currency]) []rt.Assign[Currency] { return assigns }
 
 // CurrencyQuery returns the currencies rows matching every given predicate,
@@ -143,28 +138,18 @@ const (
 	rateColumnsSQL = `"id", "currency_code", "rate", "fetched_at", "active", "comment"`
 )
 
-// rateColumns is the type of RateCols; see there.
-type rateColumns struct {
-	ID           rt.Column[Rate, int32]
-	CurrencyCode rt.Column[Rate, string]
-	Rate         rt.Column[Rate, string]
-	FetchedAt    rt.Column[Rate, time.Time]
-	Active       rt.Column[Rate, bool]
-	Comment      rt.NullColumn[Rate, string]
-}
-
-// RateCols holds the typed column handles of Rate (D29): inert
-// predicate, order and assignment builders for the dynamic query
-// layer (D28). A predicate built here can only enter Rate queries;
-// mixing models is a compile error.
-var RateCols = rateColumns{
-	ID:           rt.Column[Rate, int32]{Name: "id"},
-	CurrencyCode: rt.Column[Rate, string]{Name: "currency_code"},
-	Rate:         rt.Column[Rate, string]{Name: "rate"},
-	FetchedAt:    rt.Column[Rate, time.Time]{Name: "fetched_at"},
-	Active:       rt.Column[Rate, bool]{Name: "active"},
-	Comment:      rt.NullColumn[Rate, string]{Column: rt.Column[Rate, string]{Name: "comment"}},
-}
+// Typed column handles of Rate (D29): inert predicate, order and
+// assignment builders for the dynamic query layer (D28). A predicate
+// built here can only enter Rate queries; mixing models is a compile
+// error.
+var (
+	RateID           = rt.Column[Rate, int32]{Name: "id"}
+	RateCurrencyCode = rt.Column[Rate, string]{Name: "currency_code"}
+	RateRate         = rt.Column[Rate, string]{Name: "rate"}
+	RateFetchedAt    = rt.Column[Rate, time.Time]{Name: "fetched_at"}
+	RateActive       = rt.Column[Rate, bool]{Name: "active"}
+	RateComment      = rt.NullColumn[Rate, string]{Column: rt.Column[Rate, string]{Name: "comment"}}
+)
 
 // RateLimit caps how many rows RateQuery returns (D30).
 func RateLimit(n int) rt.Opt[Rate] { return rt.Limit[Rate](n) }
@@ -175,15 +160,16 @@ func RateOffset(n int) rt.Opt[Rate] { return rt.Offset[Rate](n) }
 // RateDistinct deduplicates the rows RateQuery returns.
 func RateDistinct() rt.Opt[Rate] { return rt.Distinct[Rate]() }
 
-// RateOrderBy sorts RateQuery's rows: RateOrderBy(RateCols.X.Asc(), RateCols.Y.Desc()).
+// RateOrderBy sorts RateQuery's rows by Asc/Desc terms built on the
+// Rate column handles.
 func RateOrderBy(terms ...rt.Order[Rate]) rt.Opt[Rate] { return rt.OrderBy(terms...) }
 
 // RateAfter resumes strictly after the row with the given key — keyset
 // pagination (D34): one value per RateOrderBy term, in the same order.
 func RateAfter(key ...any) rt.Opt[Rate] { return rt.After[Rate](key...) }
 
-// RateSet collects the typed assignments of a RateUpdateWhere:
-// RateSet(RateCols.X.Set(v), RateCols.Y.SetNull()).
+// RateSet collects the typed assignments of a RateUpdateWhere, built
+// with Set/SetNull on the Rate column handles.
 func RateSet(assigns ...rt.Assign[Rate]) []rt.Assign[Rate] { return assigns }
 
 // RateQuery returns the rates rows matching every given predicate,

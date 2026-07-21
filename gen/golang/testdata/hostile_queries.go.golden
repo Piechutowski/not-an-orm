@@ -222,7 +222,7 @@ type CoreUserCreateParams struct {
 	FullName       string           `db:"full name" json:"full name"`
 	PrecisionValue rt.Null[float64] `db:"precision_value" json:"precision_value"`
 	Balance        rt.Null[string]  `db:"balance" json:"balance"`
-	Kind           CoreAuditKind    `db:"kind" json:"kind"`
+	Kind           ECoreAuditKind   `db:"kind" json:"kind"`
 	// Column named like a Go keyword
 	Type rt.Null[string] `db:"type" json:"type"`
 	Func rt.Null[int32]  `db:"func" json:"func"`
@@ -257,7 +257,7 @@ type CoreUserUpdateParams struct {
 	FullName       string           `db:"full name" json:"full name"`
 	PrecisionValue rt.Null[float64] `db:"precision_value" json:"precision_value"`
 	Balance        rt.Null[string]  `db:"balance" json:"balance"`
-	Kind           CoreAuditKind    `db:"kind" json:"kind"`
+	Kind           ECoreAuditKind   `db:"kind" json:"kind"`
 	// Column named like a Go keyword
 	Type rt.Null[string] `db:"type" json:"type"`
 	Func rt.Null[int32]  `db:"func" json:"func"`

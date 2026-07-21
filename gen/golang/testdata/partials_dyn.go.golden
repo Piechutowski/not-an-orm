@@ -19,26 +19,17 @@ const (
 	invoiceColumnsSQL = `"id", "total", "created_at", "updated_at", "deleted_at"`
 )
 
-// invoiceColumns is the type of InvoiceCols; see there.
-type invoiceColumns struct {
-	ID        rt.Column[Invoice, int64]
-	Total     rt.Column[Invoice, string]
-	CreatedAt rt.Column[Invoice, time.Time]
-	UpdatedAt rt.NullColumn[Invoice, time.Time]
-	DeletedAt rt.NullColumn[Invoice, time.Time]
-}
-
-// InvoiceCols holds the typed column handles of Invoice (D29): inert
-// predicate, order and assignment builders for the dynamic query
-// layer (D28). A predicate built here can only enter Invoice queries;
-// mixing models is a compile error.
-var InvoiceCols = invoiceColumns{
-	ID:        rt.Column[Invoice, int64]{Name: "id"},
-	Total:     rt.Column[Invoice, string]{Name: "total"},
-	CreatedAt: rt.Column[Invoice, time.Time]{Name: "created_at"},
-	UpdatedAt: rt.NullColumn[Invoice, time.Time]{Column: rt.Column[Invoice, time.Time]{Name: "updated_at"}},
-	DeletedAt: rt.NullColumn[Invoice, time.Time]{Column: rt.Column[Invoice, time.Time]{Name: "deleted_at"}},
-}
+// Typed column handles of Invoice (D29): inert predicate, order and
+// assignment builders for the dynamic query layer (D28). A predicate
+// built here can only enter Invoice queries; mixing models is a compile
+// error.
+var (
+	InvoiceID        = rt.Column[Invoice, int64]{Name: "id"}
+	InvoiceTotal     = rt.Column[Invoice, string]{Name: "total"}
+	InvoiceCreatedAt = rt.Column[Invoice, time.Time]{Name: "created_at"}
+	InvoiceUpdatedAt = rt.NullColumn[Invoice, time.Time]{Column: rt.Column[Invoice, time.Time]{Name: "updated_at"}}
+	InvoiceDeletedAt = rt.NullColumn[Invoice, time.Time]{Column: rt.Column[Invoice, time.Time]{Name: "deleted_at"}}
+)
 
 // InvoiceLimit caps how many rows InvoiceQuery returns (D30).
 func InvoiceLimit(n int) rt.Opt[Invoice] { return rt.Limit[Invoice](n) }
@@ -49,15 +40,16 @@ func InvoiceOffset(n int) rt.Opt[Invoice] { return rt.Offset[Invoice](n) }
 // InvoiceDistinct deduplicates the rows InvoiceQuery returns.
 func InvoiceDistinct() rt.Opt[Invoice] { return rt.Distinct[Invoice]() }
 
-// InvoiceOrderBy sorts InvoiceQuery's rows: InvoiceOrderBy(InvoiceCols.X.Asc(), InvoiceCols.Y.Desc()).
+// InvoiceOrderBy sorts InvoiceQuery's rows by Asc/Desc terms built on the
+// Invoice column handles.
 func InvoiceOrderBy(terms ...rt.Order[Invoice]) rt.Opt[Invoice] { return rt.OrderBy(terms...) }
 
 // InvoiceAfter resumes strictly after the row with the given key — keyset
 // pagination (D34): one value per InvoiceOrderBy term, in the same order.
 func InvoiceAfter(key ...any) rt.Opt[Invoice] { return rt.After[Invoice](key...) }
 
-// InvoiceSet collects the typed assignments of a InvoiceUpdateWhere:
-// InvoiceSet(InvoiceCols.X.Set(v), InvoiceCols.Y.SetNull()).
+// InvoiceSet collects the typed assignments of a InvoiceUpdateWhere, built
+// with Set/SetNull on the Invoice column handles.
 func InvoiceSet(assigns ...rt.Assign[Invoice]) []rt.Assign[Invoice] { return assigns }
 
 // InvoiceQuery returns the invoices rows matching every given predicate,

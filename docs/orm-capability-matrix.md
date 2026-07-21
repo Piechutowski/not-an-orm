@@ -59,7 +59,7 @@ Roadmap slices: **v0** CRUD + runtime *(shipped 2026-07-08)* · **v1** declared 
 
 | Capability | Rails | Verdict | How / why |
 |---|---|---|---|
-| Hash conditions (`where(name:)`) | typed-ish | `RT(v2)` `DONE` | `UserCols.Name.Eq(v)` — generated typed handles over generic `Column[M, T]` (D29) |
+| Hash conditions (`where(name:)`) | typed-ish | `RT(v2)` `DONE` | `UserName.Eq(v)` — generated typed handles over generic `Column[M, T]` (D29) |
 | Array/placeholder conditions | `where("x > ?", v)` | `RT(v2)` `DONE` | `Raw("x > ?", v)` escape hatch — explicit, marked, last resort |
 | Pure string conditions | discouraged | `NO` | injection surface with no type info; use `Raw` or a `Select` block |
 | NOT / OR / AND | `where.not`, `.or` | `RT(v2)` `DONE` | `Not(...)`, `Or(...)`, `And(...)` combinators |
@@ -70,7 +70,7 @@ Roadmap slices: **v0** CRUD + runtime *(shipped 2026-07-08)* · **v1** declared 
 
 | Capability | Rails | Verdict | How / why |
 |---|---|---|---|
-| Ordering | `order(:created_at)` | `RT(v2)` `DONE` | `UserOrderBy(UserCols.CreatedAt.Desc())` |
+| Ordering | `order(:created_at)` | `RT(v2)` `DONE` | `UserOrderBy(UserCreatedAt.Desc())` |
 | Limit / offset | `limit/offset` | `RT(v2)` `DONE` | generated `UserLimit(n)`/`UserOffset(n)` (D30); keyset `UserAfter` shipped with them (D34) |
 | Select specific fields (projection) | `select(:id, :name)` | `DBML(v1)` | typed projection needs a result type → a named `Select` element generates one. Dynamic projection is `NO` — a half-filled `User` lies about its zero values |
 | Distinct | `distinct` | `RT(v2)` `DONE` | `UserDistinct()` option |
@@ -85,7 +85,7 @@ Roadmap slices: **v0** CRUD + runtime *(shipped 2026-07-08)* · **v1** declared 
 
 | Capability | Rails | Verdict | How / why |
 |---|---|---|---|
-| Named scopes | `scope :active, ->{...}` | `DBML(v1)` + `HAND` | reusable queries = named `Select` elements; reusable *predicates* = plain Go values (`var activeUsers = UserCols.Status.Eq(UserStatusActive)`) composed by hand (D28) |
+| Named scopes | `scope :active, ->{...}` | `DBML(v1)` + `HAND` | reusable queries = named `Select` elements; reusable *predicates* = plain Go values (`var activeUsers = UserStatus.Eq(EUserStatusActive)`) composed by hand (D28) |
 | Scopes with arguments | lambdas | `DBML(v1)` | declared params: `Select active_users (since timestamp)` |
 | Default scope | implicit filter on every query | `NO` | hidden query mutation — the haunted house. Explicit or nothing (D27) |
 | Merging of scopes | `merge` | `RT(v2)` `DONE` | predicate values compose with `And`/`Or` |

@@ -3,10 +3,12 @@
 //
 // Per table:
 //
-//	UserCols                      the typed column handles (D29): one
-//	                              rt.Column/rt.NullColumn per column,
-//	                              namespaced per model so handle names
-//	                              cannot collide with enum types
+//	UserEmail, UserID, ...        the typed column handles (D29): one
+//	                              rt.Column/rt.NullColumn var per
+//	                              column, flat Model+Field names (enum
+//	                              types carry an E prefix so the
+//	                              idiomatic enum-per-column pattern
+//	                              cannot collide with a handle)
 //	UserLimit/UserOffset/...      per-model wrappers for value-less
 //	                              options (D30): Go cannot infer the
 //	                              phantom model type without a value
@@ -23,7 +25,7 @@
 // placeholders rendered by the interpreter (D42); the statement cache
 // (D31) is wired through Queries.WithCache.
 //
-// Package-scope names are minted by concatenation (UserCols, UserLimit),
+// Package-scope names are minted by concatenation (UserEmail, UserLimit),
 // so distinct DBML declarations can demand one Go name. Generation fails
 // loudly on any collision; the vet dynname rule reports the same
 // collisions with both origins named.
@@ -82,7 +84,7 @@ type NameCollision struct {
 
 // DynNameCollisions reports the package-scope Go name collisions the
 // generated files would produce — model structs, enum types and
-// constants, params structs, column-handle sets (UserCols) and option
+// constants, params structs, column handles (UserEmail) and option
 // wrappers (UserLimit, ...). It is the analysis behind the vet dynname
 // rule; GenerateDyn refuses to generate while any collision remains. A
 // file that does not survive planning reports nothing: generation
@@ -116,7 +118,7 @@ func dynNamesCheck(p *plan, info *check.Info) []NameCollision {
 	}
 
 	for _, e := range info.Enums {
-		typeName, err := structName(e.Decl.Name.Schema(), e.Decl.Name.Base())
+		typeName, err := enumTypeName(e.Decl.Name.Schema(), e.Decl.Name.Base())
 		if err != nil {
 			continue // generation reports unusable names itself
 		}
@@ -142,7 +144,9 @@ func dynNamesCheck(p *plan, info *check.Info) []NameCollision {
 		if len(tm.pk) > 0 && len(tm.nonPK()) > 0 {
 			add(tm.model+"UpdateParams", fmt.Sprintf("table %s (update params)", tbl), pos)
 		}
-		add(tm.model+"Cols", fmt.Sprintf("table %s (column handles %sCols)", tbl, tm.model), pos)
+		for _, f := range tm.fields {
+			add(tm.model+f.goField, fmt.Sprintf("table %s column %q (handle %s%s)", tbl, f.colName, tm.model, f.goField), f.col.Pos())
+		}
 		for _, sfx := range dynWrapperSuffixes {
 			add(tm.model+sfx, fmt.Sprintf("table %s (option wrapper %s%s)", tbl, tm.model, sfx), pos)
 		}
@@ -207,7 +211,7 @@ func (e *dynEmitter) tableEmit(t *tableModel) {
 	fmt.Fprintf(b, "\t%sTableSQL   = `%s`\n", lower, sqlIdentQuote(t.sqlName))
 	fmt.Fprintf(b, "\t%sColumnsSQL = `%s`\n)\n\n", lower, t.columnList())
 
-	e.colsEmit(t, lower, tbl)
+	e.handlesEmit(t, lower, tbl)
 	e.wrappersEmit(t, tbl)
 	e.queryEmit(t, lower, tbl)
 	e.countEmit(t, lower, tbl)
@@ -216,40 +220,22 @@ func (e *dynEmitter) tableEmit(t *tableModel) {
 	e.updateWhereEmit(t, lower, tbl)
 }
 
-// handleType renders the rt handle type of one column, without the
-// package qualifier: nullable columns get NullColumn's explicit NULL
-// operators, everything else the plain Column.
-func handleType(t *tableModel, f *fieldPlan) string {
-	kind := "Column"
-	if f.nullable {
-		kind = "NullColumn"
-	}
-	return fmt.Sprintf("%s[%s, %s]", kind, t.model, f.baseType)
-}
-
-func (e *dynEmitter) colsEmit(t *tableModel, lower, tbl string) {
+func (e *dynEmitter) handlesEmit(t *tableModel, lower, tbl string) {
 	b := &e.body
-	fmt.Fprintf(b, "// %sColumns is the type of %sCols; see there.\n", lower, t.model)
-	fmt.Fprintf(b, "type %sColumns struct {\n", lower)
-	for _, f := range t.fields {
-		fmt.Fprintf(b, "\t%s rt.%s\n", f.goField, handleType(t, f))
-	}
-	b.WriteString("}\n\n")
-
-	fmt.Fprintf(b, "// %sCols holds the typed column handles of %s (D29): inert\n", t.model, t.model)
-	fmt.Fprintf(b, "// predicate, order and assignment builders for the dynamic query\n")
-	fmt.Fprintf(b, "// layer (D28). A predicate built here can only enter %s queries;\n", t.model)
-	fmt.Fprintf(b, "// mixing models is a compile error.\n")
-	fmt.Fprintf(b, "var %sCols = %sColumns{\n", t.model, lower)
+	fmt.Fprintf(b, "// Typed column handles of %s (D29): inert predicate, order and\n", t.model)
+	fmt.Fprintf(b, "// assignment builders for the dynamic query layer (D28). A predicate\n")
+	fmt.Fprintf(b, "// built here can only enter %s queries; mixing models is a compile\n", t.model)
+	fmt.Fprintf(b, "// error.\n")
+	b.WriteString("var (\n")
 	for _, f := range t.fields {
 		if f.nullable {
-			fmt.Fprintf(b, "\t%s: rt.NullColumn[%s, %s]{Column: rt.Column[%s, %s]{Name: %q}},\n",
-				f.goField, t.model, f.baseType, t.model, f.baseType, f.colName)
+			fmt.Fprintf(b, "\t%s%s = rt.NullColumn[%s, %s]{Column: rt.Column[%s, %s]{Name: %q}}\n",
+				t.model, f.goField, t.model, f.baseType, t.model, f.baseType, f.colName)
 			continue
 		}
-		fmt.Fprintf(b, "\t%s: rt.Column[%s, %s]{Name: %q},\n", f.goField, t.model, f.baseType, f.colName)
+		fmt.Fprintf(b, "\t%s%s = rt.Column[%s, %s]{Name: %q}\n", t.model, f.goField, t.model, f.baseType, f.colName)
 	}
-	b.WriteString("}\n\n")
+	b.WriteString(")\n\n")
 }
 
 func (e *dynEmitter) wrappersEmit(t *tableModel, tbl string) {
@@ -261,13 +247,13 @@ func (e *dynEmitter) wrappersEmit(t *tableModel, tbl string) {
 	fmt.Fprintf(b, "func %sOffset(n int) rt.Opt[%s] { return rt.Offset[%s](n) }\n\n", m, m, m)
 	fmt.Fprintf(b, "// %sDistinct deduplicates the rows %sQuery returns.\n", m, m)
 	fmt.Fprintf(b, "func %sDistinct() rt.Opt[%s] { return rt.Distinct[%s]() }\n\n", m, m, m)
-	fmt.Fprintf(b, "// %sOrderBy sorts %sQuery's rows: %sOrderBy(%sCols.X.Asc(), %sCols.Y.Desc()).\n", m, m, m, m, m)
+	fmt.Fprintf(b, "// %sOrderBy sorts %sQuery's rows by Asc/Desc terms built on the\n// %s column handles.\n", m, m, m)
 	fmt.Fprintf(b, "func %sOrderBy(terms ...rt.Order[%s]) rt.Opt[%s] { return rt.OrderBy(terms...) }\n\n", m, m, m)
 	fmt.Fprintf(b, "// %sAfter resumes strictly after the row with the given key — keyset\n", m)
 	fmt.Fprintf(b, "// pagination (D34): one value per %sOrderBy term, in the same order.\n", m)
 	fmt.Fprintf(b, "func %sAfter(key ...any) rt.Opt[%s] { return rt.After[%s](key...) }\n\n", m, m, m)
-	fmt.Fprintf(b, "// %sSet collects the typed assignments of a %sUpdateWhere:\n", m, m)
-	fmt.Fprintf(b, "// %sSet(%sCols.X.Set(v), %sCols.Y.SetNull()).\n", m, m, m)
+	fmt.Fprintf(b, "// %sSet collects the typed assignments of a %sUpdateWhere, built\n", m, m)
+	fmt.Fprintf(b, "// with Set/SetNull on the %s column handles.\n", m)
 	fmt.Fprintf(b, "func %sSet(assigns ...rt.Assign[%s]) []rt.Assign[%s] { return assigns }\n\n", m, m, m)
 }
 

@@ -5,12 +5,12 @@
 // Shared enumerations
 package models
 
-// Currency is the currency enum.
-type Currency string
+// ECurrency is the currency enum.
+type ECurrency string
 
 const (
-	CurrencyEur Currency = "eur"
-	CurrencyUsd Currency = "usd"
+	ECurrencyEur ECurrency = "eur"
+	ECurrencyUsd ECurrency = "usd"
 	// Polish złoty
-	CurrencyPln Currency = "pln"
+	ECurrencyPln ECurrency = "pln"
 )

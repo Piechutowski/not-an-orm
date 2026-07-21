@@ -6,7 +6,7 @@ Generates three sibling files from a checked (E)DBML file:
 |---|---|
 | `nao_models.go` | one struct per table, one string-typed enum per DBML enum, `db`/`json` tags ([gen.go](gen.go)) |
 | `nao_queries.go` | the fixed-shape CRUD surface: `UserGet`, `UserGetMany`, `UserGetBy*`, `UserList`, `UserCreate`, `UserUpdate`, `UserDelete` over a `Queries` handle ([queries.go](queries.go), D15-D17) |
-| `nao_dyn.go` | the dynamic query layer: typed column handles (`UserCols.Email`), option wrappers (`UserLimit`, `UserOrderBy`, ...), predicate-driven verbs (`UserQuery`, `UserCount`, `UserExists`, `UserDeleteWhere`, `UserUpdateWhere`) ([dyn.go](dyn.go), D28-D34) |
+| `nao_dyn.go` | the dynamic query layer: typed column handles (`UserEmail`), option wrappers (`UserLimit`, `UserOrderBy`, ...), predicate-driven verbs (`UserQuery`, `UserCount`, `UserExists`, `UserDeleteWhere`, `UserUpdateWhere`) ([dyn.go](dyn.go), D28-D34) |
 
 ```sh
 nao gen go --out ./models --package models schema.edbml

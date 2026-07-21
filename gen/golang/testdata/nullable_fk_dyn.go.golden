@@ -20,18 +20,13 @@ const (
 	userColumnsSQL = `"id"`
 )
 
-// userColumns is the type of UserCols; see there.
-type userColumns struct {
-	ID rt.Column[User, int64]
-}
-
-// UserCols holds the typed column handles of User (D29): inert
-// predicate, order and assignment builders for the dynamic query
-// layer (D28). A predicate built here can only enter User queries;
-// mixing models is a compile error.
-var UserCols = userColumns{
-	ID: rt.Column[User, int64]{Name: "id"},
-}
+// Typed column handles of User (D29): inert predicate, order and
+// assignment builders for the dynamic query layer (D28). A predicate
+// built here can only enter User queries; mixing models is a compile
+// error.
+var (
+	UserID = rt.Column[User, int64]{Name: "id"}
+)
 
 // UserLimit caps how many rows UserQuery returns (D30).
 func UserLimit(n int) rt.Opt[User] { return rt.Limit[User](n) }
@@ -42,15 +37,16 @@ func UserOffset(n int) rt.Opt[User] { return rt.Offset[User](n) }
 // UserDistinct deduplicates the rows UserQuery returns.
 func UserDistinct() rt.Opt[User] { return rt.Distinct[User]() }
 
-// UserOrderBy sorts UserQuery's rows: UserOrderBy(UserCols.X.Asc(), UserCols.Y.Desc()).
+// UserOrderBy sorts UserQuery's rows by Asc/Desc terms built on the
+// User column handles.
 func UserOrderBy(terms ...rt.Order[User]) rt.Opt[User] { return rt.OrderBy(terms...) }
 
 // UserAfter resumes strictly after the row with the given key — keyset
 // pagination (D34): one value per UserOrderBy term, in the same order.
 func UserAfter(key ...any) rt.Opt[User] { return rt.After[User](key...) }
 
-// UserSet collects the typed assignments of a UserUpdateWhere:
-// UserSet(UserCols.X.Set(v), UserCols.Y.SetNull()).
+// UserSet collects the typed assignments of a UserUpdateWhere, built
+// with Set/SetNull on the User column handles.
 func UserSet(assigns ...rt.Assign[User]) []rt.Assign[User] { return assigns }
 
 // UserQuery returns the users rows matching every given predicate,
@@ -142,28 +138,18 @@ const (
 	postColumnsSQL = `"id", "author_id", "editor_id", "reviewed_at", "meta", "raw"`
 )
 
-// postColumns is the type of PostCols; see there.
-type postColumns struct {
-	ID         rt.Column[Post, int64]
-	AuthorID   rt.Column[Post, int64]
-	EditorID   rt.NullColumn[Post, int64]
-	ReviewedAt rt.NullColumn[Post, time.Time]
-	Meta       rt.NullColumn[Post, json.RawMessage]
-	Raw        rt.NullColumn[Post, []byte]
-}
-
-// PostCols holds the typed column handles of Post (D29): inert
-// predicate, order and assignment builders for the dynamic query
-// layer (D28). A predicate built here can only enter Post queries;
-// mixing models is a compile error.
-var PostCols = postColumns{
-	ID:         rt.Column[Post, int64]{Name: "id"},
-	AuthorID:   rt.Column[Post, int64]{Name: "author_id"},
-	EditorID:   rt.NullColumn[Post, int64]{Column: rt.Column[Post, int64]{Name: "editor_id"}},
-	ReviewedAt: rt.NullColumn[Post, time.Time]{Column: rt.Column[Post, time.Time]{Name: "reviewed_at"}},
-	Meta:       rt.NullColumn[Post, json.RawMessage]{Column: rt.Column[Post, json.RawMessage]{Name: "meta"}},
-	Raw:        rt.NullColumn[Post, []byte]{Column: rt.Column[Post, []byte]{Name: "raw"}},
-}
+// Typed column handles of Post (D29): inert predicate, order and
+// assignment builders for the dynamic query layer (D28). A predicate
+// built here can only enter Post queries; mixing models is a compile
+// error.
+var (
+	PostID         = rt.Column[Post, int64]{Name: "id"}
+	PostAuthorID   = rt.Column[Post, int64]{Name: "author_id"}
+	PostEditorID   = rt.NullColumn[Post, int64]{Column: rt.Column[Post, int64]{Name: "editor_id"}}
+	PostReviewedAt = rt.NullColumn[Post, time.Time]{Column: rt.Column[Post, time.Time]{Name: "reviewed_at"}}
+	PostMeta       = rt.NullColumn[Post, json.RawMessage]{Column: rt.Column[Post, json.RawMessage]{Name: "meta"}}
+	PostRaw        = rt.NullColumn[Post, []byte]{Column: rt.Column[Post, []byte]{Name: "raw"}}
+)
 
 // PostLimit caps how many rows PostQuery returns (D30).
 func PostLimit(n int) rt.Opt[Post] { return rt.Limit[Post](n) }
@@ -174,15 +160,16 @@ func PostOffset(n int) rt.Opt[Post] { return rt.Offset[Post](n) }
 // PostDistinct deduplicates the rows PostQuery returns.
 func PostDistinct() rt.Opt[Post] { return rt.Distinct[Post]() }
 
-// PostOrderBy sorts PostQuery's rows: PostOrderBy(PostCols.X.Asc(), PostCols.Y.Desc()).
+// PostOrderBy sorts PostQuery's rows by Asc/Desc terms built on the
+// Post column handles.
 func PostOrderBy(terms ...rt.Order[Post]) rt.Opt[Post] { return rt.OrderBy(terms...) }
 
 // PostAfter resumes strictly after the row with the given key — keyset
 // pagination (D34): one value per PostOrderBy term, in the same order.
 func PostAfter(key ...any) rt.Opt[Post] { return rt.After[Post](key...) }
 
-// PostSet collects the typed assignments of a PostUpdateWhere:
-// PostSet(PostCols.X.Set(v), PostCols.Y.SetNull()).
+// PostSet collects the typed assignments of a PostUpdateWhere, built
+// with Set/SetNull on the Post column handles.
 func PostSet(assigns ...rt.Assign[Post]) []rt.Assign[Post] { return assigns }
 
 // PostQuery returns the posts rows matching every given predicate,

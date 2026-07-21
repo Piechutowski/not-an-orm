@@ -52,25 +52,25 @@ func TestUserQueryPredicates(t *testing.T) {
 		opts []rt.Opt[User]
 		want []string // expected emails, in id order
 	}{
-		{"eq", []rt.Opt[User]{UserCols.Email.Eq("ann@example.com")}, []string{"ann@example.com"}},
-		{"like", []rt.Opt[User]{UserCols.Email.Like("b%")}, []string{"bea@example.com", "bob@example.com"}},
-		{"isnull", []rt.Opt[User]{UserCols.Bio.IsNull()}, []string{"bea@example.com", "bob@example.com"}},
-		{"isnotnull", []rt.Opt[User]{UserCols.Bio.IsNotNull()}, []string{"ann@example.com"}},
-		{"in", []rt.Opt[User]{UserCols.ID.In(ann.ID, bob.ID)}, []string{"ann@example.com", "bob@example.com"}},
-		{"in empty", []rt.Opt[User]{UserCols.ID.In()}, nil},
-		{"notin", []rt.Opt[User]{UserCols.ID.NotIn(bea.ID)}, []string{"ann@example.com", "bob@example.com"}},
-		{"gt", []rt.Opt[User]{UserCols.ID.Gt(ann.ID)}, []string{"bea@example.com", "bob@example.com"}},
+		{"eq", []rt.Opt[User]{UserEmail.Eq("ann@example.com")}, []string{"ann@example.com"}},
+		{"like", []rt.Opt[User]{UserEmail.Like("b%")}, []string{"bea@example.com", "bob@example.com"}},
+		{"isnull", []rt.Opt[User]{UserBio.IsNull()}, []string{"bea@example.com", "bob@example.com"}},
+		{"isnotnull", []rt.Opt[User]{UserBio.IsNotNull()}, []string{"ann@example.com"}},
+		{"in", []rt.Opt[User]{UserID.In(ann.ID, bob.ID)}, []string{"ann@example.com", "bob@example.com"}},
+		{"in empty", []rt.Opt[User]{UserID.In()}, nil},
+		{"notin", []rt.Opt[User]{UserID.NotIn(bea.ID)}, []string{"ann@example.com", "bob@example.com"}},
+		{"gt", []rt.Opt[User]{UserID.Gt(ann.ID)}, []string{"bea@example.com", "bob@example.com"}},
 		{
 			"two opts join with and",
-			[]rt.Opt[User]{UserCols.Name.Eq("Bo"), UserCols.Bio.IsNull()},
+			[]rt.Opt[User]{UserName.Eq("Bo"), UserBio.IsNull()},
 			[]string{"bea@example.com", "bob@example.com"},
 		},
 		{
 			"or with not",
-			[]rt.Opt[User]{rt.Or(UserCols.Email.Eq("ann@example.com"), rt.Not(UserCols.Name.Eq("Bo")))},
+			[]rt.Opt[User]{rt.Or(UserEmail.Eq("ann@example.com"), rt.Not(UserName.Eq("Bo")))},
 			[]string{"ann@example.com"},
 		},
-		{"eqcol no match", []rt.Opt[User]{UserCols.Email.EqCol(UserCols.Name)}, nil},
+		{"eqcol no match", []rt.Opt[User]{UserEmail.EqCol(UserName)}, nil},
 		{"raw", []rt.Opt[User]{rt.Raw[User]("length(\"name\") = ?", 2)}, []string{"bea@example.com", "bob@example.com"}},
 		{"empty pred means all", []rt.Opt[User]{rt.Pred[User]{}}, []string{"ann@example.com", "bea@example.com", "bob@example.com"}},
 	}
@@ -104,7 +104,7 @@ func TestUserQueryShaping(t *testing.T) {
 	_, q := newDB(t)
 	dynSeed(t, q)
 
-	got, err := q.UserQuery(ctx, UserOrderBy(UserCols.Email.Desc()), UserLimit(2))
+	got, err := q.UserQuery(ctx, UserOrderBy(UserEmail.Desc()), UserLimit(2))
 	if err != nil {
 		t.Fatalf("UserQuery: %v", err)
 	}
@@ -112,7 +112,7 @@ func TestUserQueryShaping(t *testing.T) {
 		t.Errorf("desc+limit = %v, want %v", emails(got), want)
 	}
 
-	got, err = q.UserQuery(ctx, UserOrderBy(UserCols.Email.Asc()), UserLimit(2), UserOffset(2))
+	got, err = q.UserQuery(ctx, UserOrderBy(UserEmail.Asc()), UserLimit(2), UserOffset(2))
 	if err != nil {
 		t.Fatalf("UserQuery: %v", err)
 	}
@@ -132,7 +132,7 @@ func TestUserQueryKeyset(t *testing.T) {
 
 	var walked []string
 	var opts []rt.Opt[User]
-	base := []rt.Opt[User]{UserOrderBy(UserCols.Name.Asc(), UserCols.ID.Desc()), UserLimit(1)}
+	base := []rt.Opt[User]{UserOrderBy(UserName.Asc(), UserID.Desc()), UserLimit(1)}
 	opts = base
 	for i := 0; i < 10; i++ {
 		page, err := q.UserQuery(ctx, opts...)
@@ -165,13 +165,13 @@ func TestUserCountExists(t *testing.T) {
 	if n, err := q.UserCount(ctx); err != nil || n != 3 {
 		t.Errorf("bare UserCount = %d, %v; want 3", n, err)
 	}
-	if n, err := q.UserCount(ctx, UserCols.Name.Eq("Bo")); err != nil || n != 2 {
+	if n, err := q.UserCount(ctx, UserName.Eq("Bo")); err != nil || n != 2 {
 		t.Errorf("filtered UserCount = %d, %v; want 2", n, err)
 	}
-	if ok, err := q.UserExists(ctx, UserCols.Bio.IsNotNull()); err != nil || !ok {
+	if ok, err := q.UserExists(ctx, UserBio.IsNotNull()); err != nil || !ok {
 		t.Errorf("UserExists(bio set) = %v, %v; want true", ok, err)
 	}
-	if ok, err := q.UserExists(ctx, UserCols.Email.Eq("nobody@example.com")); err != nil || ok {
+	if ok, err := q.UserExists(ctx, UserEmail.Eq("nobody@example.com")); err != nil || ok {
 		t.Errorf("UserExists(missing) = %v, %v; want false", ok, err)
 	}
 }
@@ -182,7 +182,7 @@ func TestUserUpdateWhere(t *testing.T) {
 	ann, _, _ := dynSeed(t, q)
 
 	// partial update: only bio moves, everything else stays
-	n, err := q.UserUpdateWhere(ctx, UserSet(UserCols.Bio.Set("beekeeper")), UserCols.ID.Eq(ann.ID))
+	n, err := q.UserUpdateWhere(ctx, UserSet(UserBio.Set("beekeeper")), UserID.Eq(ann.ID))
 	if err != nil || n != 1 {
 		t.Fatalf("UserUpdateWhere = %d, %v; want 1 row", n, err)
 	}
@@ -192,7 +192,7 @@ func TestUserUpdateWhere(t *testing.T) {
 	}
 
 	// SetNull is the explicit way back to NULL
-	if n, err := q.UserUpdateWhere(ctx, UserSet(UserCols.Bio.SetNull()), UserCols.ID.Eq(ann.ID)); err != nil || n != 1 {
+	if n, err := q.UserUpdateWhere(ctx, UserSet(UserBio.SetNull()), UserID.Eq(ann.ID)); err != nil || n != 1 {
 		t.Fatalf("SetNull = %d, %v", n, err)
 	}
 	if got, _ := q.UserGet(ctx, ann.ID); got.Bio.Valid {
@@ -200,16 +200,16 @@ func TestUserUpdateWhere(t *testing.T) {
 	}
 
 	// predicates that match nothing affect nothing, without error
-	if n, err := q.UserUpdateWhere(ctx, UserSet(UserCols.Name.Set("x")), UserCols.ID.Eq(99)); err != nil || n != 0 {
+	if n, err := q.UserUpdateWhere(ctx, UserSet(UserName.Set("x")), UserID.Eq(99)); err != nil || n != 0 {
 		t.Errorf("miss = %d, %v; want 0, nil", n, err)
 	}
 
 	// the whole-table guard (D42)
-	if _, err := q.UserUpdateWhere(ctx, UserSet(UserCols.Name.Set("x"))); err == nil {
+	if _, err := q.UserUpdateWhere(ctx, UserSet(UserName.Set("x"))); err == nil {
 		t.Error("UserUpdateWhere without predicate: want error")
 	}
 	// ... and the explicit way to mean it
-	if n, err := q.UserUpdateWhere(ctx, UserSet(UserCols.Name.Set("Everyone")), rt.Raw[User]("1 = 1")); err != nil || n != 3 {
+	if n, err := q.UserUpdateWhere(ctx, UserSet(UserName.Set("Everyone")), rt.Raw[User]("1 = 1")); err != nil || n != 3 {
 		t.Errorf("explicit all-rows update = %d, %v; want 3", n, err)
 	}
 }
@@ -222,7 +222,7 @@ func TestUserDeleteWhere(t *testing.T) {
 	if _, err := q.UserDeleteWhere(ctx); err == nil {
 		t.Error("UserDeleteWhere without predicate: want error")
 	}
-	n, err := q.UserDeleteWhere(ctx, UserCols.Name.Eq("Bo"))
+	n, err := q.UserDeleteWhere(ctx, UserName.Eq("Bo"))
 	if err != nil || n != 2 {
 		t.Fatalf("UserDeleteWhere = %d, %v; want 2", n, err)
 	}
@@ -249,17 +249,17 @@ func TestOrderDynamic(t *testing.T) {
 	}
 
 	// both got the database default status (D16); the enum handle is typed
-	if n, err := q.OrderCount(ctx, OrderCols.Status.Eq(OrderStatusPending)); err != nil || n != 2 {
+	if n, err := q.OrderCount(ctx, OrderStatus.Eq(EOrderStatusPending)); err != nil || n != 2 {
 		t.Errorf("pending count = %d, %v; want 2", n, err)
 	}
-	if n, err := q.OrderUpdateWhere(ctx, OrderSet(OrderCols.Status.Set(OrderStatusShipped)), OrderCols.ID.Eq(placed.ID)); err != nil || n != 1 {
+	if n, err := q.OrderUpdateWhere(ctx, OrderSet(OrderStatus.Set(EOrderStatusShipped)), OrderID.Eq(placed.ID)); err != nil || n != 1 {
 		t.Fatalf("ship = %d, %v", n, err)
 	}
-	shipped, err := q.OrderQuery(ctx, OrderCols.Status.Eq(OrderStatusShipped))
+	shipped, err := q.OrderQuery(ctx, OrderStatus.Eq(EOrderStatusShipped))
 	if err != nil || len(shipped) != 1 || shipped[0].ID != placed.ID {
 		t.Errorf("shipped = %+v, %v; want just order %d", shipped, err, placed.ID)
 	}
-	if never, err := q.OrderQuery(ctx, OrderCols.PlacedAt.IsNull()); err != nil || len(never) != 1 || never[0].ID != unplaced.ID {
+	if never, err := q.OrderQuery(ctx, OrderPlacedAt.IsNull()); err != nil || len(never) != 1 || never[0].ID != unplaced.ID {
 		t.Errorf("unplaced = %+v, %v; want just order %d", never, err, unplaced.ID)
 	}
 }
@@ -276,14 +276,14 @@ func TestDynStmtCache(t *testing.T) {
 	qc := New(db).WithCache(cache)
 
 	for _, name := range []string{"Ann", "Bo", "Nobody"} {
-		if _, err := qc.UserQuery(ctx, UserCols.Name.Eq(name), UserLimit(5)); err != nil {
+		if _, err := qc.UserQuery(ctx, UserName.Eq(name), UserLimit(5)); err != nil {
 			t.Fatalf("cached query (%s): %v", name, err)
 		}
 	}
 	if n := cache.Len(); n != 1 {
 		t.Errorf("cache holds %d statements after 3 same-shape queries; want 1 — values must ride as parameters", n)
 	}
-	if _, err := qc.UserQuery(ctx, UserCols.Name.Eq("Ann"), UserCols.Bio.IsNull(), UserLimit(5)); err != nil {
+	if _, err := qc.UserQuery(ctx, UserName.Eq("Ann"), UserBio.IsNull(), UserLimit(5)); err != nil {
 		t.Fatal(err)
 	}
 	if n := cache.Len(); n != 2 {
@@ -304,7 +304,7 @@ func TestDynInTx(t *testing.T) {
 
 	failed := errTxAbort
 	err := q.Tx(ctx, func(qt *Queries) error {
-		if n, err := qt.UserDeleteWhere(ctx, UserCols.Name.Eq("Bo")); err != nil || n != 2 {
+		if n, err := qt.UserDeleteWhere(ctx, UserName.Eq("Bo")); err != nil || n != 2 {
 			t.Errorf("in-tx delete = %d, %v; want 2", n, err)
 		}
 		return failed
@@ -317,7 +317,7 @@ func TestDynInTx(t *testing.T) {
 	}
 
 	if err := q.Tx(ctx, func(qt *Queries) error {
-		_, err := qt.UserDeleteWhere(ctx, UserCols.Name.Eq("Bo"))
+		_, err := qt.UserDeleteWhere(ctx, UserName.Eq("Bo"))
 		return err
 	}); err != nil {
 		t.Fatalf("committing tx: %v", err)

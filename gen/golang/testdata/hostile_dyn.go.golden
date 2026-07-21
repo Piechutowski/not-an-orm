@@ -19,18 +19,13 @@ const (
 	userColumnsSQL = `"id"`
 )
 
-// userColumns is the type of UserCols; see there.
-type userColumns struct {
-	ID rt.Column[User, int64]
-}
-
-// UserCols holds the typed column handles of User (D29): inert
-// predicate, order and assignment builders for the dynamic query
-// layer (D28). A predicate built here can only enter User queries;
-// mixing models is a compile error.
-var UserCols = userColumns{
-	ID: rt.Column[User, int64]{Name: "id"},
-}
+// Typed column handles of User (D29): inert predicate, order and
+// assignment builders for the dynamic query layer (D28). A predicate
+// built here can only enter User queries; mixing models is a compile
+// error.
+var (
+	UserID = rt.Column[User, int64]{Name: "id"}
+)
 
 // UserLimit caps how many rows UserQuery returns (D30).
 func UserLimit(n int) rt.Opt[User] { return rt.Limit[User](n) }
@@ -41,15 +36,16 @@ func UserOffset(n int) rt.Opt[User] { return rt.Offset[User](n) }
 // UserDistinct deduplicates the rows UserQuery returns.
 func UserDistinct() rt.Opt[User] { return rt.Distinct[User]() }
 
-// UserOrderBy sorts UserQuery's rows: UserOrderBy(UserCols.X.Asc(), UserCols.Y.Desc()).
+// UserOrderBy sorts UserQuery's rows by Asc/Desc terms built on the
+// User column handles.
 func UserOrderBy(terms ...rt.Order[User]) rt.Opt[User] { return rt.OrderBy(terms...) }
 
 // UserAfter resumes strictly after the row with the given key — keyset
 // pagination (D34): one value per UserOrderBy term, in the same order.
 func UserAfter(key ...any) rt.Opt[User] { return rt.After[User](key...) }
 
-// UserSet collects the typed assignments of a UserUpdateWhere:
-// UserSet(UserCols.X.Set(v), UserCols.Y.SetNull()).
+// UserSet collects the typed assignments of a UserUpdateWhere, built
+// with Set/SetNull on the User column handles.
 func UserSet(assigns ...rt.Assign[User]) []rt.Assign[User] { return assigns }
 
 // UserQuery returns the users rows matching every given predicate,
@@ -141,36 +137,22 @@ const (
 	coreUserColumnsSQL = `"id", "api_key", "homepage_url", "http_status", "full name", "precision_value", "balance", "kind", "type", "func"`
 )
 
-// coreUserColumns is the type of CoreUserCols; see there.
-type coreUserColumns struct {
-	ID             rt.Column[CoreUser, uint64]
-	APIKey         rt.Column[CoreUser, string]
-	HomepageURL    rt.NullColumn[CoreUser, string]
-	HTTPStatus     rt.NullColumn[CoreUser, int32]
-	FullName       rt.Column[CoreUser, string]
-	PrecisionValue rt.NullColumn[CoreUser, float64]
-	Balance        rt.NullColumn[CoreUser, string]
-	Kind           rt.Column[CoreUser, CoreAuditKind]
-	Type           rt.NullColumn[CoreUser, string]
-	Func           rt.NullColumn[CoreUser, int32]
-}
-
-// CoreUserCols holds the typed column handles of CoreUser (D29): inert
-// predicate, order and assignment builders for the dynamic query
-// layer (D28). A predicate built here can only enter CoreUser queries;
-// mixing models is a compile error.
-var CoreUserCols = coreUserColumns{
-	ID:             rt.Column[CoreUser, uint64]{Name: "id"},
-	APIKey:         rt.Column[CoreUser, string]{Name: "api_key"},
-	HomepageURL:    rt.NullColumn[CoreUser, string]{Column: rt.Column[CoreUser, string]{Name: "homepage_url"}},
-	HTTPStatus:     rt.NullColumn[CoreUser, int32]{Column: rt.Column[CoreUser, int32]{Name: "http_status"}},
-	FullName:       rt.Column[CoreUser, string]{Name: "full name"},
-	PrecisionValue: rt.NullColumn[CoreUser, float64]{Column: rt.Column[CoreUser, float64]{Name: "precision_value"}},
-	Balance:        rt.NullColumn[CoreUser, string]{Column: rt.Column[CoreUser, string]{Name: "balance"}},
-	Kind:           rt.Column[CoreUser, CoreAuditKind]{Name: "kind"},
-	Type:           rt.NullColumn[CoreUser, string]{Column: rt.Column[CoreUser, string]{Name: "type"}},
-	Func:           rt.NullColumn[CoreUser, int32]{Column: rt.Column[CoreUser, int32]{Name: "func"}},
-}
+// Typed column handles of CoreUser (D29): inert predicate, order and
+// assignment builders for the dynamic query layer (D28). A predicate
+// built here can only enter CoreUser queries; mixing models is a compile
+// error.
+var (
+	CoreUserID             = rt.Column[CoreUser, uint64]{Name: "id"}
+	CoreUserAPIKey         = rt.Column[CoreUser, string]{Name: "api_key"}
+	CoreUserHomepageURL    = rt.NullColumn[CoreUser, string]{Column: rt.Column[CoreUser, string]{Name: "homepage_url"}}
+	CoreUserHTTPStatus     = rt.NullColumn[CoreUser, int32]{Column: rt.Column[CoreUser, int32]{Name: "http_status"}}
+	CoreUserFullName       = rt.Column[CoreUser, string]{Name: "full name"}
+	CoreUserPrecisionValue = rt.NullColumn[CoreUser, float64]{Column: rt.Column[CoreUser, float64]{Name: "precision_value"}}
+	CoreUserBalance        = rt.NullColumn[CoreUser, string]{Column: rt.Column[CoreUser, string]{Name: "balance"}}
+	CoreUserKind           = rt.Column[CoreUser, ECoreAuditKind]{Name: "kind"}
+	CoreUserType           = rt.NullColumn[CoreUser, string]{Column: rt.Column[CoreUser, string]{Name: "type"}}
+	CoreUserFunc           = rt.NullColumn[CoreUser, int32]{Column: rt.Column[CoreUser, int32]{Name: "func"}}
+)
 
 // CoreUserLimit caps how many rows CoreUserQuery returns (D30).
 func CoreUserLimit(n int) rt.Opt[CoreUser] { return rt.Limit[CoreUser](n) }
@@ -181,15 +163,16 @@ func CoreUserOffset(n int) rt.Opt[CoreUser] { return rt.Offset[CoreUser](n) }
 // CoreUserDistinct deduplicates the rows CoreUserQuery returns.
 func CoreUserDistinct() rt.Opt[CoreUser] { return rt.Distinct[CoreUser]() }
 
-// CoreUserOrderBy sorts CoreUserQuery's rows: CoreUserOrderBy(CoreUserCols.X.Asc(), CoreUserCols.Y.Desc()).
+// CoreUserOrderBy sorts CoreUserQuery's rows by Asc/Desc terms built on the
+// CoreUser column handles.
 func CoreUserOrderBy(terms ...rt.Order[CoreUser]) rt.Opt[CoreUser] { return rt.OrderBy(terms...) }
 
 // CoreUserAfter resumes strictly after the row with the given key — keyset
 // pagination (D34): one value per CoreUserOrderBy term, in the same order.
 func CoreUserAfter(key ...any) rt.Opt[CoreUser] { return rt.After[CoreUser](key...) }
 
-// CoreUserSet collects the typed assignments of a CoreUserUpdateWhere:
-// CoreUserSet(CoreUserCols.X.Set(v), CoreUserCols.Y.SetNull()).
+// CoreUserSet collects the typed assignments of a CoreUserUpdateWhere, built
+// with Set/SetNull on the CoreUser column handles.
 func CoreUserSet(assigns ...rt.Assign[CoreUser]) []rt.Assign[CoreUser] { return assigns }
 
 // CoreUserQuery returns the core.users rows matching every given predicate,
@@ -281,22 +264,15 @@ const (
 	x2faCodeColumnsSQL = `"code", "user_id", "expires_at"`
 )
 
-// x2faCodeColumns is the type of X2faCodeCols; see there.
-type x2faCodeColumns struct {
-	Code      rt.Column[X2faCode, string]
-	UserID    rt.Column[X2faCode, int64]
-	ExpiresAt rt.Column[X2faCode, time.Time]
-}
-
-// X2faCodeCols holds the typed column handles of X2faCode (D29): inert
-// predicate, order and assignment builders for the dynamic query
-// layer (D28). A predicate built here can only enter X2faCode queries;
-// mixing models is a compile error.
-var X2faCodeCols = x2faCodeColumns{
-	Code:      rt.Column[X2faCode, string]{Name: "code"},
-	UserID:    rt.Column[X2faCode, int64]{Name: "user_id"},
-	ExpiresAt: rt.Column[X2faCode, time.Time]{Name: "expires_at"},
-}
+// Typed column handles of X2faCode (D29): inert predicate, order and
+// assignment builders for the dynamic query layer (D28). A predicate
+// built here can only enter X2faCode queries; mixing models is a compile
+// error.
+var (
+	X2faCodeCode      = rt.Column[X2faCode, string]{Name: "code"}
+	X2faCodeUserID    = rt.Column[X2faCode, int64]{Name: "user_id"}
+	X2faCodeExpiresAt = rt.Column[X2faCode, time.Time]{Name: "expires_at"}
+)
 
 // X2faCodeLimit caps how many rows X2faCodeQuery returns (D30).
 func X2faCodeLimit(n int) rt.Opt[X2faCode] { return rt.Limit[X2faCode](n) }
@@ -307,15 +283,16 @@ func X2faCodeOffset(n int) rt.Opt[X2faCode] { return rt.Offset[X2faCode](n) }
 // X2faCodeDistinct deduplicates the rows X2faCodeQuery returns.
 func X2faCodeDistinct() rt.Opt[X2faCode] { return rt.Distinct[X2faCode]() }
 
-// X2faCodeOrderBy sorts X2faCodeQuery's rows: X2faCodeOrderBy(X2faCodeCols.X.Asc(), X2faCodeCols.Y.Desc()).
+// X2faCodeOrderBy sorts X2faCodeQuery's rows by Asc/Desc terms built on the
+// X2faCode column handles.
 func X2faCodeOrderBy(terms ...rt.Order[X2faCode]) rt.Opt[X2faCode] { return rt.OrderBy(terms...) }
 
 // X2faCodeAfter resumes strictly after the row with the given key — keyset
 // pagination (D34): one value per X2faCodeOrderBy term, in the same order.
 func X2faCodeAfter(key ...any) rt.Opt[X2faCode] { return rt.After[X2faCode](key...) }
 
-// X2faCodeSet collects the typed assignments of a X2faCodeUpdateWhere:
-// X2faCodeSet(X2faCodeCols.X.Set(v), X2faCodeCols.Y.SetNull()).
+// X2faCodeSet collects the typed assignments of a X2faCodeUpdateWhere, built
+// with Set/SetNull on the X2faCode column handles.
 func X2faCodeSet(assigns ...rt.Assign[X2faCode]) []rt.Assign[X2faCode] { return assigns }
 
 // X2faCodeQuery returns the 2fa_codes rows matching every given predicate,

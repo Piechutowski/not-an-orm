@@ -115,7 +115,7 @@ const commentCreateSQL = `INSERT INTO "comments" ("commentable_type", "commentab
 // CommentCreateParams are the caller-supplied columns of CommentCreate. The
 // auto-increment key and defaulted columns are the database's job (D16).
 type CommentCreateParams struct {
-	CommentableType CommentableType `db:"commentable_type" json:"commentable_type"`
+	CommentableType ECommentableType `db:"commentable_type" json:"commentable_type"`
 	// ID within the table selected by commentable_type
 	CommentableID int64  `db:"commentable_id" json:"commentable_id"`
 	Body          string `db:"body" json:"body"`
@@ -136,7 +136,7 @@ const commentUpdateSQL = `UPDATE "comments" SET "commentable_type" = :commentabl
 // CommentUpdateParams are the data columns of CommentUpdate: every column
 // outside the primary key.
 type CommentUpdateParams struct {
-	CommentableType CommentableType `db:"commentable_type" json:"commentable_type"`
+	CommentableType ECommentableType `db:"commentable_type" json:"commentable_type"`
 	// ID within the table selected by commentable_type
 	CommentableID int64  `db:"commentable_id" json:"commentable_id"`
 	Body          string `db:"body" json:"body"`

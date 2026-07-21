@@ -117,8 +117,8 @@ const postCreateSQL = `INSERT INTO "posts" ("title", "status", "body", "publishe
 // auto-increment key and defaulted columns are the database's job (D16).
 type PostCreateParams struct {
 	// Shown in lists and in the HTML title tag
-	Title  string     `db:"title" json:"title"`
-	Status PostStatus `db:"status" json:"status"`
+	Title  string      `db:"title" json:"title"`
+	Status EPostStatus `db:"status" json:"status"`
 	// Raw markdown source.
 	// Rendered to HTML at publish time.
 	Body        rt.Null[string]    `db:"body" json:"body"`
@@ -142,8 +142,8 @@ const postUpdateSQL = `UPDATE "posts" SET "title" = :title, "status" = :status, 
 // outside the primary key.
 type PostUpdateParams struct {
 	// Shown in lists and in the HTML title tag
-	Title  string     `db:"title" json:"title"`
-	Status PostStatus `db:"status" json:"status"`
+	Title  string      `db:"title" json:"title"`
+	Status EPostStatus `db:"status" json:"status"`
 	// Raw markdown source.
 	// Rendered to HTML at publish time.
 	Body        rt.Null[string]    `db:"body" json:"body"`

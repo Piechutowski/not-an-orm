@@ -295,23 +295,29 @@ wins; use it whenever the generated name matters.
 
 **What it does.** Reports declarations whose *generated dynamic-query
 names* collide in Go package scope. The dynamic layer (decisions D28-D30)
-mints names by concatenation — `<Model>Cols` for the column-handle set,
-`<Model>Limit`, `<Model>Offset`, `<Model>Distinct`, `<Model>OrderBy`,
-`<Model>After`, `<Model>Set` for the option wrappers — alongside the model
-structs, params structs, enum types and enum constants, so two distinct
-DBML declarations can flatten to one Go identifier: `Table user_limits`
-mints model `UserLimit`, exactly the option wrapper of `Table users`.
+mints flat names by concatenation — `<Model><Field>` for the column
+handles, `<Model>Limit`, `<Model>Offset`, `<Model>Distinct`,
+`<Model>OrderBy`, `<Model>After`, `<Model>Set` for the option wrappers —
+alongside the model structs, params structs, enum types and enum
+constants, so two distinct DBML declarations can flatten to one Go
+identifier: `Table user_limits` mints model `UserLimit`, exactly the
+option wrapper of `Table users`; `users.foo_bar` and `user_foos.bar`
+both mint the handle `UserFooBar`.
 
 **Why.** `nao gen go` refuses such schemas outright (loud failure, never a
 silent rename), but the generator can only name the first collision; this
 rule reports every collision, at the later of the two declarations, with
 both origins spelled out. The name derivation is the generator's own — the
 rule calls into `gen/golang` — so rule and generator cannot drift apart.
+The *common* near-collision is already defused structurally: enum types
+carry an `E` prefix (D11), so the idiomatic `Table orders { status
+order_status }` mints the handle `OrderStatus` and the enum type
+`EOrderStatus` without meeting.
 
-**Examples.** [testdata/dynname.edbml](testdata/dynname.edbml) — plain
-`users` and `orders` coexist fine; `user_limits` (model = users' `UserLimit`
-wrapper), `Enum user_offset` (type = users' `UserOffset` wrapper) and a
-table pinned to `[model: 'UserCols']` (= users' handle set) all warn.
+**Examples.** [testdata/dynname.dbml](testdata/dynname.dbml) — `users`,
+`orders` and the `order_status` enum coexist fine (the `E` prefix at
+work); `user_limits` (model = users' `UserLimit` wrapper), `user_foos.bar`
+and `user_foo_bars` (handle/model = users' `UserFooBar` handle) all warn.
 
 **Limitations.** Per-file, like every rule here. A schema that fails
 generation planning altogether (unusable names, field collisions) reports

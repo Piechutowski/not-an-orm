@@ -272,7 +272,7 @@ const orderUpdateSQL = `UPDATE "orders" SET "user_id" = :user_id, "status" = :st
 // outside the primary key.
 type OrderUpdateParams struct {
 	UserID   int32              `db:"user_id" json:"user_id"`
-	Status   OrderStatus        `db:"status" json:"status"`
+	Status   EOrderStatus       `db:"status" json:"status"`
 	Total    string             `db:"total" json:"total"`
 	PlacedAt rt.Null[time.Time] `db:"placed_at" json:"placed_at"`
 }

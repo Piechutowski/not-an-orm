@@ -30,8 +30,8 @@ import (
 // D29). T is the column's Go value type; operator arguments are T, so a
 // value of the wrong type is a compile error too.
 //
-// Handles are emitted by the generator into per-model sets
-// (UserCols.Email); the operators live here, once (D29).
+// Handles are emitted by the generator as flat per-column vars
+// (UserEmail); the operators live here, once (D29).
 type Column[M, T any] struct {
 	// Name is the SQL column name, unquoted.
 	Name string
@@ -160,7 +160,7 @@ func valsAny[T any](vs []T) []any {
 //
 //	var p rt.Pred[User]
 //	if search != "" {
-//		p = UserCols.Name.Like("%" + search + "%")
+//		p = UserName.Like("%" + search + "%")
 //	}
 //	users, err := q.UserQuery(ctx, p)
 type Pred[M any] struct {

@@ -18,24 +18,16 @@ const (
 	commentColumnsSQL = `"id", "commentable_type", "commentable_id", "body"`
 )
 
-// commentColumns is the type of CommentCols; see there.
-type commentColumns struct {
-	ID              rt.Column[Comment, int64]
-	CommentableType rt.Column[Comment, CommentableType]
-	CommentableID   rt.Column[Comment, int64]
-	Body            rt.Column[Comment, string]
-}
-
-// CommentCols holds the typed column handles of Comment (D29): inert
-// predicate, order and assignment builders for the dynamic query
-// layer (D28). A predicate built here can only enter Comment queries;
-// mixing models is a compile error.
-var CommentCols = commentColumns{
-	ID:              rt.Column[Comment, int64]{Name: "id"},
-	CommentableType: rt.Column[Comment, CommentableType]{Name: "commentable_type"},
-	CommentableID:   rt.Column[Comment, int64]{Name: "commentable_id"},
-	Body:            rt.Column[Comment, string]{Name: "body"},
-}
+// Typed column handles of Comment (D29): inert predicate, order and
+// assignment builders for the dynamic query layer (D28). A predicate
+// built here can only enter Comment queries; mixing models is a compile
+// error.
+var (
+	CommentID              = rt.Column[Comment, int64]{Name: "id"}
+	CommentCommentableType = rt.Column[Comment, ECommentableType]{Name: "commentable_type"}
+	CommentCommentableID   = rt.Column[Comment, int64]{Name: "commentable_id"}
+	CommentBody            = rt.Column[Comment, string]{Name: "body"}
+)
 
 // CommentLimit caps how many rows CommentQuery returns (D30).
 func CommentLimit(n int) rt.Opt[Comment] { return rt.Limit[Comment](n) }
@@ -46,15 +38,16 @@ func CommentOffset(n int) rt.Opt[Comment] { return rt.Offset[Comment](n) }
 // CommentDistinct deduplicates the rows CommentQuery returns.
 func CommentDistinct() rt.Opt[Comment] { return rt.Distinct[Comment]() }
 
-// CommentOrderBy sorts CommentQuery's rows: CommentOrderBy(CommentCols.X.Asc(), CommentCols.Y.Desc()).
+// CommentOrderBy sorts CommentQuery's rows by Asc/Desc terms built on the
+// Comment column handles.
 func CommentOrderBy(terms ...rt.Order[Comment]) rt.Opt[Comment] { return rt.OrderBy(terms...) }
 
 // CommentAfter resumes strictly after the row with the given key — keyset
 // pagination (D34): one value per CommentOrderBy term, in the same order.
 func CommentAfter(key ...any) rt.Opt[Comment] { return rt.After[Comment](key...) }
 
-// CommentSet collects the typed assignments of a CommentUpdateWhere:
-// CommentSet(CommentCols.X.Set(v), CommentCols.Y.SetNull()).
+// CommentSet collects the typed assignments of a CommentUpdateWhere, built
+// with Set/SetNull on the Comment column handles.
 func CommentSet(assigns ...rt.Assign[Comment]) []rt.Assign[Comment] { return assigns }
 
 // CommentQuery returns the comments rows matching every given predicate,
