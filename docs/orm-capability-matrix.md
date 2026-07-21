@@ -47,35 +47,35 @@ Roadmap slices: **v0** CRUD + runtime *(shipped 2026-07-08)* · **v1** declared 
 | `find` (single pk) | `find(1)` | `GEN(v0)` `DONE` | `UserGet` |
 | `find` (multiple pks) | `find([1,2])` | `GEN(v0)` `DONE` | `UserGetMany(ctx, ids) ([]User, error)` — one `IN` query |
 | `find_by` unique column | `find_by(email:)` | `GEN(v0)` `DONE` | `UserGetByEmail(ctx, email)` generated **per unique column** — typed, zero magic |
-| `take`/`first`/`last` | relation methods | `RT(v2)` | `UserQuery(... OrderBy, Limit(1))`; convenience `UserFirst` `LATER` |
+| `take`/`first`/`last` | relation methods | `RT(v2)` `DONE` | `UserQuery(... OrderBy, Limit(1))`; convenience `UserFirst` `LATER` |
 | Dynamic finders (`find_by_email` metaprogrammed) | method_missing | `GEN(v0)` `DONE` | same as `find_by` row above — generated statically instead of conjured |
-| Method chaining / lazy relations | relation composes lazily | `RT(v2)` | options-based builder, assembled explicitly at the call site; nothing lazy |
+| Method chaining / lazy relations | relation composes lazily | `RT(v2)` `DONE` | options-based values, assembled explicitly at the call site; nothing lazy |
 | `find_or_create_by` / `create_or_find_by` | upsert-ish | `GEN(v1)` | `UserUpsert` on SQLite's native `INSERT … ON CONFLICT` — race-free, unlike Rails' select-then-insert |
 | `find_or_initialize_by` | in-memory | `HAND` | trivial two-liner over `UserGetByX` + struct literal |
-| `exists?` / `any?` / `many?` | relation predicates | `RT(v2)` | builder terminals `Exists`, `Count` |
-| Batches (`find_each`, `in_batches`) | cursor batching | `RT(v2)` | keyset pagination (`after last-seen key`), first-class: OFFSET degrades linearly and SQLite is not a small-apps database (D34) |
+| `exists?` / `any?` / `many?` | relation predicates | `RT(v2)` `DONE` | terminals `UserExists`, `UserCount` |
+| Batches (`find_each`, `in_batches`) | cursor batching | `RT(v2)` `DONE` | keyset pagination (`UserAfter(last-seen key)`), first-class: OFFSET degrades linearly and SQLite is not a small-apps database (D34) |
 
 ### Conditions
 
 | Capability | Rails | Verdict | How / why |
 |---|---|---|---|
-| Hash conditions (`where(name:)`) | typed-ish | `RT(v2)` | `UserName.Eq(v)` — generated typed handles over generic `Column[M, T]` (D29) |
-| Array/placeholder conditions | `where("x > ?", v)` | `RT(v2)` | `Raw("x > ?", v)` escape hatch in the builder — explicit, marked, last resort |
+| Hash conditions (`where(name:)`) | typed-ish | `RT(v2)` `DONE` | `UserCols.Name.Eq(v)` — generated typed handles over generic `Column[M, T]` (D29) |
+| Array/placeholder conditions | `where("x > ?", v)` | `RT(v2)` `DONE` | `Raw("x > ?", v)` escape hatch — explicit, marked, last resort |
 | Pure string conditions | discouraged | `NO` | injection surface with no type info; use `Raw` or a `Select` block |
-| NOT / OR / AND | `where.not`, `.or` | `RT(v2)` | `Not(...)`, `Or(...)`, `And(...)` combinators |
-| Range / IN / subset ops | hash sugar | `RT(v2)` | `In`, `Between`, `Gt/Gte/Lt/Lte`, `Like`, `IsNull` per typed handle |
+| NOT / OR / AND | `where.not`, `.or` | `RT(v2)` `DONE` | `Not(...)`, `Or(...)`, `And(...)` combinators |
+| Range / IN / subset ops | hash sugar | `RT(v2)` `DONE` | `In/NotIn`, `Gt/Ge/Lt/Le`, `Like/NotLike`, `IsNull/IsNotNull`, column-to-column `EqCol...` per typed handle (`Between` = `And(Ge, Le)`) |
 | `where.associated` / `where.missing` | EXISTS sugar | `LATER` | `EXISTS` sugar over declared refs; nice-to-have |
 
 ### Shaping
 
 | Capability | Rails | Verdict | How / why |
 |---|---|---|---|
-| Ordering | `order(:created_at)` | `RT(v2)` | `UserCreatedAt.Desc()` |
-| Limit / offset | `limit/offset` | `RT(v2)` | generated `UserLimit(n)`/`UserOffset(n)` (D30); keyset scheduled with v2 (D34) |
+| Ordering | `order(:created_at)` | `RT(v2)` `DONE` | `UserOrderBy(UserCols.CreatedAt.Desc())` |
+| Limit / offset | `limit/offset` | `RT(v2)` `DONE` | generated `UserLimit(n)`/`UserOffset(n)` (D30); keyset `UserAfter` shipped with them (D34) |
 | Select specific fields (projection) | `select(:id, :name)` | `DBML(v1)` | typed projection needs a result type → a named `Select` element generates one. Dynamic projection is `NO` — a half-filled `User` lies about its zero values |
-| Distinct | `distinct` | `RT(v2)` | builder flag |
+| Distinct | `distinct` | `RT(v2)` `DONE` | `UserDistinct()` option |
 | Group / Having / aggregates of groups | `group/having` | `DBML(v1)` | aggregate shapes belong in declared queries where the result struct is generated |
-| Calculations (`count/sum/min/max/average`) | relation terminals | `GEN(v0)` `DONE` count; `RT(v2)` rest | `UserCount` now; typed terminals on the builder later |
+| Calculations (`count/sum/min/max/average`) | relation terminals | `GEN(v0)` `DONE` count (predicate-aware since v2); `RT(v2)` rest | `UserCount(preds...)` now; typed `sum/min/max/avg` terminals later |
 | `explain` | debugging | `LATER` | runtime debug hook logging SQL + `EXPLAIN QUERY PLAN` |
 | Overriding (`unscope/except/rewhere/...`) | un-doing scopes | `NO` | exists only because relations mutate implicitly; my builder composes explicitly, there is nothing to un-do |
 | `none` (null relation) | polymorphic no-op | `NO` | return an empty slice |
@@ -85,10 +85,10 @@ Roadmap slices: **v0** CRUD + runtime *(shipped 2026-07-08)* · **v1** declared 
 
 | Capability | Rails | Verdict | How / why |
 |---|---|---|---|
-| Named scopes | `scope :active, ->{...}` | `DBML(v1)` + `HAND` | reusable queries = named `Select` elements; reusable *predicates* = plain Go values (`var activeUsers = UserStatus.Eq(UserStatusActive)`) composed by hand (D28) |
+| Named scopes | `scope :active, ->{...}` | `DBML(v1)` + `HAND` | reusable queries = named `Select` elements; reusable *predicates* = plain Go values (`var activeUsers = UserCols.Status.Eq(UserStatusActive)`) composed by hand (D28) |
 | Scopes with arguments | lambdas | `DBML(v1)` | declared params: `Select active_users (since timestamp)` |
 | Default scope | implicit filter on every query | `NO` | hidden query mutation — the haunted house. Explicit or nothing (D27) |
-| Merging of scopes | `merge` | `RT(v2)` | predicate values compose with `And`/`Or` |
+| Merging of scopes | `merge` | `RT(v2)` `DONE` | predicate values compose with `And`/`Or` |
 
 ### Locking & concurrency
 
@@ -197,7 +197,7 @@ I generate the first and third; the middle is yours.
 | SQL injection safety | `GEN` all slices | named placeholders (`:email`) everywhere, bound via `sql.Named` (D15); string interpolation never emitted |
 | Query logging / instrumentation | `LATER` | optional runtime hook (`func(sql string, args []any, d time.Duration)`) |
 | `ErrNotFound` semantics | `GEN(v0)` `DONE` | `rt.ErrNotFound` *is* `sql.ErrNoRows` — one sentinel, `errors.Is`-compatible both ways (D36) |
-| Prepared-statement caching | `RT(v2)` | deterministic rendering makes SQL text the cache key (D31) |
+| Prepared-statement caching | `RT(v2)` `DONE` | deterministic rendering makes SQL text the cache key (D31); wired via `Queries.WithCache` |
 | End-user report engine (arbitrary runtime queries) | `LATER` | generated schema *catalog* + quarantined interpreter returning `[]map[string]any` (D33) |
 
 ---

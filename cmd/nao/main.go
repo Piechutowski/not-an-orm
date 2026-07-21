@@ -7,12 +7,14 @@
 //	nao vet [--json] [--enable a,b] [--werror] file.edbml...
 //	                                    syntax + semantics + warnings
 //	nao analyzers                       list vet analyzers
-//	nao gen go     [-i in.edbml] [-o dir] [-p pkg] [-m]  Go models (+CRUD)
+//	nao gen go     [-i in.edbml] [-o dir] [-p pkg] [-m]  Go models
+//	                                    (+CRUD +dynamic queries)
 //	nao gen sqlite [-i in.edbml] [-o dir]                SQLite DDL + seeds
 //	nao lsp                             language server on stdin/stdout
 //
 // gen go -m/--models-only emits just nao_models.go (structs/enums), for
-// sharing the row types across processes without the CRUD layer.
+// sharing the row types across processes without the query layers
+// (nao_queries.go, nao_dyn.go).
 //
 // gen defaults: input ./schema.edbml, output the current directory, Go
 // package "main".
@@ -34,11 +36,11 @@ import (
 
 	"github.com/Piechutowski/not-an-orm/edbml/check"
 	"github.com/Piechutowski/not-an-orm/edbml/diag"
+	"github.com/Piechutowski/not-an-orm/edbml/lsp"
+	"github.com/Piechutowski/not-an-orm/edbml/parser"
+	"github.com/Piechutowski/not-an-orm/edbml/vet"
 	golanggen "github.com/Piechutowski/not-an-orm/gen/golang"
 	sqlitegen "github.com/Piechutowski/not-an-orm/gen/sqlite"
-	"github.com/Piechutowski/not-an-orm/edbml/parser"
-	"github.com/Piechutowski/not-an-orm/edbml/lsp"
-	"github.com/Piechutowski/not-an-orm/edbml/vet"
 )
 
 func main() {
@@ -46,8 +48,8 @@ func main() {
 
 	app := &cli.Command{
 		EnableShellCompletion: true,
-		Name:  "nao",
-		Usage: "not an ORM: parse, check, lint, generate from and serve EDBML schema files",
+		Name:                  "nao",
+		Usage:                 "not an ORM: parse, check, lint, generate from and serve EDBML schema files",
 		Commands: []*cli.Command{
 			{
 				Name:      "parse",
@@ -86,13 +88,13 @@ func main() {
 				Commands: []*cli.Command{
 					{
 						Name:      "go",
-						Usage:     "generate Go model structs and CRUD (nao_models.go, nao_queries.go)",
+						Usage:     "generate Go model structs, CRUD and dynamic queries (nao_models.go, nao_queries.go, nao_dyn.go)",
 						ArgsUsage: "[file.edbml]",
 						Flags: []cli.Flag{
 							&cli.StringFlag{Name: "input", Aliases: []string{"i"}, Usage: "input `file.edbml` (default: ./schema.edbml)"},
 							&cli.StringFlag{Name: "out", Aliases: []string{"o"}, Value: ".", Usage: "output `directory` for the generated .go files"},
 							&cli.StringFlag{Name: "package", Aliases: []string{"p"}, Value: "main", Usage: "package `name`"},
-							&cli.BoolFlag{Name: "models-only", Aliases: []string{"m"}, Usage: "emit only nao_models.go (structs/enums); skip the CRUD queries"},
+							&cli.BoolFlag{Name: "models-only", Aliases: []string{"m"}, Usage: "emit only nao_models.go (structs/enums); skip the CRUD and dynamic query layers"},
 						},
 						Action: func(_ context.Context, c *cli.Command) error {
 							return genRun(c, "go")
@@ -265,7 +267,13 @@ func genRun(c *cli.Command, lang string) error {
 			if err != nil {
 				return cli.Exit("gen: "+err.Error(), 1)
 			}
-			outputs = append(outputs, output{"nao_queries.go", queries, "// Code generated "})
+			dyn, err := golanggen.GenerateDyn(f, info, opts)
+			if err != nil {
+				return cli.Exit("gen: "+err.Error(), 1)
+			}
+			outputs = append(outputs,
+				output{"nao_queries.go", queries, "// Code generated "},
+				output{"nao_dyn.go", dyn, "// Code generated "})
 		}
 	case "sqlite":
 		code, err := sqlitegen.Generate(f, info, sqlitegen.Options{Source: filepath.Base(file)})

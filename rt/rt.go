@@ -2,7 +2,9 @@
 // gen. It is the only non-stdlib import generated code is allowed
 // (decision D03): a nullable value type, the database handle interface,
 // a transaction helper, an opener that applies the SQLite pragmas the
-// generated SQL assumes, and a prepared-statement cache.
+// generated SQL assumes, a prepared-statement cache, and the dynamic
+// query layer (query.go) — typed column handles, predicates and options
+// as inert data, and their deterministic SQL interpreter (D28-D34).
 //
 // The package registers no driver. The application chooses one (any
 // database/sql SQLite driver) and passes its name to Open, so rt itself

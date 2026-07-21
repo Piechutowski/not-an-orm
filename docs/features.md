@@ -46,7 +46,7 @@ is exhaustive (D32, the shape rule):
 |---|---|---|---|
 | nothing — fixed shapes | generated CRUD (`UserGet`, …) | [CRUD](#p2--default-crud) | v0 `DONE` |
 | values only | real SQL in a declared `Select` block, `:named` params, typed function generated, prepare-validated | [SEL](#p3--custom-queries-static-shapes-select--view) | v1 |
-| filter / order / limit | typed predicate **values** (`UserEmail.Eq(x)`) over generated column handles | [DYN](#p4--dynamic-queries-runtime-composition) | v2 |
+| filter / order / limit | typed predicate **values** (`UserCols.Email.Eq(x)`) over generated column handles | [DYN](#p4--dynamic-queries-runtime-composition) | v2 `DONE` |
 | the shape itself | quarantined report engine over the exported schema catalog | [RPT](#p6--ad-hoc-user-defined-queries) | LATER |
 
 The long tail an ORM covers with its query DSL lands in tier two, where
@@ -120,18 +120,18 @@ are illustrative):
 **Problem.** Filters chosen by user input at runtime (search screens,
 admin lists) can't be enumerated at build time. **Answer.** Functional
 options as inert data (D28): predicates are values over generated typed
-column handles, one interpreter renders SQL + named args, statements
-cached by text (D31).
+column handles, one interpreter renders SQL + positional args in
+lockstep (D42), statements cached by text (D31).
 
 | ID | Feature | Slice | Status |
 |---|---|---|---|
-| DYN-1 | Runtime core: `Pred[M]`, `And/Or/Not`, deterministic interpreter | v2 | planned (D28) |
-| DYN-2 | Generated handles: `UserEmail = rt.Column[User, string]{…}`; operators `Eq/Ne/In/Gt/Lt/Like/IsNull/Desc/EqCol…` once in the runtime | v2 | planned (D29) |
-| DYN-3 | Generated wrappers for value-less options: `UserLimit(n)`, `UserOffset(n)`, `UserOrderBy(…)` | v2 | planned (D30) |
-| DYN-4 | Verbs sharing predicates: `UserQuery`, `UserCount`, `UserDeleteWhere`, `UserUpdateWhere` + typed `Assign[M]` setters (partial updates land here) | v2 | planned (D32) |
-| DYN-5 | Keyset pagination first-class (`UserAfter(key)`); OFFSET degrades linearly | v2 | planned (D34) |
-| DYN-6 | Prepared-statement cache keyed by rendered SQL (LRU) | v0 scaffold | `DONE` in `rt`; wired in v2 (D31) |
-| DYN-7 | vet rule: flat-name handle collisions (two table-column pairs → one Go name) | v2 | planned (D29) |
+| DYN-1 | Runtime core: `Pred[M]`, `And/Or/Not`, `Raw` escape hatch, deterministic interpreter, positional `?` binding | v2 | `DONE` (D28, D42) |
+| DYN-2 | Generated handles, one set per model: `UserCols.Email` (`rt.Column[User, string]`; nullable columns `rt.NullColumn` with `IsNull`/`SetNull`); operators `Eq/Ne/In/Gt/Lt/Like/IsNull/Desc/EqCol…` once in the runtime | v2 | `DONE` (D29) |
+| DYN-3 | Generated wrappers for value-less options: `UserLimit(n)`, `UserOffset(n)`, `UserOrderBy(…)`, `UserAfter(…)`, `UserDistinct()`, `UserSet(…)` | v2 | `DONE` (D30) |
+| DYN-4 | Verbs sharing predicates: `UserQuery`, `UserCount`, `UserExists`, `UserDeleteWhere`, `UserUpdateWhere` + typed `Assign[M]` setters (partial updates land here) | v2 | `DONE` (D32) |
+| DYN-5 | Keyset pagination first-class (`UserAfter(key)`, lexicographic expansion, mixed directions); OFFSET degrades linearly | v2 | `DONE` (D34) |
+| DYN-6 | Prepared-statement cache keyed by rendered SQL (LRU), wired via `Queries.WithCache` | v2 | `DONE` (D31) |
+| DYN-7 | vet rule `dynname`: generated package-scope name collisions (handle sets, option wrappers vs models/enums) | v2 | `DONE` (D29) |
 
 ## P5 — Associations
 

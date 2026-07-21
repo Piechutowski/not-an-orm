@@ -2,7 +2,7 @@
 
 // Package itest contains data models generated from schema.dbml.
 //
-// Integration-test fixture for the v0 CRUD generator.
+// Integration-test fixture for the generated query surface.
 package itest
 
 import (

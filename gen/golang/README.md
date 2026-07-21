@@ -1,17 +1,22 @@
-# dbml gen — Go model generation
+# nao gen go — Go code generation
 
-Generates `dbml_models.go` from a checked DBML file: one struct per table,
-one string-typed enum per DBML enum, `db` and `json` struct tags.
+Generates three sibling files from a checked (E)DBML file:
+
+| File | Contents |
+|---|---|
+| `nao_models.go` | one struct per table, one string-typed enum per DBML enum, `db`/`json` tags ([gen.go](gen.go)) |
+| `nao_queries.go` | the fixed-shape CRUD surface: `UserGet`, `UserGetMany`, `UserGetBy*`, `UserList`, `UserCreate`, `UserUpdate`, `UserDelete` over a `Queries` handle ([queries.go](queries.go), D15-D17) |
+| `nao_dyn.go` | the dynamic query layer: typed column handles (`UserCols.Email`), option wrappers (`UserLimit`, `UserOrderBy`, ...), predicate-driven verbs (`UserQuery`, `UserCount`, `UserExists`, `UserDeleteWhere`, `UserUpdateWhere`) ([dyn.go](dyn.go), D28-D34) |
 
 ```sh
-dbml gen --out ./models [--package models] schema.dbml
+nao gen go --out ./models --package models schema.edbml
 ```
 
 The output is deterministic (source order), depends only on the standard
-library, is gofmt-clean by construction (everything passes through
-`go/format.Source`), and starts with the machine-readable
-`// Code generated ... DO NOT EDIT.` marker. `dbml gen` refuses to
-overwrite a `dbml_models.go` that lacks that marker.
+library plus the `rt` runtime package (D03), is gofmt-clean by
+construction (everything passes through `go/format.Source`), and starts
+with the machine-readable `// Code generated ... DO NOT EDIT.` marker.
+`nao gen` refuses to overwrite a file that lacks that marker.
 
 ## Notes become doc comments
 
@@ -43,7 +48,8 @@ the table in [`types.go`](types.go).
 | `decimal`, `numeric`, `money` | `string` (exact; money never rides a float) |
 | `bool`, `boolean` | `bool` |
 | `varchar`, `char`, `text` family, `citext`, `string`, `uuid` | `string` |
-| `date`, `time*`, `timestamp*`, `datetime` | `time.Time` |
+| `date`, `timestamp*`, `datetime` | `time.Time` |
+| `time`, `timetz` (time of day) | `string` (SQLite has no time type; stored as TEXT) |
 | `json`, `jsonb` | `json.RawMessage` |
 | `bytea`, `blob` family, `binary`, `varbinary` | `[]byte` |
 | enum type (optionally schema-qualified) | generated `type X string` + constants |
@@ -53,26 +59,38 @@ the table in [`types.go`](types.go).
 A column is required (`T`) when it has `not null`, `pk`/`primary key`
 (setting or legacy flag), `increment`, or is covered by a `[pk]` index —
 primary keys imply NOT NULL in SQL. Everything else is nullable and
-generated as a pointer (`*T`) with `,omitempty` in its json tag. Types
-where `nil` already expresses NULL (`[]byte`, `json.RawMessage`) are never
-pointered.
+generated as `rt.Null[T]` — a value plus a validity bit, never a pointer
+(D13). Types where `nil` already expresses NULL (`[]byte`,
+`json.RawMessage`) stay bare. In the dynamic layer, nullable columns get
+`rt.NullColumn` handles: comparisons still take plain `T`, NULL is
+explicit (`IsNull`, `SetNull`).
 
 ## Naming
 
 `snake_case` → `PascalCase` with the Go initialisms convention
-(`user_id` → `UserID`, `api_key` → `APIKey`). Non-`public` schemas prefix
-the type (`core.users` → `CoreUsers`) so equal base names cannot collide.
-A leading digit is prefixed (`2fa_codes` → `X2faCodes`). Two names mapping
-to the same Go identifier is a generation error.
+(`user_id` → `UserID`, `api_key` → `APIKey`). Model names are the
+singular of the table name (`users` → `User`, D10), overridable with
+`[model: '...']`. Non-`public` schemas prefix the type
+(`core.users` → `CoreUser`) so equal base names cannot collide.
+A leading digit is prefixed (`2fa_codes` → `X2faCode`). Two declarations
+mapping to the same Go identifier is a generation error; the vet
+`dynname` rule reports the dynamic layer's concatenation collisions
+(`user_limits` → model `UserLimit` = users' `UserLimit` wrapper) ahead
+of time with both origins named.
 
 ## Tests
 
-`gen_test.go` enforces four invariants over the golden corpus in
-[`testdata/`](testdata/) (self-references, junction table with composite
-pk, polymorphic association, one-to-one, partial composition with
-overrides, nullable FKs, closure table, hostile names, every note level):
+`gen_test.go` and `queries_test.go` enforce five invariants over the
+golden corpus in [`testdata/`](testdata/) (self-references, junction
+table with composite pk, polymorphic association, one-to-one, partial
+composition with overrides, nullable FKs, closure table, hostile names,
+every note level):
 
-1. **golden** — byte-exact output per schema (`-update` to regenerate);
+1. **golden** — byte-exact output per schema and per file (`-update` to
+   regenerate);
 2. **gofmt-stable** — formatting a golden file is the identity;
 3. **compiles** — every golden file is built with the real Go toolchain;
-4. **header** — the first line matches `^// Code generated .* DO NOT EDIT\.$`.
+4. **header** — the first line matches `^// Code generated .* DO NOT EDIT\.$`;
+5. **prepares** — every CRUD statement and a kitchen-sink render of every
+   dynamic verb `EXPLAIN`s against the DDL `gen/sqlite` emits from the
+   same schema, on a real SQLite (D02).

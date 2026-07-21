@@ -129,13 +129,24 @@ decision is changed by editing this file, not by drifting away from it.
   (the scope replacement), append conditionally, and can be inspected,
   cached and tested — a closure can only be executed. A fluent facade could
   be layered on later; the value core is the irreversible part.
-- **D29 — Typed handles via a generic runtime column type.** The runtime
-  defines `Column[M, T]` once (phantom model type `M`, value type `T`);
-  the generator emits one-line vars: `UserEmail = rt.Column[User, string]{...}`.
-  Operators (`Eq/Ne/In/Gt/Like/Desc/EqCol/...`) live once in the runtime,
-  specialized per column kind. Phantom `M` makes cross-model mixups a
-  compile error (`Pred[Post]` cannot enter a `User` query). Vet must flag
-  flat-name collisions (two table-column pairs producing one Go name).
+- **D29 — Typed handles via a generic runtime column type, namespaced
+  per model.** The runtime defines `Column[M, T]` once (phantom model
+  type `M`, value type `T`; `NullColumn[M, T]` adds the explicit NULL
+  operations `IsNull`/`SetNull` — comparisons take plain `T`, never
+  `Null[T]`, because SQL comparison with NULL matches nothing anyway).
+  The generator emits one handle *set* per model: `UserCols.Email`,
+  a single package var whose fields mirror the struct's. (Originally
+  flat one-line vars, `UserEmail` — edited 2026-07-21, v2 build session:
+  flat names collide with ordinary schemas. `Table orders { status
+  order_status }`, the idiomatic enum pattern, mints `OrderStatus` twice —
+  once as the enum type, once as the handle — and broke the project's own
+  itest fixture. The namespace costs one selector and removes the whole
+  collision class.) Operators (`Eq/Ne/In/Gt/Like/Desc/EqCol/...`) live
+  once in the runtime. Phantom `M` makes cross-model mixups a compile
+  error (`Pred[Post]` cannot enter a `User` query). The remaining
+  package-scope names (`UserCols`, the D30 wrappers) can still collide
+  with model/enum names: generation fails loudly and the vet `dynname`
+  rule reports every collision with both origins named.
 - **D30 — The generics wall is papered by codegen.** Go cannot infer `M`
   for value-less options (`Limit`), so the generator emits per-model
   wrappers: `UserLimit(n)`, `UserOffset(n)`. Subject-first everywhere.
@@ -161,6 +172,25 @@ decision is changed by editing this file, not by drifting away from it.
   with v2, not "later"): `OFFSET` degrades linearly with depth. SQLite is
   not a small-apps database — the solo dev with 100M rows is the thesis —
   so scale features are in scope by default.
+- **D42 — Dynamic SQL binds positional `?` placeholders** (2026-07-21, v2
+  build session; refines D15, which continues to govern static CRUD). A
+  dynamic predicate has no stable column-derived parameter name — the
+  same column can appear twice in one tree, and independently-built
+  fragments must not be able to collide — so parameter hygiene belongs
+  to the interpreter, and positional placeholders make collision
+  impossible by construction. Interpreter guarantees, all in service of
+  determinism (D31) and loudness (D16's principle): `LIMIT`/`OFFSET`
+  values bind as parameters, so page size never changes the SQL text
+  (one cached statement per shape); `In()` over the empty set renders
+  constant false (`NOT IN` constant true) instead of invalid SQL;
+  `After` renders the lexicographic keyset expansion and errors without
+  an `OrderBy` or with the wrong key arity; the empty (zero-value)
+  `Pred` vanishes from `And`/`Or`/`Not`/`WHERE`, so conditional
+  building needs no special cases; `DeleteWhere`/`UpdateWhere` whose
+  predicates all vanish are errors, never whole-table statements —
+  affecting every row is written out loud (`rt.Raw("1 = 1")`). The
+  statement cache binds to the handle `WithCache` saw; `WithTx` drops
+  it, because cached statements belong to the outer connection.
 - **D35 — N+1 is reframed, batched loaders stay.** In embedded SQLite a
   query is a function call, not a network round trip — the loop-of-queries
   pattern is officially acceptable (SQLite's own docs, Fossil's practice),

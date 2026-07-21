@@ -55,6 +55,16 @@ func generateQueries(t *testing.T, dbmlPath string) []byte {
 	return out
 }
 
+func generateDyn(t *testing.T, dbmlPath string) []byte {
+	t.Helper()
+	f, info := parseChecked(t, dbmlPath)
+	out, err := GenerateDyn(f, info, Options{Package: "models", Source: filepath.Base(dbmlPath)})
+	if err != nil {
+		t.Fatalf("GenerateDyn: %v", err)
+	}
+	return out
+}
+
 func compareGolden(t *testing.T, got []byte, golden string) {
 	t.Helper()
 	if *update {
@@ -82,6 +92,7 @@ func TestGolden(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			compareGolden(t, generate(t, dbml), filepath.Join("testdata", name+".go.golden"))
 			compareGolden(t, generateQueries(t, dbml), filepath.Join("testdata", name+"_queries.go.golden"))
+			compareGolden(t, generateDyn(t, dbml), filepath.Join("testdata", name+"_dyn.go.golden"))
 		})
 	}
 }
@@ -155,8 +166,11 @@ func TestGoldenCompiles(t *testing.T) {
 		}
 		base := filepath.Base(strings.TrimSuffix(golden, ".go.golden"))
 		outName := "nao_models.go"
-		if strings.HasSuffix(base, "_queries") {
+		switch {
+		case strings.HasSuffix(base, "_queries"):
 			base, outName = strings.TrimSuffix(base, "_queries"), "nao_queries.go"
+		case strings.HasSuffix(base, "_dyn"):
+			base, outName = strings.TrimSuffix(base, "_dyn"), "nao_dyn.go"
 		}
 		pkgDir := filepath.Join(dir, "p", base)
 		if err := os.MkdirAll(pkgDir, 0o755); err != nil {

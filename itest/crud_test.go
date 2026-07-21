@@ -292,7 +292,7 @@ func TestStmtCache(t *testing.T) {
 	if _, err := cache.Prepare(ctx, db, userListSQL); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := cache.Prepare(ctx, db, userCountSQL); err != nil {
+	if _, err := cache.Prepare(ctx, db, userDeleteSQL); err != nil {
 		t.Fatal(err)
 	}
 	if n := cache.Len(); n != 2 {

@@ -41,8 +41,8 @@ Locked decisions (docs/decisions.md) still bind until edited.
 | `edbml/ast`, `edbml/parser` | syntax only — no semantic judgment, multi-error recovery |
 | `edbml/check` | semantics + `check.Info` symbol table (partials expanded, refs resolved) — **all generators consume Info, never re-derive from the AST** |
 | `edbml/vet` | analyzer framework + rules; docs in `edbml/vet/RULES.md` |
-| `gen/golang`, `gen/sqlite` | generators (structs + CRUD queries, DDL+seeds); shared corpus `gen/testdata/*.dbml` |
-| `rt` | hand-written runtime for generated code: `Null[T]`, `DBTX`, `Tx`, `Open` (pragmas), `StmtCache` — stdlib-only, registers no driver |
+| `gen/golang`, `gen/sqlite` | generators (structs + CRUD queries + dynamic query layer, DDL+seeds); shared corpus `gen/testdata/*.dbml` |
+| `rt` | hand-written runtime for generated code: `Null[T]`, `DBTX`, `Tx`, `Open` (pragmas), `StmtCache`, dynamic-query core (`Column[M,T]`, `Pred[M]`, options + interpreter, D28-D34) — stdlib-only, registers no driver |
 | `inflect` | deterministic singularizer behind model naming (D10); `edbml/vet/modelname` flags its guesses |
 | `itest` | integration fixture: checked-in generated files (drift-tested, `go generate ./itest` refreshes) + real-SQLite CRUD round trips (mattn, **test-only** cgo dep, D25) |
 | `cmd/nao` | the one binary (D41): thin urfave/cli wrapper over everything above, `nao lsp` serves the language server — all of it stays library-callable (D04) |
