@@ -17,13 +17,23 @@ import (
 // Queries bundles the generated CRUD over one database handle: a
 // *sql.DB, a *sql.Tx, or anything else satisfying rt.DBTX.
 type Queries struct {
-	db rt.DBTX
+	db    rt.DBTX
+	cache *rt.StmtCache
 }
 
 // New returns Queries running on db.
 func New(db rt.DBTX) *Queries { return &Queries{db: db} }
 
-// WithTx returns a copy of q running on tx.
+// WithCache returns a copy of q whose dynamic queries (Query, Count,
+// Exists, DeleteWhere, UpdateWhere) run through cache: identical option
+// shapes render identical SQL, prepared once (D31). Bind a cache to a
+// *sql.DB, never a transaction.
+func (q *Queries) WithCache(cache *rt.StmtCache) *Queries {
+	return &Queries{db: q.db, cache: cache}
+}
+
+// WithTx returns a copy of q running on tx. The statement cache does not
+// follow: its statements are prepared on the outer handle (D31).
 func (q *Queries) WithTx(tx *sql.Tx) *Queries { return &Queries{db: tx} }
 
 // Tx runs fn inside a transaction: the Queries handed to fn joins it, a
@@ -101,23 +111,14 @@ func (q *Queries) PostList(ctx context.Context) ([]Post, error) {
 	return out, rows.Err()
 }
 
-const postCountSQL = `SELECT count(*) FROM "posts"`
-
-// PostCount reports the number of posts rows.
-func (q *Queries) PostCount(ctx context.Context) (int64, error) {
-	var n int64
-	err := q.db.QueryRowContext(ctx, postCountSQL).Scan(&n)
-	return n, err
-}
-
 const postCreateSQL = `INSERT INTO "posts" ("title", "status", "body", "published_at") VALUES (:title, :status, :body, :published_at) RETURNING "id", "title", "status", "body", "published_at"`
 
 // PostCreateParams are the caller-supplied columns of PostCreate. The
 // auto-increment key and defaulted columns are the database's job (D16).
 type PostCreateParams struct {
 	// Shown in lists and in the HTML title tag
-	Title  string     `db:"title" json:"title"`
-	Status PostStatus `db:"status" json:"status"`
+	Title  string      `db:"title" json:"title"`
+	Status EPostStatus `db:"status" json:"status"`
 	// Raw markdown source.
 	// Rendered to HTML at publish time.
 	Body        rt.Null[string]    `db:"body" json:"body"`
@@ -141,8 +142,8 @@ const postUpdateSQL = `UPDATE "posts" SET "title" = :title, "status" = :status, 
 // outside the primary key.
 type PostUpdateParams struct {
 	// Shown in lists and in the HTML title tag
-	Title  string     `db:"title" json:"title"`
-	Status PostStatus `db:"status" json:"status"`
+	Title  string      `db:"title" json:"title"`
+	Status EPostStatus `db:"status" json:"status"`
 	// Raw markdown source.
 	// Rendered to HTML at publish time.
 	Body        rt.Null[string]    `db:"body" json:"body"`
@@ -249,15 +250,6 @@ func (q *Queries) TagList(ctx context.Context) ([]Tag, error) {
 		out = append(out, v)
 	}
 	return out, rows.Err()
-}
-
-const tagCountSQL = `SELECT count(*) FROM "tags"`
-
-// TagCount reports the number of tags rows.
-func (q *Queries) TagCount(ctx context.Context) (int64, error) {
-	var n int64
-	err := q.db.QueryRowContext(ctx, tagCountSQL).Scan(&n)
-	return n, err
 }
 
 const tagCreateSQL = `INSERT INTO "tags" ("id", "name") VALUES (:id, :name) RETURNING "id", "name"`

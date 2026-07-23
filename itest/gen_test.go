@@ -13,9 +13,9 @@ import (
 
 	"github.com/Piechutowski/not-an-orm/edbml/check"
 	"github.com/Piechutowski/not-an-orm/edbml/diag"
+	"github.com/Piechutowski/not-an-orm/edbml/parser"
 	golanggen "github.com/Piechutowski/not-an-orm/gen/golang"
 	sqlitegen "github.com/Piechutowski/not-an-orm/gen/sqlite"
-	"github.com/Piechutowski/not-an-orm/edbml/parser"
 )
 
 // TestGeneratedFilesCurrent proves the checked-in generated files match
@@ -41,6 +41,10 @@ func TestGeneratedFilesCurrent(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	dyn, err := golanggen.GenerateDyn(f, info, opts)
+	if err != nil {
+		t.Fatal(err)
+	}
 	schema, err := sqlitegen.Generate(f, info, sqlitegen.Options{Source: "schema.dbml"})
 	if err != nil {
 		t.Fatal(err)
@@ -52,6 +56,7 @@ func TestGeneratedFilesCurrent(t *testing.T) {
 	}{
 		{"nao_models.go", models},
 		{"nao_queries.go", queries},
+		{"nao_dyn.go", dyn},
 		{"nao_schema.sql", schema},
 	} {
 		got, err := os.ReadFile(tc.file)

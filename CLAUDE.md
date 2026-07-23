@@ -41,8 +41,8 @@ Locked decisions (docs/decisions.md) still bind until edited.
 | `edbml/ast`, `edbml/parser` | syntax only — no semantic judgment, multi-error recovery |
 | `edbml/check` | semantics + `check.Info` symbol table (partials expanded, refs resolved) — **all generators consume Info, never re-derive from the AST** |
 | `edbml/vet` | analyzer framework + rules; docs in `edbml/vet/RULES.md` |
-| `gen/golang`, `gen/sqlite` | generators (structs + CRUD queries, DDL+seeds); shared corpus `gen/testdata/*.dbml` |
-| `rt` | hand-written runtime for generated code: `Null[T]`, `DBTX`, `Tx`, `Open` (pragmas), `StmtCache` — stdlib-only, registers no driver |
+| `gen/golang`, `gen/sqlite` | generators (structs + CRUD queries + dynamic query layer, DDL+seeds); shared corpus `gen/testdata/*.dbml` |
+| `rt` | hand-written runtime for generated code: `Null[T]`, `DBTX`, `Tx`, `Open` (pragmas), `StmtCache`, dynamic-query core (`Column[M,T]`, `Pred[M]`, options + interpreter, D28-D34) — stdlib-only, registers no driver |
 | `inflect` | deterministic singularizer behind model naming (D10); `edbml/vet/modelname` flags its guesses |
 | `itest` | integration fixture: checked-in generated files (drift-tested, `go generate ./itest` refreshes) + real-SQLite CRUD round trips (mattn, **test-only** cgo dep, D25) |
 | `cmd/nao` | the one binary (D41): thin urfave/cli wrapper over everything above, `nao lsp` serves the language server — all of it stays library-callable (D04) |
@@ -75,7 +75,7 @@ Locked decisions (docs/decisions.md) still bind until edited.
 
 - Naming is subject-first, verb-last everywhere — hand-written code
   included: `UserGet`, `UserCreateParams`, `PostCommentsLoad`,
-  `OrderStatusPending` (D09). Internals follow suit: `columnCheck`,
+  `EOrderStatusPending` (D09). Internals follow suit: `columnCheck`,
   `tableEmit`, `identScan`, `caseMatch`. Deliberate carve-outs: Go-mandated
   interface methods (`String`, `MarshalJSON`, `Scan`, `Pos`, `End`),
   `New*`/`is*`/`has*` idioms, stdlib-parallel APIs where the package name
@@ -98,7 +98,11 @@ Locked decisions (docs/decisions.md) still bind until edited.
 - No sqlite3 CLI; use python3's sqlite3 module (3.45) for executing SQL.
 - The upstream cross-check (`conformance/refcheck/setup.sh`) rebuilds the
   reference compiler from git history and runs under bun.
-- Rails guide reference copies: `docs/reference/rails/` (`fetch.sh` refreshes).
+- ORM doc reference copies: `docs/reference/rails/` (Rails guides),
+  `docs/reference/ecto/` (Ecto guides + extracted module docs),
+  `docs/reference/bob/` (Bob website docs — nearest Go relative) and
+  `docs/reference/sqlboiler/` (SQLBoiler README — Bob's predecessor);
+  each has a `fetch.sh` that refreshes it.
 
 ## Working style expected by the maintainer
 

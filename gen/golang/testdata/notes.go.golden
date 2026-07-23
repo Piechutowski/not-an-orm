@@ -13,15 +13,15 @@ import (
 	"time"
 )
 
-// PostStatus is the post_status enum.
-type PostStatus string
+// EPostStatus is the post_status enum.
+type EPostStatus string
 
 const (
 	// Not yet visible to readers
-	PostStatusDraft PostStatus = "draft"
+	EPostStatusDraft EPostStatus = "draft"
 	// Live on the site
-	PostStatusPublished PostStatus = "published"
-	PostStatusArchived  PostStatus = "archived"
+	EPostStatusPublished EPostStatus = "published"
+	EPostStatusArchived  EPostStatus = "archived"
 )
 
 // Post is a row of the posts table.
@@ -30,8 +30,8 @@ const (
 type Post struct {
 	ID int64 `db:"id" json:"id"`
 	// Shown in lists and in the HTML title tag
-	Title  string     `db:"title" json:"title"`
-	Status PostStatus `db:"status" json:"status"`
+	Title  string      `db:"title" json:"title"`
+	Status EPostStatus `db:"status" json:"status"`
 	// Raw markdown source.
 	// Rendered to HTML at publish time.
 	Body        rt.Null[string]    `db:"body" json:"body"`

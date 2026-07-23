@@ -7,11 +7,13 @@
 //	UserGetMany(ctx, ids)         single-column keys only; one IN query
 //	UserGetByEmail(ctx, email)    per unique column
 //	UserList(ctx)                 every row
-//	UserCount(ctx)                SELECT count(*)
 //	UserCreate(ctx, params)       INSERT ... RETURNING; params exclude the
 //	                              auto-increment key and defaulted columns
 //	UserUpdate(ctx, id, params)   rewrites every non-key column, RETURNING
 //	UserDelete(ctx, id)           rt.ErrNotFound when nothing matched
+//
+// UserCount moved to the dynamic layer (dyn.go) when predicates arrived:
+// one variadic method covers both the bare and the filtered count (D32).
 //
 // Tables without a primary key get only List/Create/Count (D17). SQL uses
 // named placeholders (:email) bound with sql.Named — the placeholder is
@@ -71,13 +73,15 @@ type tableModel struct {
 
 // fieldPlan is one column resolved into Go and SQL naming.
 type fieldPlan struct {
-	col     *ast.Column
-	colName string // DBML/SQL column name
-	goField string // exported struct field, e.g. "EditorID"
-	goType  string // full field type, e.g. "rt.Null[int64]"
-	param   string // SQL parameter name, e.g. "editor_id"
-	arg     string // positional Go argument name, e.g. "editorID"
+	col      *ast.Column
+	colName  string // DBML/SQL column name
+	goField  string // exported struct field, e.g. "EditorID"
+	goType   string // full field type, e.g. "rt.Null[int64]"
+	baseType string // goType without the Null wrapper, e.g. "int64"
+	param    string // SQL parameter name, e.g. "editor_id"
+	arg      string // positional Go argument name, e.g. "editorID"
 
+	nullable   bool // NULL-admitting column: its dyn handle is a NullColumn
 	increment  bool
 	hasDefault bool
 	unique     bool // column-level [unique] or a single-column unique index
@@ -232,8 +236,9 @@ func fieldBuild(g *generator, cd *check.ColumnDef, pkFromIndex map[string]bool, 
 	if typ.imp != "" {
 		g.imports[typ.imp] = true
 	}
+	nullable := isNullable(col) && !pkFromIndex[colName]
 	goType := typ.name
-	if isNullable(col) && !pkFromIndex[colName] && !typ.nilable {
+	if nullable && !typ.nilable {
 		goType = "rt.Null[" + goType + "]"
 	}
 
@@ -248,8 +253,10 @@ func fieldBuild(g *generator, cd *check.ColumnDef, pkFromIndex map[string]bool, 
 		colName:    colName,
 		goField:    goField,
 		goType:     goType,
+		baseType:   typ.name,
 		param:      param,
 		arg:        argName(goField),
+		nullable:   nullable,
 		increment:  hasSetting(col, "increment"),
 		hasDefault: col.Settings.Get("default") != nil,
 		unique:     hasSetting(col, "unique"),
@@ -384,10 +391,6 @@ func (t *tableModel) listSQL() string {
 	return "SELECT " + t.columnList() + " FROM " + sqlIdentQuote(t.sqlName)
 }
 
-func (t *tableModel) countSQL() string {
-	return "SELECT count(*) FROM " + sqlIdentQuote(t.sqlName)
-}
-
 func (t *tableModel) createSQL() string {
 	fields := t.createFields()
 	if len(fields) == 0 {
@@ -482,13 +485,23 @@ func (e *queryEmitter) prologue() {
 	e.out.WriteString(`// Queries bundles the generated CRUD over one database handle: a
 // *sql.DB, a *sql.Tx, or anything else satisfying rt.DBTX.
 type Queries struct {
-	db rt.DBTX
+	db    rt.DBTX
+	cache *rt.StmtCache
 }
 
 // New returns Queries running on db.
 func New(db rt.DBTX) *Queries { return &Queries{db: db} }
 
-// WithTx returns a copy of q running on tx.
+// WithCache returns a copy of q whose dynamic queries (Query, Count,
+// Exists, DeleteWhere, UpdateWhere) run through cache: identical option
+// shapes render identical SQL, prepared once (D31). Bind a cache to a
+// *sql.DB, never a transaction.
+func (q *Queries) WithCache(cache *rt.StmtCache) *Queries {
+	return &Queries{db: q.db, cache: cache}
+}
+
+// WithTx returns a copy of q running on tx. The statement cache does not
+// follow: its statements are prepared on the outer handle (D31).
 func (q *Queries) WithTx(tx *sql.Tx) *Queries { return &Queries{db: tx} }
 
 // Tx runs fn inside a transaction: the Queries handed to fn joins it, a
@@ -535,7 +548,6 @@ func (e *queryEmitter) tableEmit(t *tableModel) {
 		e.getByEmit(t, f, lower, tbl)
 	}
 	e.listEmit(t, lower, tbl)
-	e.countEmit(t, lower, tbl)
 	e.createEmit(t, lower, tbl)
 	if len(t.pk) > 0 {
 		if len(t.nonPK()) > 0 {
@@ -606,19 +618,16 @@ func (e *queryEmitter) listEmit(t *tableModel, lower, tbl string) {
 
 // rowsScan emits the shared rows-loop tail of List and GetMany.
 func (e *queryEmitter) rowsScan(t *tableModel, lower string) {
-	b := &e.body
-	fmt.Fprintf(b, "\tif err != nil {\n\t\treturn nil, err\n\t}\n\tdefer rows.Close()\n")
-	fmt.Fprintf(b, "\tvar out []%s\n\tfor rows.Next() {\n", t.model)
-	fmt.Fprintf(b, "\t\tv, err := %sScan(rows)\n\t\tif err != nil {\n\t\t\treturn nil, err\n\t\t}\n\t\tout = append(out, v)\n\t}\n", lower)
-	fmt.Fprintf(b, "\treturn out, rows.Err()\n}\n\n")
+	rowsScanEmit(&e.body, t.model, lower)
 }
 
-func (e *queryEmitter) countEmit(t *tableModel, lower, tbl string) {
-	b := &e.body
-	fmt.Fprintf(b, "const %sCountSQL = `%s`\n\n", lower, t.countSQL())
-	fmt.Fprintf(b, "// %sCount reports the number of %s rows.\n", t.model, tbl)
-	fmt.Fprintf(b, "func (q *Queries) %sCount(ctx context.Context) (int64, error) {\n", t.model)
-	fmt.Fprintf(b, "\tvar n int64\n\terr := q.db.QueryRowContext(ctx, %sCountSQL).Scan(&n)\n\treturn n, err\n}\n\n", lower)
+// rowsScanEmit writes the rows-loop tail shared by every multi-row query
+// (List, GetMany, and the dynamic Query verb).
+func rowsScanEmit(b *strings.Builder, model, lower string) {
+	fmt.Fprintf(b, "\tif err != nil {\n\t\treturn nil, err\n\t}\n\tdefer rows.Close()\n")
+	fmt.Fprintf(b, "\tvar out []%s\n\tfor rows.Next() {\n", model)
+	fmt.Fprintf(b, "\t\tv, err := %sScan(rows)\n\t\tif err != nil {\n\t\t\treturn nil, err\n\t\t}\n\t\tout = append(out, v)\n\t}\n", lower)
+	fmt.Fprintf(b, "\treturn out, rows.Err()\n}\n\n")
 }
 
 func (e *queryEmitter) createEmit(t *tableModel, lower, tbl string) {

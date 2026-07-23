@@ -17,13 +17,23 @@ import (
 // Queries bundles the generated CRUD over one database handle: a
 // *sql.DB, a *sql.Tx, or anything else satisfying rt.DBTX.
 type Queries struct {
-	db rt.DBTX
+	db    rt.DBTX
+	cache *rt.StmtCache
 }
 
 // New returns Queries running on db.
 func New(db rt.DBTX) *Queries { return &Queries{db: db} }
 
-// WithTx returns a copy of q running on tx.
+// WithCache returns a copy of q whose dynamic queries (Query, Count,
+// Exists, DeleteWhere, UpdateWhere) run through cache: identical option
+// shapes render identical SQL, prepared once (D31). Bind a cache to a
+// *sql.DB, never a transaction.
+func (q *Queries) WithCache(cache *rt.StmtCache) *Queries {
+	return &Queries{db: q.db, cache: cache}
+}
+
+// WithTx returns a copy of q running on tx. The statement cache does not
+// follow: its statements are prepared on the outer handle (D31).
 func (q *Queries) WithTx(tx *sql.Tx) *Queries { return &Queries{db: tx} }
 
 // Tx runs fn inside a transaction: the Queries handed to fn joins it, a
@@ -107,15 +117,6 @@ func (q *Queries) UserList(ctx context.Context) ([]User, error) {
 		out = append(out, v)
 	}
 	return out, rows.Err()
-}
-
-const userCountSQL = `SELECT count(*) FROM "users"`
-
-// UserCount reports the number of users rows.
-func (q *Queries) UserCount(ctx context.Context) (int64, error) {
-	var n int64
-	err := q.db.QueryRowContext(ctx, userCountSQL).Scan(&n)
-	return n, err
 }
 
 const userCreateSQL = `INSERT INTO "users" ("email", "name", "bio") VALUES (:email, :name, :bio) RETURNING "id", "email", "name", "bio", "created_at"`
@@ -245,15 +246,6 @@ func (q *Queries) OrderList(ctx context.Context) ([]Order, error) {
 	return out, rows.Err()
 }
 
-const orderCountSQL = `SELECT count(*) FROM "orders"`
-
-// OrderCount reports the number of orders rows.
-func (q *Queries) OrderCount(ctx context.Context) (int64, error) {
-	var n int64
-	err := q.db.QueryRowContext(ctx, orderCountSQL).Scan(&n)
-	return n, err
-}
-
 const orderCreateSQL = `INSERT INTO "orders" ("user_id", "total", "placed_at") VALUES (:user_id, :total, :placed_at) RETURNING "id", "user_id", "status", "total", "placed_at"`
 
 // OrderCreateParams are the caller-supplied columns of OrderCreate. The
@@ -280,7 +272,7 @@ const orderUpdateSQL = `UPDATE "orders" SET "user_id" = :user_id, "status" = :st
 // outside the primary key.
 type OrderUpdateParams struct {
 	UserID   int32              `db:"user_id" json:"user_id"`
-	Status   OrderStatus        `db:"status" json:"status"`
+	Status   EOrderStatus       `db:"status" json:"status"`
 	Total    string             `db:"total" json:"total"`
 	PlacedAt rt.Null[time.Time] `db:"placed_at" json:"placed_at"`
 }
@@ -348,15 +340,6 @@ func (q *Queries) UserTagList(ctx context.Context) ([]UserTag, error) {
 		out = append(out, v)
 	}
 	return out, rows.Err()
-}
-
-const userTagCountSQL = `SELECT count(*) FROM "user_tags"`
-
-// UserTagCount reports the number of user_tags rows.
-func (q *Queries) UserTagCount(ctx context.Context) (int64, error) {
-	var n int64
-	err := q.db.QueryRowContext(ctx, userTagCountSQL).Scan(&n)
-	return n, err
 }
 
 const userTagCreateSQL = `INSERT INTO "user_tags" ("user_id", "tag") VALUES (:user_id, :tag) RETURNING "user_id", "tag"`

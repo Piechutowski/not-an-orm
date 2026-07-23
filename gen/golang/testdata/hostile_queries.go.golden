@@ -17,13 +17,23 @@ import (
 // Queries bundles the generated CRUD over one database handle: a
 // *sql.DB, a *sql.Tx, or anything else satisfying rt.DBTX.
 type Queries struct {
-	db rt.DBTX
+	db    rt.DBTX
+	cache *rt.StmtCache
 }
 
 // New returns Queries running on db.
 func New(db rt.DBTX) *Queries { return &Queries{db: db} }
 
-// WithTx returns a copy of q running on tx.
+// WithCache returns a copy of q whose dynamic queries (Query, Count,
+// Exists, DeleteWhere, UpdateWhere) run through cache: identical option
+// shapes render identical SQL, prepared once (D31). Bind a cache to a
+// *sql.DB, never a transaction.
+func (q *Queries) WithCache(cache *rt.StmtCache) *Queries {
+	return &Queries{db: q.db, cache: cache}
+}
+
+// WithTx returns a copy of q running on tx. The statement cache does not
+// follow: its statements are prepared on the outer handle (D31).
 func (q *Queries) WithTx(tx *sql.Tx) *Queries { return &Queries{db: tx} }
 
 // Tx runs fn inside a transaction: the Queries handed to fn joins it, a
@@ -99,15 +109,6 @@ func (q *Queries) UserList(ctx context.Context) ([]User, error) {
 		out = append(out, v)
 	}
 	return out, rows.Err()
-}
-
-const userCountSQL = `SELECT count(*) FROM "users"`
-
-// UserCount reports the number of users rows.
-func (q *Queries) UserCount(ctx context.Context) (int64, error) {
-	var n int64
-	err := q.db.QueryRowContext(ctx, userCountSQL).Scan(&n)
-	return n, err
 }
 
 const userCreateSQL = `INSERT INTO "users" ("id") VALUES (:id) RETURNING "id"`
@@ -208,15 +209,6 @@ func (q *Queries) CoreUserList(ctx context.Context) ([]CoreUser, error) {
 	return out, rows.Err()
 }
 
-const coreUserCountSQL = `SELECT count(*) FROM "core_users"`
-
-// CoreUserCount reports the number of core.users rows.
-func (q *Queries) CoreUserCount(ctx context.Context) (int64, error) {
-	var n int64
-	err := q.db.QueryRowContext(ctx, coreUserCountSQL).Scan(&n)
-	return n, err
-}
-
 const coreUserCreateSQL = `INSERT INTO "core_users" ("id", "api_key", "homepage_url", "http_status", "full name", "precision_value", "balance", "kind", "type", "func") VALUES (:id, :api_key, :homepage_url, :http_status, :full_name, :precision_value, :balance, :kind, :type, :func) RETURNING "id", "api_key", "homepage_url", "http_status", "full name", "precision_value", "balance", "kind", "type", "func"`
 
 // CoreUserCreateParams are the caller-supplied columns of CoreUserCreate. The
@@ -230,7 +222,7 @@ type CoreUserCreateParams struct {
 	FullName       string           `db:"full name" json:"full name"`
 	PrecisionValue rt.Null[float64] `db:"precision_value" json:"precision_value"`
 	Balance        rt.Null[string]  `db:"balance" json:"balance"`
-	Kind           CoreAuditKind    `db:"kind" json:"kind"`
+	Kind           ECoreAuditKind   `db:"kind" json:"kind"`
 	// Column named like a Go keyword
 	Type rt.Null[string] `db:"type" json:"type"`
 	Func rt.Null[int32]  `db:"func" json:"func"`
@@ -265,7 +257,7 @@ type CoreUserUpdateParams struct {
 	FullName       string           `db:"full name" json:"full name"`
 	PrecisionValue rt.Null[float64] `db:"precision_value" json:"precision_value"`
 	Balance        rt.Null[string]  `db:"balance" json:"balance"`
-	Kind           CoreAuditKind    `db:"kind" json:"kind"`
+	Kind           ECoreAuditKind   `db:"kind" json:"kind"`
 	// Column named like a Go keyword
 	Type rt.Null[string] `db:"type" json:"type"`
 	Func rt.Null[int32]  `db:"func" json:"func"`
@@ -339,15 +331,6 @@ func (q *Queries) X2faCodeList(ctx context.Context) ([]X2faCode, error) {
 		out = append(out, v)
 	}
 	return out, rows.Err()
-}
-
-const x2faCodeCountSQL = `SELECT count(*) FROM "2fa_codes"`
-
-// X2faCodeCount reports the number of 2fa_codes rows.
-func (q *Queries) X2faCodeCount(ctx context.Context) (int64, error) {
-	var n int64
-	err := q.db.QueryRowContext(ctx, x2faCodeCountSQL).Scan(&n)
-	return n, err
 }
 
 const x2faCodeCreateSQL = `INSERT INTO "2fa_codes" ("code", "user_id", "expires_at") VALUES (:code, :user_id, :expires_at) RETURNING "code", "user_id", "expires_at"`

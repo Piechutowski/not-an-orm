@@ -1,0 +1,461 @@
+# Associations
+
+In this document, "Internal data" represents data or logic hardcoded into your Elixir code. "External data" means data that comes from the user via forms, APIs, and often need to be normalized, pruned, and validated via `Ecto.Changeset`. We also include examples of migrations, according to [`EctoSQL`](https://hexdocs.pm/ecto_sql).
+
+## Has many / belongs to
+{: .col-2}
+
+### The has many association
+
+```elixir
+defmodule Movie do
+  use Ecto.Schema
+
+  schema "movies" do
+    field :title, :string
+    field :release_date, :date
+    has_many :characters, Character
+  end
+end
+```
+
+### The belongs to association
+
+```elixir
+defmodule Character do
+  use Ecto.Schema
+
+  schema "characters" do
+    field :name, :string
+    field :age, :integer
+    belongs_to :movie, Movie
+  end
+end
+```
+
+### The migration
+
+```elixir
+defmodule MyApp.Migrations.CreateMoviesAndCharacters do
+  use Ecto.Migration
+
+  def change do
+    create table("movies") do
+      add :title, :string, null: false
+      add :release_date, :date
+      timestamps()
+    end
+
+    # The foreign key is in the belongs_to schema
+    create table("characters") do
+      add :name, :string, null: false
+      add :age, :integer
+      add :movie_id,
+          references(:movies, on_delete: :delete_all),
+          null: false
+
+      timestamps()
+    end
+  end
+end
+```
+
+## Has one / belongs to
+{: .col-2}
+
+### The has one association
+
+```elixir
+defmodule Movie do
+  use Ecto.Schema
+
+  schema "movies" do
+    field :title, :string
+    field :release_date, :date
+    has_one :screenplay, Screenplay
+  end
+end
+```
+
+### The belongs association
+
+```elixir
+defmodule Screenplay do
+  use Ecto.Schema
+
+  schema "screenplays" do
+    field :lead_writer, :string
+    belongs_to :movie, Movie
+  end
+end
+```
+
+### The migration
+
+```elixir
+defmodule MyApp.Migrations.CreateMoviesAndPlays do
+  use Ecto.Migration
+
+  def change do
+    create table("movies") do
+      add :title, :string, null: false
+      add :release_date, :date
+      timestamps()
+    end
+
+    # The foreign key is in the belongs_to schema
+    create table("screenplays") do
+      add :lead_writer, :string, null: false
+      add :movie_id,
+          references(:movies, on_delete: :delete_all),
+          null: false
+
+      timestamps()
+    end
+  end
+end
+```
+
+## Many to many
+{: .col-2}
+
+### Through a join table
+
+#### The first schema
+
+```elixir
+defmodule Movie do
+  use Ecto.Schema
+
+  schema "movies" do
+    field :title, :string
+    field :release_date, :date
+    many_to_many :actors, Actor, join_through: "movies_actors"
+  end
+end
+```
+{: .wrap}
+
+#### The second schema
+
+```elixir
+defmodule Actor do
+  use Ecto.Schema
+
+  schema "actors" do
+    field :name, :string
+    many_to_many :movies, Movie, join_through: "movies_actors"
+  end
+end
+```
+{: .wrap}
+
+### Through a join schema
+
+#### The first schema
+
+```elixir
+defmodule Movie do
+  use Ecto.Schema
+
+  schema "movies" do
+    many_to_many :actors, Actor, join_through: MovieActor
+  end
+end
+```
+{: .wrap}
+
+#### The second schema
+
+```elixir
+defmodule Actor do
+  use Ecto.Schema
+
+  schema "actors" do
+    many_to_many :movies, Movie, join_through: MovieActor
+  end
+end
+```
+{: .wrap}
+
+#### The join schema
+
+```elixir
+defmodule MovieActor do
+  use Ecto.Schema
+
+  @primary_key false
+  schema "movies_actors" do
+    belongs_to :movie, Movie
+    belongs_to :actor, Actor
+    timestamps()
+  end
+end
+```
+{: .wrap}
+
+### The migration
+
+```elixir
+defmodule MyApp.Migrations.CreateMoviesAndActors do
+  use Ecto.Migration
+
+  def change do
+    create table("movies") do
+      timestamps()
+    end
+
+    create table("actors") do
+      timestamps()
+    end
+  end
+end
+```
+
+#### Without a join schema, the join table can only have the foreign keys
+
+```elixir
+defmodule MyApp.Migrations.CreateJoinTable do
+  use Ecto.Migration
+
+  def change do
+    create table("movies_actors", primary_key: false) do
+      add :movie_id,
+          references(:movies, on_delete: :delete_all),
+          null: false
+
+      add :actor_id,
+          references(:actors, on_delete: :delete_all),
+          null: false
+    end
+
+    create unique_index(:movies_actors, [:movie_id, :actor_id])
+  end
+end
+```
+
+#### With a join schema, the join table can have other columns like timestamps
+
+```elixir
+defmodule MyApp.Migrations.CreateJoinTable do
+  use Ecto.Migration
+
+  def change do
+    create table("movies_actors", primary_key: false) do
+      add :movie_id,
+          references(:movies, on_delete: :delete_all),
+          null: false
+
+      add :actor_id,
+          references(:actors, on_delete: :delete_all),
+          null: false
+
+      timestamps()
+    end
+
+    create unique_index(:movies_actors, [:movie_id, :actor_id])
+  end
+end
+```
+
+## Querying associated records
+{: .col-2}
+
+### Preloading in the parent record query
+
+```elixir
+query = from m in Movie, preload: :characters
+Repo.all(query)
+```
+
+### Preloading when parent records are already loaded
+
+```elixir
+movies = Repo.all(Movie)
+movies = Repo.preload(movies, :characters)
+```
+
+### Preloading with join to generate a single query
+
+#### Regular join
+
+```elixir
+query =
+  from m in Movie,
+  join: c in Character,
+  on: m.id == c.movie_id,
+  preload: [characters: c]
+Repo.all(query)
+```
+
+#### Join using `assoc`
+
+```elixir
+query =
+  from m in Movie,
+  join: c in assoc(m, :characters),
+  preload: [characters: c]
+Repo.all(query)
+```
+
+## Inserting associated records
+
+### Inserting a child record to an existing parent
+
+#### Using internal data
+
+```elixir
+Repo.get_by!(Movie, title: "The Shawshank Redemption")
+|> Ecto.build_assoc(:characters, name: "Red", age: 60)
+|> Repo.insert()
+```
+
+#### Using external data
+
+```elixir
+# Params represent data from a form, API, CLI, etc
+params = %{"name" => "Red", "age" => 60}
+
+Repo.get_by!(Movie, title: "The Shawshank Redemption")
+|> Ecto.build_assoc(:characters)
+|> cast(params, [:name, :age])
+|> Repo.insert()
+```
+
+### Inserting parent and child records together
+
+#### Using internal data
+
+```elixir
+Repo.insert(
+  %Movie{
+    title: "The Shawshank Redemption",
+    release_date: ~D[1994-10-14],
+    characters: [
+      %Character{name: "Andy Dufresne", age: 50},
+      %Character{name: "Red", age: 60}
+    ]
+  }
+)
+```
+
+#### Using external data
+
+```elixir
+# Params represent data from a form, API, CLI, etc
+params = %{
+  "title" => "Shawshank Redemption",
+  "release_date" => "1994-10-14",
+  "characters" =>
+    [
+      %{"name" => "Andy Dufresne", "age" => "50"},
+      %{"name" => "Red", "age" => "60"}
+    ]
+}
+
+%Movie{}
+|> cast(params, [:title, :release_date])
+|> cast_assoc(:characters)
+|> Repo.insert()
+```
+
+## Updating associated records
+
+### Updating records individually
+
+#### For individual updates, fetch and update records directly
+
+```elixir
+movie =
+  Repo.get_by!(Movie, title: "The Shawshank Redemption")
+  |> Repo.preload(:screenplay)
+
+movie.screenplay
+|> change(%{lead_writer: "Frank Darabont"})
+|> Repo.update()
+```
+
+### Updating all associated records, using internal data
+
+#### Using `Ecto.Changeset.put_assoc/3`
+
+```elixir
+movie =
+  Repo.get_by!(Movie, title: "The Shawshank Redemption")
+  |> Repo.preload(:characters)
+
+IO.inspect(movie.characters)
+#=> [%Character{name: "Andy Dufresne", age: 50},
+#=>  %Character{name: "Red", age: 60}]
+
+characters =
+  Enum.map(movie.characters, fn character ->
+    change(character, age: character.age + 1)
+  end)
+
+{:ok, movie} =
+  movie
+  |> change()
+  |> put_assoc(:characters, characters)
+  |> Repo.update()
+
+movie.characters |> Enum.map(&(&1.age)) |> IO.inspect
+#=> [51, 61]
+```
+
+Note: the example above performs the same operation on all entries,
+therefore it can be written as a query. Queries should be preferred
+when possible as they avoid loading all data into memory and are
+more performant. See next example.
+
+#### Using `c:Ecto.Repo.update_all/3`
+
+```elixir
+movie = Repo.get_by!(Movie, title: "The Shawshank Redemption")
+
+movie
+# Query to load all characters associated to a given movie
+|> Ecto.assoc(:characters)
+|> Repo.update_all(inc: [age: 1])
+```
+
+### Updating all associated records, using external data
+
+#### Using `Ecto.Changeset.cast_assoc/3`
+
+```elixir
+# Params represent data from a form, API, CLI, etc
+params = %{
+  "director" => "Frank Darabont",
+  "characters" => [
+    %{"id" => 1, "name" => "Andy Dufresne"},
+    %{"name" => "Red", "age" => 60}
+  ]
+}
+
+movie =
+  Repo.get_by!(Movie, title: "The Shawshank Redemption")
+  |> Repo.preload(:characters)
+
+IO.inspect(movie.characters)
+#=> [%{id: 1, name: "Andy", age: 50}]
+
+{:ok, movie} =
+  movie
+  |> cast(params, ["director"])
+  |> cast_assoc(:characters)
+  |> Repo.update()
+
+IO.inspect(movie.characters)
+#=> [%{id: 1, name: "Andy Dufresne", age: 50},
+#=>  %{id: 2, name: "Red", age: 60}]
+```
+
+When using `Ecto.Changeset.cast_assoc/3`:
+
+* Entries without ID are added.
+* Existing entries with matching IDs are updated.
+* Existing entries without matching IDs will raise
+  but it can be configured using `:on_replace`.
+* Additional options are supported to customize
+  casting, sorting, and deletion

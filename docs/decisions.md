@@ -79,13 +79,18 @@ decision is changed by editing this file, not by drifting away from it.
 ## Generated Go
 
 - **D09 — Naming is subject-first, verb-last**: `UserGet`, `UserList`,
-  `UserCreateParams`, `PostCommentsLoad`, `OrderStatusPending`. Autocomplete
+  `UserCreateParams`, `PostCommentsLoad`, `EOrderStatusPending`. Autocomplete
   and search group by model, then filter by verb.
 - **D10 — Models are singular** (`User` from `users`) via a small
   deterministic inflector; `[model: 'Person']` overrides; vet warns when the
   inflector guessed. Go names use the initialisms convention (`UserID`).
-- **D11 — Enums are string-backed by default** (`type OrderStatus string`,
-  constants `OrderStatusPending`), stored as TEXT. Int-backed
+- **D11 — Enums are string-backed by default, E-prefixed**
+  (`type EOrderStatus string`, constants `EOrderStatusPending`), stored
+  as TEXT. The `E` prefix (edited 2026-07-21, with D29) keeps enum
+  types out of the flat column-handle namespace: `Table orders { status
+  order_status }` mints the handle `OrderStatus` and the enum type
+  `EOrderStatus` instead of colliding — the tax lands on enum mentions,
+  not on query code, where names are typed most. Int-backed
   (`[repr: int]`) is opt-in and generates the full conversion suite
   (String, Valuer, Scanner, JSON) — the int must never escape the process.
 - **D12 — No enum CHECK constraints by default** (adding a value must not
@@ -129,13 +134,30 @@ decision is changed by editing this file, not by drifting away from it.
   (the scope replacement), append conditionally, and can be inspected,
   cached and tested — a closure can only be executed. A fluent facade could
   be layered on later; the value core is the irreversible part.
-- **D29 — Typed handles via a generic runtime column type.** The runtime
-  defines `Column[M, T]` once (phantom model type `M`, value type `T`);
-  the generator emits one-line vars: `UserEmail = rt.Column[User, string]{...}`.
-  Operators (`Eq/Ne/In/Gt/Like/Desc/EqCol/...`) live once in the runtime,
-  specialized per column kind. Phantom `M` makes cross-model mixups a
-  compile error (`Pred[Post]` cannot enter a `User` query). Vet must flag
-  flat-name collisions (two table-column pairs producing one Go name).
+- **D29 — Typed handles via a generic runtime column type, flat
+  one-line vars.** The runtime defines `Column[M, T]` once (phantom
+  model type `M`, value type `T`; `NullColumn[M, T]` adds the explicit
+  NULL operations `IsNull`/`SetNull` — comparisons take plain `T`,
+  never `Null[T]`, because SQL comparison with NULL matches nothing
+  anyway); the generator emits one-line vars:
+  `UserEmail = rt.Column[User, string]{...}`. Flat `Model+Field` names
+  live in the same package scope as everything else generated, and the
+  idiomatic enum pattern — `Table orders { status order_status }` —
+  minted `OrderStatus` twice (enum type and handle); that is resolved
+  on the *enum* side: enum types carry an `E` prefix (see the D11
+  edit), keeping the query-side names, the ones typed most, shortest.
+  (History: originally flat, briefly namespaced as `UserCols.Email`
+  during the 2026-07-21 build session when the collision surfaced;
+  reverted to flat + `E` the same day at the maintainer's direction —
+  short names and few dots outrank collision-proofing by namespace.)
+  Operators (`Eq/Ne/In/Gt/Like/Desc/EqCol/...`) live once in the
+  runtime. Phantom `M` makes cross-model mixups a compile error
+  (`Pred[Post]` cannot enter a `User` query). The remaining
+  concatenation collisions — a handle vs another table's model or
+  handle (`users.foo_bar` vs `user_foos.bar`), a model vs a D30
+  wrapper (`user_limits` vs `UserLimit`) — are rare: generation fails
+  loudly, never renames silently, and the vet `dynname` rule reports
+  every collision with both origins named.
 - **D30 — The generics wall is papered by codegen.** Go cannot infer `M`
   for value-less options (`Limit`), so the generator emits per-model
   wrappers: `UserLimit(n)`, `UserOffset(n)`. Subject-first everywhere.
@@ -161,6 +183,25 @@ decision is changed by editing this file, not by drifting away from it.
   with v2, not "later"): `OFFSET` degrades linearly with depth. SQLite is
   not a small-apps database — the solo dev with 100M rows is the thesis —
   so scale features are in scope by default.
+- **D42 — Dynamic SQL binds positional `?` placeholders** (2026-07-21, v2
+  build session; refines D15, which continues to govern static CRUD). A
+  dynamic predicate has no stable column-derived parameter name — the
+  same column can appear twice in one tree, and independently-built
+  fragments must not be able to collide — so parameter hygiene belongs
+  to the interpreter, and positional placeholders make collision
+  impossible by construction. Interpreter guarantees, all in service of
+  determinism (D31) and loudness (D16's principle): `LIMIT`/`OFFSET`
+  values bind as parameters, so page size never changes the SQL text
+  (one cached statement per shape); `In()` over the empty set renders
+  constant false (`NOT IN` constant true) instead of invalid SQL;
+  `After` renders the lexicographic keyset expansion and errors without
+  an `OrderBy` or with the wrong key arity; the empty (zero-value)
+  `Pred` vanishes from `And`/`Or`/`Not`/`WHERE`, so conditional
+  building needs no special cases; `DeleteWhere`/`UpdateWhere` whose
+  predicates all vanish are errors, never whole-table statements —
+  affecting every row is written out loud (`rt.Raw("1 = 1")`). The
+  statement cache binds to the handle `WithCache` saw; `WithTx` drops
+  it, because cached statements belong to the outer connection.
 - **D35 — N+1 is reframed, batched loaders stay.** In embedded SQLite a
   query is a function call, not a network round trip — the loop-of-queries
   pattern is officially acceptable (SQLite's own docs, Fossil's practice),

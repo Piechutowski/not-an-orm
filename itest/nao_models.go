@@ -2,7 +2,7 @@
 
 // Package itest contains data models generated from schema.dbml.
 //
-// Integration-test fixture for the v0 CRUD generator.
+// Integration-test fixture for the generated query surface.
 package itest
 
 import (
@@ -10,14 +10,14 @@ import (
 	"time"
 )
 
-// OrderStatus is the order_status enum.
-type OrderStatus string
+// EOrderStatus is the order_status enum.
+type EOrderStatus string
 
 const (
-	OrderStatusPending OrderStatus = "pending"
-	OrderStatusShipped OrderStatus = "shipped"
+	EOrderStatusPending EOrderStatus = "pending"
+	EOrderStatusShipped EOrderStatus = "shipped"
 	// Terminal state
-	OrderStatusDelivered OrderStatus = "delivered"
+	EOrderStatusDelivered EOrderStatus = "delivered"
 )
 
 // User is a row of the users table.
@@ -34,7 +34,7 @@ type User struct {
 type Order struct {
 	ID       int32              `db:"id" json:"id"`
 	UserID   int32              `db:"user_id" json:"user_id"`
-	Status   OrderStatus        `db:"status" json:"status"`
+	Status   EOrderStatus       `db:"status" json:"status"`
 	Total    string             `db:"total" json:"total"`
 	PlacedAt rt.Null[time.Time] `db:"placed_at" json:"placed_at"`
 }

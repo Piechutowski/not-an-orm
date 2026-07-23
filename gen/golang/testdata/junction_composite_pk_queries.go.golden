@@ -17,13 +17,23 @@ import (
 // Queries bundles the generated CRUD over one database handle: a
 // *sql.DB, a *sql.Tx, or anything else satisfying rt.DBTX.
 type Queries struct {
-	db rt.DBTX
+	db    rt.DBTX
+	cache *rt.StmtCache
 }
 
 // New returns Queries running on db.
 func New(db rt.DBTX) *Queries { return &Queries{db: db} }
 
-// WithTx returns a copy of q running on tx.
+// WithCache returns a copy of q whose dynamic queries (Query, Count,
+// Exists, DeleteWhere, UpdateWhere) run through cache: identical option
+// shapes render identical SQL, prepared once (D31). Bind a cache to a
+// *sql.DB, never a transaction.
+func (q *Queries) WithCache(cache *rt.StmtCache) *Queries {
+	return &Queries{db: q.db, cache: cache}
+}
+
+// WithTx returns a copy of q running on tx. The statement cache does not
+// follow: its statements are prepared on the outer handle (D31).
 func (q *Queries) WithTx(tx *sql.Tx) *Queries { return &Queries{db: tx} }
 
 // Tx runs fn inside a transaction: the Queries handed to fn joins it, a
@@ -99,15 +109,6 @@ func (q *Queries) UserList(ctx context.Context) ([]User, error) {
 		out = append(out, v)
 	}
 	return out, rows.Err()
-}
-
-const userCountSQL = `SELECT count(*) FROM "users"`
-
-// UserCount reports the number of users rows.
-func (q *Queries) UserCount(ctx context.Context) (int64, error) {
-	var n int64
-	err := q.db.QueryRowContext(ctx, userCountSQL).Scan(&n)
-	return n, err
 }
 
 const userCreateSQL = `INSERT INTO "users" ("id") VALUES (:id) RETURNING "id"`
@@ -216,15 +217,6 @@ func (q *Queries) RoleList(ctx context.Context) ([]Role, error) {
 	return out, rows.Err()
 }
 
-const roleCountSQL = `SELECT count(*) FROM "roles"`
-
-// RoleCount reports the number of roles rows.
-func (q *Queries) RoleCount(ctx context.Context) (int64, error) {
-	var n int64
-	err := q.db.QueryRowContext(ctx, roleCountSQL).Scan(&n)
-	return n, err
-}
-
 const roleCreateSQL = `INSERT INTO "roles" ("id", "name") VALUES (:id, :name) RETURNING "id", "name"`
 
 // RoleCreateParams are the caller-supplied columns of RoleCreate. The
@@ -311,15 +303,6 @@ func (q *Queries) UserRoleList(ctx context.Context) ([]UserRole, error) {
 		out = append(out, v)
 	}
 	return out, rows.Err()
-}
-
-const userRoleCountSQL = `SELECT count(*) FROM "user_roles"`
-
-// UserRoleCount reports the number of user_roles rows.
-func (q *Queries) UserRoleCount(ctx context.Context) (int64, error) {
-	var n int64
-	err := q.db.QueryRowContext(ctx, userRoleCountSQL).Scan(&n)
-	return n, err
 }
 
 const userRoleCreateSQL = `INSERT INTO "user_roles" ("user_id", "role_id") VALUES (:user_id, :role_id) RETURNING "user_id", "role_id", "granted_at"`

@@ -3,13 +3,13 @@
 // Package models contains data models generated from polymorphic.dbml.
 package models
 
-// CommentableType is the commentable_type enum.
-type CommentableType string
+// ECommentableType is the commentable_type enum.
+type ECommentableType string
 
 const (
-	CommentableTypePost  CommentableType = "post"
-	CommentableTypePhoto CommentableType = "photo"
-	CommentableTypeVideo CommentableType = "video"
+	ECommentableTypePost  ECommentableType = "post"
+	ECommentableTypePhoto ECommentableType = "photo"
+	ECommentableTypeVideo ECommentableType = "video"
 )
 
 // Comment is a row of the comments table.
@@ -17,8 +17,8 @@ const (
 // Polymorphic: (commentable_type, commentable_id) addresses a row
 // in whichever table the type names. No FK can enforce this.
 type Comment struct {
-	ID              int64           `db:"id" json:"id"`
-	CommentableType CommentableType `db:"commentable_type" json:"commentable_type"`
+	ID              int64            `db:"id" json:"id"`
+	CommentableType ECommentableType `db:"commentable_type" json:"commentable_type"`
 	// ID within the table selected by commentable_type
 	CommentableID int64  `db:"commentable_id" json:"commentable_id"`
 	Body          string `db:"body" json:"body"`

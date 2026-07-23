@@ -98,7 +98,7 @@ func (g *generator) enumTypesCollect() error {
 	g.enumTypes = map[string]string{}
 	seen := map[string]string{}
 	for _, e := range g.info.Enums {
-		name, err := structName(e.Decl.Name.Schema(), e.Decl.Name.Base())
+		name, err := enumTypeName(e.Decl.Name.Schema(), e.Decl.Name.Base())
 		if err != nil {
 			return fmt.Errorf("enum %s: %w", e.Decl.Name.String(), err)
 		}
@@ -109,6 +109,19 @@ func (g *generator) enumTypesCollect() error {
 		g.enumTypes[e.Key] = name
 	}
 	return nil
+}
+
+// enumTypeName derives the Go type of an enum: structName with an "E"
+// prefix (D11, edited with D29). The prefix keeps enum types out of the
+// flat handle namespace: 'Table orders { status order_status }' — the
+// idiomatic enum pattern — mints the handle OrderStatus and the enum
+// type EOrderStatus instead of colliding.
+func enumTypeName(schema, base string) (string, error) {
+	n, err := structName(schema, base)
+	if err != nil {
+		return "", err
+	}
+	return "E" + n, nil
 }
 
 /* ===== header: generated-code marker, package comment, imports ===== */
